@@ -7,14 +7,14 @@
   <style>
     :root {
       color-scheme: light;
-      --paper: #fffdf6;
-      --ink: #222222;
-      --muted: #6c6259;
-      --red: #c61822;
-      --red-dark: #96151c;
-      --gold: #d6a93c;
-      --green: #1f6a55;
-      --shadow: 0 28px 70px rgba(39, 28, 18, .28);
+      --paper: #ffffff;
+      --ink: #111111;
+      --muted: #5f6368;
+      --red: #1e3a5f;
+      --red-dark: #12345a;
+      --gold: #f6c400;
+      --green: #087a4d;
+      --shadow: 0 18px 45px rgba(0, 0, 0, .14);
     }
 
     * {
@@ -30,8 +30,9 @@
       font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at 16% 12%, rgba(255, 229, 172, .72), transparent 28%),
-        linear-gradient(135deg, #7f1d1d 0%, #c94b36 38%, #f4c95d 100%);
+        linear-gradient(90deg, rgba(246, 196, 0, .12) 0 1px, transparent 1px 100%),
+        linear-gradient(180deg, #ffffff 0%, #f4f4f2 100%);
+      background-size: 18px 18px, auto;
     }
 
     main {
@@ -44,7 +45,7 @@
       border-radius: 8px;
       background: var(--paper);
       box-shadow: var(--shadow);
-      border: 1px solid rgba(113, 54, 25, .18);
+      border: 1px solid #d7d7d7;
     }
 
     .header {
@@ -54,9 +55,9 @@
       color: #fff;
       text-align: center;
       background:
-        linear-gradient(135deg, rgba(255, 255, 255, .11), transparent 42%),
-        linear-gradient(180deg, var(--red) 0%, var(--red-dark) 100%);
-      border-bottom: 5px solid var(--gold);
+        linear-gradient(90deg, rgba(246, 196, 0, .16), transparent 48%),
+        var(--red-dark);
+      border-bottom: 6px solid var(--gold);
     }
 
     .header::before {
@@ -66,30 +67,28 @@
       left: 0;
       right: 0;
       height: 14px;
-      background: repeating-linear-gradient(90deg, rgba(255, 223, 130, .85) 0 18px, transparent 18px 36px);
-      opacity: .55;
+      background: var(--gold);
+      opacity: 1;
     }
 
-    .weekday {
-      margin-top: 22px;
-      font-size: clamp(1.65rem, 5vw, 2.35rem);
+    .solar-full-date {
+      margin: 20px auto 0;
+      max-width: 440px;
+      font-size: clamp(1.45rem, 4.6vw, 2.05rem);
       font-weight: 800;
+      line-height: 1.25;
       letter-spacing: 0;
-      text-transform: uppercase;
     }
 
     .solar-month {
-      margin-top: 4px;
-      font-size: 1.05rem;
-      font-weight: 600;
-      opacity: .92;
+      display: none;
     }
 
     .page {
       position: relative;
       padding: 18px 34px 30px;
       background:
-        linear-gradient(90deg, rgba(150, 80, 35, .05), transparent 12%, transparent 88%, rgba(150, 80, 35, .05)),
+        linear-gradient(90deg, rgba(0, 0, 0, .025), transparent 12%, transparent 88%, rgba(0, 0, 0, .025)),
         var(--paper);
     }
 
@@ -109,13 +108,12 @@
       display: block;
       margin: -6px 0 0;
       color: var(--red);
-      font-family: Georgia, "Times New Roman", serif;
+      font-family: Cambria, "Times New Roman", Times, serif;
       font-size: clamp(7.8rem, 30vw, 13rem);
-      font-weight: 900;
-      line-height: .82;
+      font-weight: 700;
+      line-height: .86;
       text-align: center;
       letter-spacing: 0;
-      text-shadow: 0 3px 0 rgba(150, 21, 28, .10);
     }
 
     .lunar-panel {
@@ -125,8 +123,8 @@
     .lunar-main {
       padding: 18px 18px 16px;
       text-align: center;
-      border: 2px solid rgba(198, 24, 34, .18);
-      background: #fff8e8;
+      border: 2px solid rgba(246, 196, 0, .95);
+      background: #fffdf2;
       border-radius: 8px;
     }
 
@@ -142,17 +140,122 @@
     .lunar-date {
       margin: 0;
       color: var(--green);
-      font-size: clamp(1.8rem, 7vw, 2.65rem);
-      font-weight: 900;
+      font-size: clamp(1.35rem, 4.8vw, 2rem);
+      font-weight: 800;
+      line-height: 1.35;
       letter-spacing: 0;
     }
 
-    .footer-note {
-      margin: 24px 0 0;
-      color: #7f332b;
-      font-size: .9rem;
-      line-height: 1.5;
+    .market-panel {
+      margin-top: 18px;
+      overflow: hidden;
+      border: 1px solid #d7d7d7;
+      border-radius: 4px;
+      background: #ffffff;
+    }
+
+    .market-title {
+      margin: 0;
+      padding: 10px 14px 8px;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .08em;
       text-align: center;
+      text-transform: uppercase;
+      background: var(--red-dark);
+      color: #ffffff;
+      border-bottom: 3px solid var(--gold);
+    }
+
+    .market-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      background: #d7d7d7;
+    }
+
+    .market-item {
+      min-width: 0;
+      padding: 12px 14px;
+      background: #ffffff;
+    }
+
+    .market-name {
+      margin: 0 0 5px;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .market-value {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1.15rem;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .market-change {
+      margin: 4px 0 0;
+      font-size: .86rem;
+      font-weight: 800;
+    }
+
+    .market-change.up {
+      color: #087a4d;
+    }
+
+    .market-change.down {
+      color: #c62828;
+    }
+
+    .market-change.flat {
+      color: var(--muted);
+    }
+
+    .quote-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .quote-side {
+      min-width: 0;
+    }
+
+    .quote-label {
+      margin: 0 0 3px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .quote-value {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1.08rem;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+
+    .quote-change {
+      margin: 4px 0 0;
+      font-size: .78rem;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .quote-unit {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: .74rem;
+      line-height: 1.35;
     }
 
     @media (max-width: 520px) {
@@ -168,6 +271,14 @@
         padding: 18px 20px 24px;
       }
 
+      .market-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quote-row {
+        grid-template-columns: 1fr 1fr;
+      }
+
     }
   </style>
 </head>
@@ -175,7 +286,7 @@
   <main aria-label="Tờ lịch hôm nay">
     <article class="calendar">
       <header class="header">
-        <div id="weekday" class="weekday">Thứ</div>
+        <div id="solarFullDate" class="solar-full-date">--</div>
         <div id="solarMonth" class="solar-month">Tháng</div>
       </header>
 
@@ -188,7 +299,91 @@
           </section>
         </div>
 
-        <p id="todayText" class="footer-note">Tự cập nhật theo ngày hiện tại tại Việt Nam.</p>
+        <section class="market-panel" aria-label="Chỉ số thị trường">
+          <p class="market-title">Chỉ số thị trường</p>
+          <div id="marketGrid" class="market-grid">
+            <div class="market-item">
+              <p class="market-name">Dow Jones</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">S&amp;P 500</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">VN-Index</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">HNX-Index</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="market-panel" aria-label="Giá vàng và ngoại tệ">
+          <p class="market-title">Vàng &amp; ngoại tệ</p>
+          <div id="quoteGrid" class="market-grid">
+            <div class="market-item">
+              <p class="market-name">Vàng miếng SJC</p>
+              <div class="quote-row">
+                <div class="quote-side">
+                  <p class="quote-label">Mua vào</p>
+                  <p class="quote-value">--</p>
+                </div>
+                <div class="quote-side">
+                  <p class="quote-label">Bán ra</p>
+                  <p class="quote-value">--</p>
+                </div>
+              </div>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">USD Vietcombank</p>
+              <div class="quote-row">
+                <div class="quote-side">
+                  <p class="quote-label">Mua vào</p>
+                  <p class="quote-value">--</p>
+                </div>
+                <div class="quote-side">
+                  <p class="quote-label">Bán ra</p>
+                  <p class="quote-value">--</p>
+                </div>
+              </div>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="market-panel" aria-label="Bitcoin và giá dầu">
+          <p class="market-title">Bitcoin &amp; dầu</p>
+          <div id="assetGrid" class="market-grid">
+            <div class="market-item">
+              <p class="market-name">Bitcoin</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">Ethereum</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">Dầu WTI</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">Dầu Brent</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+          </div>
+        </section>
       </section>
     </article>
   </main>
@@ -355,16 +550,140 @@
       const yy = today.getFullYear();
       const lunar = convertSolarToLunar(dd, mm, yy, TIME_ZONE);
       const monthName = new Intl.DateTimeFormat("vi-VN", { month: "long" }).format(today);
-      const fullDate = new Intl.DateTimeFormat("vi-VN", { dateStyle: "full" }).format(today);
+      const weekday = titleCaseWords(WEEKDAYS[today.getDay()]);
+      const lunarMonth = lunar.leap ? `${lunar.month} nhuận` : lunar.month;
+      const fullDate = `${weekday}, ngày ${dd} tháng ${mm} năm ${yy}.`;
+      const lunarFullDate = `Âm lịch: Ngày ${lunar.day} tháng ${lunarMonth} năm ${canChiYear(lunar.year)}.`;
 
-      document.getElementById("weekday").textContent = WEEKDAYS[today.getDay()];
+      document.getElementById("solarFullDate").textContent = fullDate;
       document.getElementById("solarMonth").textContent = `${monthName} năm ${yy}`;
       document.getElementById("solarDay").textContent = String(dd).padStart(2, "0");
-      document.getElementById("lunarDate").textContent = `${lunar.day}/${lunar.month}${lunar.leap ? " nhuận" : ""}`;
-      document.getElementById("todayText").textContent = fullDate.charAt(0).toUpperCase() + fullDate.slice(1);
+      document.getElementById("lunarDate").textContent = lunarFullDate;
+    }
+
+    function titleCaseWords(text) {
+      return text.replace(/\S+/g, (word) => word.charAt(0).toUpperCase() + word.slice(1));
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(value);
+    }
+
+    function renderMarkets(markets) {
+      renderMarketsToGrid("marketGrid", markets);
+    }
+
+    async function loadMarkets() {
+      try {
+        const response = await fetch("/api/markets", { cache: "no-store" });
+        if (!response.ok) throw new Error("Market data unavailable");
+        const data = await response.json();
+        renderMarkets(data.markets);
+      } catch (error) {
+        const grid = document.getElementById("marketGrid");
+        grid.innerHTML = `
+          <div class="market-item">
+            <p class="market-name">Chỉ số thị trường</p>
+            <p class="market-value">--</p>
+            <p class="market-change flat">Chạy bằng server local để tải dữ liệu</p>
+          </div>
+        `;
+      }
+    }
+
+    async function loadAssets() {
+      try {
+        const response = await fetch("/api/assets", { cache: "no-store" });
+        if (!response.ok) throw new Error("Asset data unavailable");
+        const data = await response.json();
+        renderMarketsToGrid("assetGrid", data.assets);
+      } catch (error) {
+        document.getElementById("assetGrid").innerHTML = `
+          <div class="market-item">
+            <p class="market-name">Bitcoin & dầu</p>
+            <p class="market-value">--</p>
+            <p class="market-change flat">Chạy bằng server local để tải dữ liệu</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderMarketsToGrid(gridId, items) {
+      const grid = document.getElementById(gridId);
+      grid.innerHTML = items.map((market) => {
+        const direction = market.changeAbs > 0 ? "up" : market.changeAbs < 0 ? "down" : "flat";
+        const sign = market.changeAbs > 0 ? "+" : "";
+        return `
+          <div class="market-item">
+            <p class="market-name">${market.name}</p>
+            <p class="market-value">${formatNumber(market.close)}</p>
+            <p class="market-change ${direction}">${sign}${formatNumber(market.changeAbs)} (${sign}${market.change.toFixed(2)}%)</p>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderQuoteCard(quote) {
+      return `
+        <div class="market-item">
+          <p class="market-name">${quote.name}</p>
+          <div class="quote-row">
+            <div class="quote-side">
+              <p class="quote-label">Mua vào</p>
+              <p class="quote-value">${quote.buy}</p>
+              ${renderQuoteChange(quote.buyChange, quote.changeLabel)}
+            </div>
+            <div class="quote-side">
+              <p class="quote-label">Bán ra</p>
+              <p class="quote-value">${quote.sell}</p>
+              ${renderQuoteChange(quote.sellChange, quote.changeLabel)}
+            </div>
+          </div>
+          <p class="quote-unit">${quote.unit} · ${quote.source}</p>
+        </div>
+      `;
+    }
+
+    function renderQuoteChange(change, fallbackText) {
+      if (!change) {
+        return `<p class="quote-change flat">${fallbackText || "Chưa có mốc so sánh"}</p>`;
+      }
+
+      const direction = change.value > 0 ? "up" : change.value < 0 ? "down" : "flat";
+      const sign = change.value > 0 ? "+" : "";
+      return `<p class="quote-change ${direction}">${sign}${formatNumber(change.value)} (${sign}${change.percent.toFixed(2)}%)</p>`;
+    }
+
+    async function loadQuotes() {
+      try {
+        const response = await fetch("/api/quotes", { cache: "no-store" });
+        if (!response.ok) throw new Error("Quote data unavailable");
+        const data = await response.json();
+        document.getElementById("quoteGrid").innerHTML = [
+          renderQuoteCard(data.gold),
+          renderQuoteCard(data.usd)
+        ].join("");
+      } catch (error) {
+        document.getElementById("quoteGrid").innerHTML = `
+          <div class="market-item">
+            <p class="market-name">Vàng & ngoại tệ</p>
+            <p class="market-value">--</p>
+            <p class="market-change flat">Chạy bằng server local để tải dữ liệu</p>
+          </div>
+        `;
+      }
     }
 
     render();
+    loadMarkets();
+    loadAssets();
+    loadQuotes();
+    setInterval(loadMarkets, 60 * 1000);
+    setInterval(loadAssets, 60 * 1000);
+    setInterval(loadQuotes, 5 * 60 * 1000);
   </script>
 </body>
 </html>
