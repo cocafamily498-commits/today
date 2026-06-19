@@ -146,6 +146,144 @@
       letter-spacing: 0;
     }
 
+    .weather-panel {
+      margin-top: 18px;
+      overflow: hidden;
+      border: 1px solid #d7d7d7;
+      border-radius: 4px;
+      background: #ffffff;
+    }
+
+    .weather-main {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+      padding: 16px 18px;
+      background:
+        linear-gradient(135deg, rgba(246, 196, 0, .16), transparent 42%),
+        linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+      border-bottom: 1px solid #d7d7d7;
+    }
+
+    .weather-icon {
+      display: grid;
+      place-items: center;
+      width: 78px;
+      height: 78px;
+      color: #d99a00;
+      border: 2px solid rgba(246, 196, 0, .86);
+      border-radius: 50%;
+      background: #fffdf2;
+    }
+
+    .weather-icon svg {
+      width: 48px;
+      height: 48px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .weather-icon-rain,
+    .weather-icon-drizzle {
+      color: #1f6fb2;
+      border-color: rgba(31, 111, 178, .42);
+      background: #f3f9ff;
+    }
+
+    .weather-icon-cloud,
+    .weather-icon-fog,
+    .weather-icon-partly-cloudy,
+    .weather-icon-cloud-moon {
+      color: #4f6f8f;
+      border-color: rgba(79, 111, 143, .34);
+      background: #f6f8fb;
+    }
+
+    .weather-icon-storm {
+      color: #6a4aa0;
+      border-color: rgba(106, 74, 160, .38);
+      background: #f8f5ff;
+    }
+
+    .weather-location {
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .weather-temp-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .weather-temp {
+      margin: 0;
+      color: var(--red);
+      font-size: clamp(2.7rem, 11vw, 4.25rem);
+      font-weight: 900;
+      line-height: .95;
+    }
+
+    .weather-condition {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1.04rem;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .weather-feels {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.35;
+    }
+
+    .weather-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      background: #d7d7d7;
+    }
+
+    .weather-stat {
+      min-width: 0;
+      padding: 11px 12px;
+      background: #ffffff;
+    }
+
+    .weather-stat-label {
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: .7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .weather-stat-value {
+      margin: 0;
+      color: var(--ink);
+      font-size: .98rem;
+      font-weight: 900;
+      line-height: 1.18;
+    }
+
+    .weather-stat-note {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: .72rem;
+      line-height: 1.25;
+    }
+
     .market-panel {
       margin-top: 18px;
       overflow: hidden;
@@ -258,6 +396,27 @@
       line-height: 1.35;
     }
 
+    .world-gold-row {
+      display: grid;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .world-gold-value {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1.08rem;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .world-gold-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: .74rem;
+      line-height: 1.35;
+    }
+
     @media (max-width: 520px) {
       body {
         padding: 16px;
@@ -279,6 +438,26 @@
         grid-template-columns: 1fr 1fr;
       }
 
+      .weather-main {
+        grid-template-columns: 70px minmax(0, 1fr);
+        gap: 12px;
+        padding: 14px;
+      }
+
+      .weather-icon {
+        width: 66px;
+        height: 66px;
+      }
+
+      .weather-icon svg {
+        width: 40px;
+        height: 40px;
+      }
+
+      .weather-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
     }
   </style>
 </head>
@@ -298,6 +477,21 @@
             <p id="lunarDate" class="lunar-date">--</p>
           </section>
         </div>
+
+        <section class="weather-panel" aria-label="Thời tiết hôm nay">
+          <div id="weatherCard">
+            <div class="weather-main">
+              <div class="weather-icon" aria-hidden="true"></div>
+              <div>
+                <p class="weather-location">Thời tiết</p>
+                <div class="weather-temp-row">
+                  <p class="weather-temp">--°</p>
+                  <p class="weather-condition">Đang tải</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section class="market-panel" aria-label="Chỉ số thị trường">
           <p class="market-title">Chỉ số thị trường</p>
@@ -553,7 +747,7 @@
       const weekday = titleCaseWords(WEEKDAYS[today.getDay()]);
       const lunarMonth = lunar.leap ? `${lunar.month} nhuận` : lunar.month;
       const fullDate = `${weekday}, ngày ${dd} tháng ${mm} năm ${yy}.`;
-      const lunarFullDate = `Âm lịch: Ngày ${lunar.day} tháng ${lunarMonth} năm ${canChiYear(lunar.year)}.`;
+      const lunarFullDate = `Ngày ${canChiDay(lunar.jd)}: Ngày ${lunar.day} tháng ${lunarMonth} năm ${canChiYear(lunar.year)}.`;
 
       document.getElementById("solarFullDate").textContent = fullDate;
       document.getElementById("solarMonth").textContent = `${monthName} năm ${yy}`;
@@ -570,6 +764,102 @@
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }).format(value);
+    }
+
+    function formatUsd(value) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(value);
+    }
+
+    function formatVnd(value) {
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+        maximumFractionDigits: 0
+      }).format(value);
+    }
+
+    function formatWeatherValue(value, suffix = "") {
+      return value === null || value === undefined ? "--" : `${value}${suffix}`;
+    }
+
+    function renderWeatherIcon(icon) {
+      const icons = {
+        sun: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>`,
+        moon: `<svg viewBox="0 0 24 24"><path d="M20 14.7A7.5 7.5 0 0 1 9.3 4 8.5 8.5 0 1 0 20 14.7Z"></path></svg>`,
+        cloud: `<svg viewBox="0 0 24 24"><path d="M17.5 19H8a6 6 0 1 1 5.6-8.1A4.5 4.5 0 1 1 17.5 19Z"></path></svg>`,
+        "partly-cloudy": `<svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"></circle><path d="M8 2v1"></path><path d="M8 13v1"></path><path d="M2 8h1"></path><path d="M13 8h1"></path><path d="m4.5 4.5.7.7"></path><path d="m10.8 10.8.7.7"></path><path d="M16.5 20H9a4.8 4.8 0 0 1 .7-9.5 5.8 5.8 0 0 1 10.6 3.2A3.5 3.5 0 0 1 16.5 20Z"></path></svg>`,
+        "cloud-moon": `<svg viewBox="0 0 24 24"><path d="M19 8.8A5.5 5.5 0 0 1 13.2 3 6.4 6.4 0 0 0 12 9.9"></path><path d="M17.5 20H8.2a5.2 5.2 0 1 1 4.9-7A4 4 0 1 1 17.5 20Z"></path></svg>`,
+        rain: `<svg viewBox="0 0 24 24"><path d="M17.5 17H8a6 6 0 1 1 5.6-8.1A4.5 4.5 0 1 1 17.5 17Z"></path><path d="M8 20v2"></path><path d="M12 19v2"></path><path d="M16 20v2"></path></svg>`,
+        drizzle: `<svg viewBox="0 0 24 24"><path d="M17.5 17H8a6 6 0 1 1 5.6-8.1A4.5 4.5 0 1 1 17.5 17Z"></path><path d="M9 20h.01"></path><path d="M13 20h.01"></path><path d="M17 20h.01"></path></svg>`,
+        storm: `<svg viewBox="0 0 24 24"><path d="M17.5 16H8a6 6 0 1 1 5.6-8.1A4.5 4.5 0 1 1 17.5 16Z"></path><path d="m13 14-3 5h4l-2 3"></path></svg>`,
+        fog: `<svg viewBox="0 0 24 24"><path d="M17.5 15H8a5 5 0 1 1 4.8-6.4A4 4 0 1 1 17.5 15Z"></path><path d="M4 19h16"></path><path d="M6 22h12"></path></svg>`,
+        snow: `<svg viewBox="0 0 24 24"><path d="M17.5 16H8a6 6 0 1 1 5.6-8.1A4.5 4.5 0 1 1 17.5 16Z"></path><path d="M8 20h.01"></path><path d="M12 20h.01"></path><path d="M16 20h.01"></path></svg>`
+      };
+
+      return icons[icon] || icons.cloud;
+    }
+
+    function renderWeather(weather) {
+      const locationName = weather.location && weather.location.name ? weather.location.name : "Đà Nẵng";
+      const condition = weather.condition || { text: "Thời tiết hôm nay", icon: "cloud" };
+      document.getElementById("weatherCard").innerHTML = `
+        <div class="weather-main">
+          <div class="weather-icon weather-icon-${condition.icon}" aria-hidden="true">${renderWeatherIcon(condition.icon)}</div>
+          <div>
+            <p class="weather-location">Thời tiết tại ${locationName}</p>
+            <div class="weather-temp-row">
+              <p class="weather-temp">${formatWeatherValue(weather.temperature, "°")}</p>
+              <p class="weather-condition">${condition.text}</p>
+            </div>
+            <p class="weather-feels">Cảm giác như ${formatWeatherValue(weather.apparentTemperature, "°")} · ${weather.source}</p>
+          </div>
+        </div>
+        <div class="weather-stats">
+          ${renderWeatherStat("Cao / thấp", `${formatWeatherValue(weather.high, "°")} / ${formatWeatherValue(weather.low, "°")}`)}
+          ${renderWeatherStat("UV", formatWeatherValue(weather.uvIndex), weather.uvLabel)}
+          ${renderWeatherStat("AQI", formatWeatherValue(weather.aqi), weather.aqiLabel)}
+          ${renderWeatherStat("Gió", formatWeatherValue(weather.windSpeed, " km/h"), weather.windGust === null ? "" : `Giật ${weather.windGust} km/h`)}
+          ${renderWeatherStat("Độ ẩm", formatWeatherValue(weather.humidity, "%"))}
+          ${renderWeatherStat("Mưa / mây", `${formatWeatherValue(weather.precipitation, " mm")} · ${formatWeatherValue(weather.cloudCover, "%")}`)}
+        </div>
+      `;
+    }
+
+    function renderWeatherStat(label, value, note = "") {
+      return `
+        <div class="weather-stat">
+          <p class="weather-stat-label">${label}</p>
+          <p class="weather-stat-value">${value}</p>
+          ${note ? `<p class="weather-stat-note">${note}</p>` : ""}
+        </div>
+      `;
+    }
+
+    async function loadWeather() {
+      try {
+        const response = await fetch("/api/weather", { cache: "no-store" });
+        if (!response.ok) throw new Error("Weather data unavailable");
+        const data = await response.json();
+        renderWeather(data.weather);
+      } catch (error) {
+        document.getElementById("weatherCard").innerHTML = `
+          <div class="weather-main">
+            <div class="weather-icon weather-icon-cloud" aria-hidden="true">${renderWeatherIcon("cloud")}</div>
+            <div>
+              <p class="weather-location">Thời tiết tại Đà Nẵng</p>
+              <div class="weather-temp-row">
+                <p class="weather-temp">--°</p>
+                <p class="weather-condition">Đang tải</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
     }
 
     function renderMarkets(markets) {
@@ -647,9 +937,38 @@
       `;
     }
 
+    function renderWorldGoldCard(quote) {
+      if (!quote) return "";
+
+      const direction = quote.changeAbs > 0 ? "up" : quote.changeAbs < 0 ? "down" : "flat";
+      const sign = quote.changeAbs > 0 ? "+" : "";
+      const changeText = Number.isFinite(quote.changeAbs) && Number.isFinite(quote.change)
+        ? `${sign}${formatNumber(quote.changeAbs)} (${sign}${quote.change.toFixed(2)}%)`
+        : "Chưa có mốc so sánh";
+
+      return `
+        <div class="market-item">
+          <p class="market-name">${quote.name}</p>
+          <div class="world-gold-row">
+            <div>
+              <p class="quote-label">1 ounce</p>
+              <p class="world-gold-value">${formatUsd(quote.ounceUsd)}/oz</p>
+              <p class="quote-change ${direction}">${changeText}</p>
+            </div>
+            <div>
+              <p class="quote-label">Quy đổi 1 lượng/lạng</p>
+              <p class="world-gold-value">${formatVnd(quote.taelVnd)}</p>
+              <p class="world-gold-note">${formatUsd(quote.taelUsd)} · theo tỷ giá USD bán ra</p>
+            </div>
+          </div>
+          <p class="quote-unit">${quote.unit} · ${quote.source}</p>
+        </div>
+      `;
+    }
+
     function renderQuoteChange(change, fallbackText) {
       if (!change) {
-        return `<p class="quote-change flat">${fallbackText || "Chưa có mốc so sánh"}</p>`;
+        return "";
       }
 
       const direction = change.value > 0 ? "up" : change.value < 0 ? "down" : "flat";
@@ -664,7 +983,9 @@
         const data = await response.json();
         document.getElementById("quoteGrid").innerHTML = [
           renderQuoteCard(data.gold),
-          renderQuoteCard(data.usd)
+          renderWorldGoldCard(data.worldGold),
+          renderQuoteCard(data.usd),
+          renderQuoteCard(data.eur)
         ].join("");
       } catch (error) {
         document.getElementById("quoteGrid").innerHTML = `
@@ -678,9 +999,11 @@
     }
 
     render();
+    loadWeather();
     loadMarkets();
     loadAssets();
     loadQuotes();
+    setInterval(loadWeather, 10 * 60 * 1000);
     setInterval(loadMarkets, 60 * 1000);
     setInterval(loadAssets, 60 * 1000);
     setInterval(loadQuotes, 5 * 60 * 1000);
