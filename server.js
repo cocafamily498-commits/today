@@ -6,19 +6,17 @@ const path = require("path");
 const PORT = process.env.PORT || 3000;
 const MARKET_GROUPS = [
   {
-    scanner: "america",
-    symbols: [
-      { symbol: "DJ:DJI", name: "Dow Jones" },
-      { symbol: "SP:SPX", name: "S&P 500" }
-    ]
-  },
-  {
     scanner: "vietnam",
     symbols: [
       { symbol: "HOSE:VNINDEX", name: "VN-Index" },
       { symbol: "HNX:HNXINDEX", name: "HNX-Index" }
     ]
   }
+];
+
+const US_MARKETS = [
+  { symbol: "%5EDJI", name: "Dow Jones" },
+  { symbol: "%5EGSPC", name: "S&P 500" }
 ];
 const ASSET_GROUPS = [
   {
@@ -38,9 +36,9 @@ const WORLD_GOLD_SYMBOL = "OANDA:XAUUSD";
 const TROY_OUNCE_GRAMS = 31.1034768;
 const VIETNAM_GOLD_TAEL_GRAMS = 37.5;
 const DEFAULT_WEATHER_LOCATION = {
-  name: "Đà Nẵng",
-  latitude: 16.0471,
-  longitude: 108.2068,
+  name: "Thành phố Hồ Chí Minh",
+  latitude: 10.8231,
+  longitude: 106.6297,
   fallback: true
 };
 
@@ -89,6 +87,7 @@ function postJson(url, data) {
         content += chunk;
       });
       response.on("end", () => {
+        clearTimeout(timeout);
         if (response.statusCode < 200 || response.statusCode >= 300) {
           reject(new Error(`TradingView returned ${response.statusCode}`));
           return;
@@ -102,20 +101,43 @@ function postJson(url, data) {
       });
     });
 
-    request.on("error", reject);
+    const timeout = setTimeout(() => request.destroy(new Error(`${url} timed out`)), 8000);
+    request.on("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
     request.write(body);
     request.end();
   });
 }
 
-function getText(url) {
+const DNS_FALLBACKS = {
+  "api.open-meteo.com": "188.40.99.226",
+  "air-quality-api.open-meteo.com": "152.53.84.73",
+  "geocoding-api.open-meteo.com": "202.61.206.6"
+};
+
+async function getText(url, headers = {}) {
+  try {
+    return await requestText(url, headers);
+  } catch (error) {
+    const hostname = new URL(url).hostname;
+    const fallbackIp = DNS_FALLBACKS[hostname];
+    if (!fallbackIp || !["EAI_FAIL", "ENOTFOUND"].includes(error.code)) throw error;
+    return requestText(url, headers, (ignoredHostname, options, callback) => callback(null, fallbackIp, 4));
+  }
+}
+
+function requestText(url, headers = {}, lookup) {
   const client = url.startsWith("https:") ? https : http;
 
   return new Promise((resolve, reject) => {
     const request = client.request(url, {
       method: "GET",
+      ...(lookup ? { lookup } : {}),
       headers: {
-        "user-agent": "Mozilla/5.0"
+        "user-agent": "Mozilla/5.0",
+        ...headers
       }
     }, (response) => {
       let content = "";
@@ -125,6 +147,7 @@ function getText(url) {
         content += chunk;
       });
       response.on("end", () => {
+        clearTimeout(timeout);
         if (response.statusCode < 200 || response.statusCode >= 300) {
           reject(new Error(`${url} returned ${response.statusCode}`));
           return;
@@ -134,19 +157,51 @@ function getText(url) {
       });
     });
 
-    request.on("error", reject);
+    const timeout = setTimeout(() => request.destroy(new Error(`${url} timed out`)), 8000);
+    request.on("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
     request.end();
   });
 }
 
-async function getJson(url) {
-  const text = await getText(url);
+async function getJson(url, headers) {
+  const text = await getText(url, headers);
   return JSON.parse(text);
 }
 
 async function getMarkets() {
-  const groups = await Promise.all(MARKET_GROUPS.map(fetchMarketGroup));
-  return groups.flat();
+  const [usMarkets, ...groups] = await Promise.all([
+    Promise.all(US_MARKETS.map((item) => fetchYahooMarket(item).catch(() => emptyMarket(item)))),
+    ...MARKET_GROUPS.map((group) => fetchMarketGroup(group)
+      .catch(() => group.symbols.map(emptyMarket)))
+  ]);
+  return [...usMarkets, ...groups.flat()];
+}
+
+function emptyMarket(item) {
+  return { symbol: item.symbol, name: item.name, close: null, change: null, changeAbs: null };
+}
+
+async function fetchYahooMarket(item) {
+  const payload = await getJson(`https://query1.finance.yahoo.com/v8/finance/chart/${item.symbol}?range=5d&interval=1d`);
+  const meta = payload.chart?.result?.[0]?.meta || {};
+  const close = Number(meta.regularMarketPrice);
+  const previousClose = Number(meta.chartPreviousClose ?? meta.previousClose ?? meta.regularMarketPreviousClose);
+
+  if (!Number.isFinite(close) || !Number.isFinite(previousClose) || previousClose === 0) {
+    throw new Error(`Yahoo Finance returned invalid data for ${item.symbol}`);
+  }
+
+  const changeAbs = close - previousClose;
+  return {
+    symbol: decodeURIComponent(item.symbol),
+    name: item.name,
+    close,
+    change: (changeAbs / previousClose) * 100,
+    changeAbs
+  };
 }
 
 async function getAssets() {
@@ -154,8 +209,48 @@ async function getAssets() {
   return groups.flat();
 }
 
-async function getWeather(clientIp) {
-  const location = await resolveWeatherLocation(clientIp);
+async function getWeather(clientIp, requestedLocation) {
+  const location = normalizeRequestedLocation(requestedLocation) || await resolveWeatherLocation(clientIp);
+  try {
+    return await getOpenMeteoWeather(location);
+  } catch (error) {
+    return getMetNorwayWeather(location);
+  }
+}
+
+function normalizeRequestedLocation(location) {
+  if (!location || location.latitude === null || location.latitude === undefined || location.latitude === ""
+    || location.longitude === null || location.longitude === undefined || location.longitude === "") return null;
+  const latitude = Number(location.latitude);
+  const longitude = Number(location.longitude);
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) return null;
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) return null;
+  const name = String(location.name || "Vị trí đã chọn").trim().slice(0, 120);
+  return { name, latitude, longitude, fallback: false, selected: true };
+}
+
+async function searchLocations(query) {
+  const name = String(query || "").trim().slice(0, 100);
+  if (name.length < 2) return [];
+  const params = new URLSearchParams({ name, count: "10", language: "vi", format: "json" });
+  const data = await getJson(`https://geocoding-api.open-meteo.com/v1/search?${params}`);
+  return (data.results || [])
+    .filter((item) => String(item.feature_code || "").startsWith("PPL"))
+    .slice(0, 7)
+    .map((item) => {
+      const parts = [item.name, item.admin1, item.country].filter((value, index, values) => value && values.indexOf(value) === index);
+      return {
+        id: item.id,
+        name: item.name,
+        displayName: parts.join(", "),
+        latitude: item.latitude,
+        longitude: item.longitude,
+        countryCode: item.country_code || null
+      };
+    });
+}
+
+async function getOpenMeteoWeather(location) {
   const params = new URLSearchParams({
     latitude: String(location.latitude),
     longitude: String(location.longitude),
@@ -203,18 +298,72 @@ async function getWeather(clientIp) {
   };
 }
 
+async function getMetNorwayWeather(location) {
+  const latitude = Number(location.latitude).toFixed(4);
+  const longitude = Number(location.longitude).toFixed(4);
+  const payload = await getJson(
+    `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${latitude}&lon=${longitude}`,
+    { "user-agent": "HomNay/1.0 local-weather-app" }
+  );
+  const timeseries = payload.properties && Array.isArray(payload.properties.timeseries)
+    ? payload.properties.timeseries
+    : [];
+
+  if (!timeseries.length) throw new Error("MET Norway returned no weather data");
+
+  const currentEntry = timeseries[0];
+  const details = currentEntry.data?.instant?.details || {};
+  const nextHour = currentEntry.data?.next_1_hours || currentEntry.data?.next_6_hours || {};
+  const temperatures = timeseries.slice(0, 24)
+    .map((entry) => Number(entry.data?.instant?.details?.air_temperature))
+    .filter(Number.isFinite);
+  const symbol = nextHour.summary?.symbol_code || "cloudy";
+
+  return {
+    location,
+    condition: describeMetWeather(symbol),
+    temperature: round(details.air_temperature),
+    apparentTemperature: round(details.air_temperature),
+    high: temperatures.length ? round(Math.max(...temperatures)) : null,
+    low: temperatures.length ? round(Math.min(...temperatures)) : null,
+    humidity: round(details.relative_humidity),
+    windSpeed: round(Number(details.wind_speed) * 3.6),
+    windGust: null,
+    windDirection: round(details.wind_from_direction),
+    uvIndex: null,
+    uvLabel: "--",
+    aqi: null,
+    aqiLabel: "--",
+    pm25: null,
+    precipitation: round(nextHour.details?.precipitation_amount, 1),
+    cloudCover: round(details.cloud_area_fraction),
+    updatedAt: currentEntry.time || null,
+    source: "MET Norway"
+  };
+}
+
+function describeMetWeather(symbol) {
+  const code = String(symbol).toLowerCase();
+  const isNight = code.includes("night");
+  if (code.includes("thunder")) return { text: "Dông sét", icon: "storm" };
+  if (code.includes("snow") || code.includes("sleet")) return { text: "Có tuyết", icon: "snow" };
+  if (code.includes("rain") || code.includes("shower")) return { text: "Có mưa", icon: "rain" };
+  if (code.includes("fog")) return { text: "Sương mù", icon: "fog" };
+  if (code.includes("partlycloudy")) return { text: "Mây rải rác", icon: isNight ? "cloud-moon" : "partly-cloudy" };
+  if (code.includes("cloudy")) return { text: "Nhiều mây", icon: "cloud" };
+  return { text: isNight ? "Trời quang" : "Trời nắng", icon: isNight ? "moon" : "sun" };
+}
+
 async function resolveWeatherLocation(clientIp) {
   const ip = normalizeClientIp(clientIp);
-
-  if (!ip) return DEFAULT_WEATHER_LOCATION;
-
+  const suffix = ip ? `/${encodeURIComponent(ip)}` : "/";
   try {
-    const data = await getJson(`https://ipapi.co/${encodeURIComponent(ip)}/json/`);
+    const data = await getJson(`https://ipwho.is${suffix}`);
     const latitude = Number(data.latitude);
     const longitude = Number(data.longitude);
 
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      return DEFAULT_WEATHER_LOCATION;
+    if (data.success === false || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      throw new Error(data.message || "IP location unavailable");
     }
 
     return {
@@ -223,14 +372,25 @@ async function resolveWeatherLocation(clientIp) {
       longitude,
       fallback: false
     };
-  } catch (error) {
-    return DEFAULT_WEATHER_LOCATION;
-  }
+  } catch (error) {}
+
+  try {
+    const url = ip ? `https://ipapi.co/${encodeURIComponent(ip)}/json/` : "https://ipapi.co/json/";
+    const data = await getJson(url);
+    const latitude = Number(data.latitude);
+    const longitude = Number(data.longitude);
+    if (!data.error && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      return { name: formatLocationName(data), latitude, longitude, fallback: false };
+    }
+  } catch (error) {}
+
+  return DEFAULT_WEATHER_LOCATION;
 }
 
 function normalizeClientIp(clientIp) {
   if (!clientIp || typeof clientIp !== "string") return null;
-  const ip = clientIp.split(",")[0].trim();
+  let ip = clientIp.split(",")[0].trim();
+  if (ip.toLowerCase().startsWith("::ffff:")) ip = ip.slice(7);
 
   if (!ip || ip === "::1" || ip === "127.0.0.1") return null;
   if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(ip)) return null;
@@ -242,7 +402,8 @@ function normalizeClientIp(clientIp) {
 function formatLocationName(data) {
   const city = data.city || data.region || data.country_name;
   const region = data.region && data.region !== city ? data.region : "";
-  const country = data.country_name && data.country_name !== region ? data.country_name : "";
+  const countryName = data.country_name || data.country;
+  const country = countryName && countryName !== region ? countryName : "";
   return [city, region, country].filter(Boolean).slice(0, 2).join(", ") || DEFAULT_WEATHER_LOCATION.name;
 }
 
@@ -520,27 +681,38 @@ function send(response, status, contentType, body) {
 
 const server = http.createServer(async (request, response) => {
   try {
-    if (request.url === "/api/markets") {
+    const requestUrl = new URL(request.url, `http://${request.headers.host || "localhost"}`);
+    if (requestUrl.pathname === "/api/markets") {
       const markets = await getMarkets();
       send(response, 200, "application/json; charset=utf-8", JSON.stringify({ markets }));
       return;
     }
 
-    if (request.url === "/api/assets") {
+    if (requestUrl.pathname === "/api/assets") {
       const assets = await getAssets();
       send(response, 200, "application/json; charset=utf-8", JSON.stringify({ assets }));
       return;
     }
 
-    if (request.url === "/api/quotes") {
+    if (requestUrl.pathname === "/api/quotes") {
       const quotes = await getQuotes();
       send(response, 200, "application/json; charset=utf-8", JSON.stringify(quotes));
       return;
     }
 
-    if (request.url === "/api/weather") {
+    if (requestUrl.pathname === "/api/locations") {
+      const locations = await searchLocations(requestUrl.searchParams.get("q"));
+      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ locations }));
+      return;
+    }
+
+    if (requestUrl.pathname === "/api/weather") {
       const clientIp = request.headers["x-forwarded-for"] || request.socket.remoteAddress;
-      const weather = await getWeather(clientIp);
+      const weather = await getWeather(clientIp, {
+        name: requestUrl.searchParams.get("name"),
+        latitude: requestUrl.searchParams.get("lat"),
+        longitude: requestUrl.searchParams.get("lon")
+      });
       send(response, 200, "application/json; charset=utf-8", JSON.stringify({ weather }));
       return;
     }

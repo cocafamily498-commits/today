@@ -1,1 +1,4 @@
 quotes-cache.json
+local-server.log
+local-server-error.log
+.local-server.pid
