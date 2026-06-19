@@ -2,6 +2,7 @@ const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
+const { convertLunarToSolar, parseInput: parseLunarInput } = require("./netlify/functions/lunar-to-solar");
 
 const PORT = process.env.PORT || 3000;
 const MARKET_GROUPS = [
@@ -671,12 +672,32 @@ function parseMoney(value) {
   return Number.isFinite(number) ? number : null;
 }
 
-function send(response, status, contentType, body) {
+function send(response, status, contentType, body, extraHeaders = {}) {
   response.writeHead(status, {
     "content-type": contentType,
-    "cache-control": "no-store"
+    "cache-control": "no-store",
+    ...extraHeaders
   });
   response.end(body);
+}
+
+function readJsonBody(request) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    request.setEncoding("utf8");
+    request.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 10000) request.destroy(new Error("Request body too large"));
+    });
+    request.on("end", () => {
+      try {
+        resolve(JSON.parse(body || "{}"));
+      } catch (error) {
+        reject(new Error("Dữ liệu JSON không hợp lệ"));
+      }
+    });
+    request.on("error", reject);
+  });
 }
 
 const server = http.createServer(async (request, response) => {
@@ -714,6 +735,36 @@ const server = http.createServer(async (request, response) => {
         longitude: requestUrl.searchParams.get("lon")
       });
       send(response, 200, "application/json; charset=utf-8", JSON.stringify({ weather }));
+      return;
+    }
+
+    if (requestUrl.pathname === "/api/lunar-to-solar") {
+      const corsHeaders = {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-allow-headers": "content-type"
+      };
+      if (request.method === "OPTIONS") {
+        send(response, 204, "text/plain; charset=utf-8", "", corsHeaders);
+        return;
+      }
+      if (request.method !== "POST") {
+        send(response, 405, "application/json; charset=utf-8", JSON.stringify({ error: "Chỉ hỗ trợ phương thức POST" }), corsHeaders);
+        return;
+      }
+      const input = parseLunarInput(await readJsonBody(request));
+      const solar = convertLunarToSolar(
+        input.lunarDay,
+        input.lunarMonth,
+        input.lunarYear,
+        input.lunarLeap,
+        input.timeZone
+      );
+      if (!solar) {
+        send(response, 400, "application/json; charset=utf-8", JSON.stringify({ error: "Ngày âm hoặc tháng nhuận không hợp lệ" }), corsHeaders);
+        return;
+      }
+      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ solar }), corsHeaders);
       return;
     }
 

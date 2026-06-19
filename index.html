@@ -39,6 +39,46 @@
       width: min(100%, 520px);
     }
 
+    .app-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-bottom: 10px;
+      padding: 5px;
+      border: 1px solid #d7d7d7;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+    }
+
+    .app-tab {
+      min-height: 44px;
+      padding: 9px 12px;
+      color: var(--muted);
+      font: inherit;
+      font-size: .9rem;
+      font-weight: 800;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .app-tab:hover {
+      color: var(--red-dark);
+      background: #f4f6f8;
+    }
+
+    .app-tab[aria-selected="true"] {
+      color: #fff;
+      background: var(--red-dark);
+    }
+
+    .tab-panel[hidden],
+    .conversion-form[hidden] {
+      display: none;
+    }
+
     .calendar {
       position: relative;
       overflow: hidden;
@@ -144,6 +184,214 @@
       font-weight: 800;
       line-height: 1.35;
       letter-spacing: 0;
+    }
+
+    .converter-card {
+      overflow: hidden;
+      border: 1px solid #d7d7d7;
+      border-radius: 8px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .converter-header {
+      padding: 24px 26px 20px;
+      color: #fff;
+      text-align: center;
+      background: var(--red-dark);
+      border-top: 12px solid var(--gold);
+      border-bottom: 5px solid var(--gold);
+    }
+
+    .converter-title {
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1.25;
+    }
+
+    .converter-subtitle {
+      margin: 7px 0 0;
+      color: rgba(255, 255, 255, .78);
+      font-size: .86rem;
+    }
+
+    .converter-body {
+      padding: 24px 28px 30px;
+      background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+    }
+
+    .direction-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-bottom: 22px;
+      padding: 5px;
+      border: 1px solid #b8c7d8;
+      border-radius: 8px;
+      background: #dfe8f1;
+    }
+
+    .direction-tab {
+      min-height: 42px;
+      color: #3d526a;
+      font: inherit;
+      font-size: .86rem;
+      font-weight: 800;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      transition: color .16s ease, background-color .16s ease, box-shadow .16s ease;
+    }
+
+    .direction-tab:hover:not([aria-selected="true"]) {
+      color: var(--red-dark);
+      background: rgba(255, 255, 255, .62);
+    }
+
+    .direction-tab[aria-selected="true"] {
+      color: #fff;
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+      box-shadow: 0 4px 10px rgba(18, 52, 90, .28);
+    }
+
+    .conversion-heading {
+      margin: 0 0 7px;
+      padding-left: 10px;
+      color: var(--red-dark);
+      font-size: 1.12rem;
+      border-left: 4px solid var(--gold);
+    }
+
+    .conversion-help {
+      margin: 0 0 17px;
+      color: #4b5968;
+      font-size: .82rem;
+      line-height: 1.5;
+    }
+
+    .date-fields {
+      display: grid;
+      grid-template-columns: .8fr .9fr 1.2fr;
+      gap: 10px;
+    }
+
+    .date-field label {
+      display: block;
+      margin-bottom: 6px;
+      color: #33475e;
+      font-size: .74rem;
+      font-weight: 800;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+
+    .date-field input,
+    .date-field select {
+      width: 100%;
+      min-height: 44px;
+      padding: 9px 10px;
+      color: var(--ink);
+      font: inherit;
+      font-size: .95rem;
+      font-weight: 600;
+      border: 1px solid #8fa3b9;
+      border-radius: 5px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(18, 52, 90, .06);
+      outline: none;
+    }
+
+    .date-field input:focus,
+    .date-field select:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(30, 58, 95, .12);
+    }
+
+    .leap-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 16px;
+      padding: 12px 13px;
+      color: var(--red-dark);
+      font-size: .88rem;
+      line-height: 1.4;
+      border: 1px solid #b8c7d8;
+      border-radius: 5px;
+      background: #edf3f8;
+      cursor: pointer;
+    }
+
+    .leap-option input {
+      width: 18px;
+      height: 18px;
+      margin: 1px 0 0;
+      accent-color: var(--red-dark);
+    }
+
+    .leap-option small {
+      display: block;
+      color: #526579;
+    }
+
+    .convert-submit {
+      width: 100%;
+      min-height: 46px;
+      margin-top: 18px;
+      padding: 10px 18px;
+      color: #fff;
+      font: inherit;
+      font-weight: 800;
+      border: 0;
+      border-radius: 5px;
+      background: linear-gradient(135deg, #0b8958 0%, #05643f 100%);
+      box-shadow: 0 5px 12px rgba(8, 122, 77, .24);
+      cursor: pointer;
+    }
+
+    .convert-submit:hover {
+      filter: brightness(.93);
+    }
+
+    .convert-submit:disabled {
+      cursor: wait;
+      opacity: .65;
+    }
+
+    .conversion-message {
+      min-height: 20px;
+      margin: 12px 0 0;
+      color: #a12622;
+      font-size: .84rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .conversion-result {
+      margin-top: 18px;
+      padding: 18px;
+      text-align: center;
+      border: 2px solid var(--gold);
+      border-radius: 7px;
+      background: linear-gradient(135deg, #fffdf2 0%, #fff7cf 100%);
+    }
+
+    .conversion-result-label {
+      margin: 0 0 7px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .conversion-result-value {
+      margin: 0;
+      color: var(--green);
+      font-size: 1.2rem;
+      font-weight: 800;
+      line-height: 1.45;
     }
 
     .weather-panel {
@@ -532,6 +780,19 @@
         padding: 18px 20px 24px;
       }
 
+      .converter-body {
+        padding: 20px;
+      }
+
+      .date-fields {
+        gap: 7px;
+      }
+
+      .date-field input,
+      .date-field select {
+        padding-inline: 7px;
+      }
+
       .market-grid {
         grid-template-columns: 1fr;
       }
@@ -564,8 +825,14 @@
   </style>
 </head>
 <body>
-  <main aria-label="Tờ lịch hôm nay">
-    <article class="calendar">
+  <main aria-label="Lịch hôm nay và công cụ đổi lịch">
+    <nav class="app-tabs" role="tablist" aria-label="Chọn nội dung">
+      <button id="todayTabButton" class="app-tab" type="button" role="tab" aria-selected="true" aria-controls="todayTab">Tờ lịch hôm nay</button>
+      <button id="converterTabButton" class="app-tab" type="button" role="tab" aria-selected="false" aria-controls="converterTab">Lịch âm/dương</button>
+    </nav>
+
+    <div id="todayTab" class="tab-panel" role="tabpanel" aria-labelledby="todayTabButton">
+      <article class="calendar">
       <header class="header">
         <div id="solarFullDate" class="solar-full-date">--</div>
         <div id="solarMonth" class="solar-month">Tháng</div>
@@ -692,7 +959,79 @@
           </div>
         </section>
       </section>
-    </article>
+      </article>
+    </div>
+
+    <section id="converterTab" class="tab-panel converter-card" role="tabpanel" aria-labelledby="converterTabButton" hidden>
+      <header class="converter-header">
+        <h1 class="converter-title">Chuyển đổi lịch âm/dương</h1>
+        <p class="converter-subtitle">Tra cứu hai chiều theo múi giờ Việt Nam (UTC+7)</p>
+      </header>
+      <div class="converter-body">
+        <div class="direction-tabs" role="tablist" aria-label="Chọn chiều chuyển đổi">
+          <button id="solarDirectionButton" class="direction-tab" type="button" role="tab" aria-selected="true" aria-controls="solarToLunarForm">Dương → Âm</button>
+          <button id="lunarDirectionButton" class="direction-tab" type="button" role="tab" aria-selected="false" aria-controls="lunarToSolarForm">Âm → Dương</button>
+        </div>
+
+        <form id="solarToLunarForm" class="conversion-form" role="tabpanel" aria-labelledby="solarDirectionButton">
+          <h2 class="conversion-heading">Ngày dương lịch</h2>
+          <p class="conversion-help">Nhập ngày cần tra để xem ngày âm lịch tương ứng.</p>
+          <div class="date-fields">
+            <div class="date-field">
+              <label for="solarInputDay">Ngày</label>
+              <input id="solarInputDay" name="day" type="number" min="1" max="31" required inputmode="numeric">
+            </div>
+            <div class="date-field">
+              <label for="solarInputMonth">Tháng</label>
+              <select id="solarInputMonth" name="month" required>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+              </select>
+            </div>
+            <div class="date-field">
+              <label for="solarInputYear">Năm</label>
+              <input id="solarInputYear" name="year" type="number" min="1000" max="3000" required inputmode="numeric">
+            </div>
+          </div>
+          <button class="convert-submit" type="submit">Đổi sang âm lịch</button>
+        </form>
+
+        <form id="lunarToSolarForm" class="conversion-form" role="tabpanel" aria-labelledby="lunarDirectionButton" hidden>
+          <h2 class="conversion-heading">Ngày âm lịch</h2>
+          <p class="conversion-help">Nếu năm đó có hai tháng cùng số, hãy xác định rõ tháng thường hay tháng nhuận.</p>
+          <div class="date-fields">
+            <div class="date-field">
+              <label for="lunarInputDay">Ngày</label>
+              <input id="lunarInputDay" name="day" type="number" min="1" max="30" required inputmode="numeric">
+            </div>
+            <div class="date-field">
+              <label for="lunarInputMonth">Tháng</label>
+              <select id="lunarInputMonth" name="month" required>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+                <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+              </select>
+            </div>
+            <div class="date-field">
+              <label for="lunarInputYear">Năm</label>
+              <input id="lunarInputYear" name="year" type="number" min="1000" max="3000" required inputmode="numeric">
+            </div>
+          </div>
+          <label class="leap-option" for="lunarInputLeap">
+            <input id="lunarInputLeap" name="leap" type="checkbox">
+            <span><strong>Tháng nhuận</strong><small>Đánh dấu nếu ngày trên thuộc tháng nhuận.</small></span>
+          </label>
+          <button class="convert-submit" type="submit">Đổi sang dương lịch</button>
+        </form>
+
+        <p id="conversionMessage" class="conversion-message" aria-live="polite"></p>
+        <div id="conversionResult" class="conversion-result" aria-live="polite" hidden>
+          <p class="conversion-result-label">Kết quả chuyển đổi</p>
+          <p id="conversionResultValue" class="conversion-result-value"></p>
+        </div>
+      </div>
+    </section>
   </main>
 
   <script>
@@ -742,11 +1081,11 @@
       const mpr = 306.0253 + 385.81691806 * k + .0107306 * t2 + .00001236 * t3;
       const f = 21.2964 + 390.67050646 * k - .0016528 * t2 - .00000239 * t3;
       let c1 = (0.1734 - .000393 * t) * Math.sin(m * dr) + .0021 * Math.sin(2 * dr * m);
-      c1 -= .4068 * Math.sin(mpr * dr) + .0161 * Math.sin(2 * dr * mpr);
+      c1 += -.4068 * Math.sin(mpr * dr) + .0161 * Math.sin(2 * dr * mpr);
       c1 -= .0004 * Math.sin(3 * dr * mpr);
       c1 += .0104 * Math.sin(2 * dr * f) - .0051 * Math.sin((m + mpr) * dr);
-      c1 -= .0074 * Math.sin((m - mpr) * dr) + .0004 * Math.sin((2 * f + m) * dr);
-      c1 -= .0004 * Math.sin((2 * f - m) * dr) - .0006 * Math.sin((2 * f + mpr) * dr);
+      c1 += -.0074 * Math.sin((m - mpr) * dr) + .0004 * Math.sin((2 * f + m) * dr);
+      c1 += -.0004 * Math.sin((2 * f - m) * dr) - .0006 * Math.sin((2 * f + mpr) * dr);
       c1 += .0010 * Math.sin((2 * f - mpr) * dr) + .0005 * Math.sin((2 * mpr + m) * dr);
       let deltaT;
       if (t < -11) {
@@ -758,7 +1097,7 @@
     }
 
     function sunLongitude(jdn) {
-      const t = (jdn - 2451545.5) / 36525;
+      const t = (jdn - 2451545) / 36525;
       const t2 = t * t;
       const dr = PI / 180;
       const m = 357.52910 + 35999.05030 * t - .0001559 * t2 - .00000048 * t * t2;
@@ -830,6 +1169,136 @@
       if (lunarMonth > 12) lunarMonth -= 12;
       if (lunarMonth >= 11 && diff < 4) lunarYear -= 1;
       return { day: lunarDay, month: lunarMonth, year: lunarYear, leap: lunarLeap, jd: dayNumber };
+    }
+
+    async function convertLunarToSolar(lunarDay, lunarMonth, lunarYear, lunarLeap, timeZone = TIME_ZONE) {
+      const localHostnames = ["localhost", "127.0.0.1"];
+      const useLocalApi = location.protocol === "file:"
+        || (localHostnames.includes(location.hostname) && location.port !== "3000");
+      const endpoint = useLocalApi
+        ? "http://localhost:3000/api/lunar-to-solar"
+        : "/api/lunar-to-solar";
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ lunarDay, lunarMonth, lunarYear, lunarLeap, timeZone })
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "Không thể đổi ngày âm sang dương");
+        return payload.solar;
+      } catch (error) {
+        if (error instanceof TypeError) {
+          throw new Error("Không kết nối được máy chủ đổi lịch. Hãy chạy start-background.cmd rồi thử lại.");
+        }
+        throw error;
+      }
+    }
+
+    function setupAppTabs() {
+      const buttons = [document.getElementById("todayTabButton"), document.getElementById("converterTabButton")];
+      const activate = (button, updateHash) => {
+        buttons.forEach((item) => {
+          const selected = item === button;
+          item.setAttribute("aria-selected", selected ? "true" : "false");
+          document.getElementById(item.getAttribute("aria-controls")).hidden = !selected;
+        });
+        if (updateHash) history.replaceState(null, "", `#${button.getAttribute("aria-controls")}`);
+      };
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => activate(button, true));
+      });
+      if (location.hash === "#converterTab") activate(document.getElementById("converterTabButton"), false);
+    }
+
+    function setupConversionTool() {
+      const solarDirectionButton = document.getElementById("solarDirectionButton");
+      const lunarDirectionButton = document.getElementById("lunarDirectionButton");
+      const solarForm = document.getElementById("solarToLunarForm");
+      const lunarForm = document.getElementById("lunarToSolarForm");
+      const today = getVietnamToday();
+      const todayLunar = convertSolarToLunar(today.getDate(), today.getMonth() + 1, today.getFullYear(), TIME_ZONE);
+
+      document.getElementById("solarInputDay").value = today.getDate();
+      document.getElementById("solarInputMonth").value = today.getMonth() + 1;
+      document.getElementById("solarInputYear").value = today.getFullYear();
+      document.getElementById("lunarInputDay").value = todayLunar.day;
+      document.getElementById("lunarInputMonth").value = todayLunar.month;
+      document.getElementById("lunarInputYear").value = todayLunar.year;
+      document.getElementById("lunarInputLeap").checked = todayLunar.leap;
+
+      [solarDirectionButton, lunarDirectionButton].forEach((button) => {
+        button.addEventListener("click", () => {
+          const solarSelected = button === solarDirectionButton;
+          solarDirectionButton.setAttribute("aria-selected", solarSelected ? "true" : "false");
+          lunarDirectionButton.setAttribute("aria-selected", solarSelected ? "false" : "true");
+          solarForm.hidden = !solarSelected;
+          lunarForm.hidden = solarSelected;
+          clearConversionOutput();
+        });
+      });
+
+      solarForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        clearConversionOutput();
+        const day = Number(document.getElementById("solarInputDay").value);
+        const month = Number(document.getElementById("solarInputMonth").value);
+        const year = Number(document.getElementById("solarInputYear").value);
+        if (!isValidSolarDate(day, month, year)) {
+          showConversionError("Ngày dương lịch không hợp lệ.");
+          return;
+        }
+        const lunar = convertSolarToLunar(day, month, year, TIME_ZONE);
+        const lunarMonth = lunar.leap ? `${lunar.month} nhuận` : lunar.month;
+        showConversionResult(`Ngày ${lunar.day} tháng ${lunarMonth} năm ${canChiYear(lunar.year)} (${lunar.year})`);
+      });
+
+      lunarForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearConversionOutput();
+        const submit = lunarForm.querySelector("button[type='submit']");
+        const day = Number(document.getElementById("lunarInputDay").value);
+        const month = Number(document.getElementById("lunarInputMonth").value);
+        const year = Number(document.getElementById("lunarInputYear").value);
+        const leap = document.getElementById("lunarInputLeap").checked;
+        submit.disabled = true;
+        submit.textContent = "Đang chuyển đổi...";
+        try {
+          const solar = await convertLunarToSolar(day, month, year, leap, TIME_ZONE);
+          const date = new Date(Date.UTC(solar.year, solar.month - 1, solar.day));
+          const weekday = titleCaseWords(WEEKDAYS[date.getUTCDay()]);
+          showConversionResult(`${weekday}, ngày ${solar.day} tháng ${solar.month} năm ${solar.year}`);
+        } catch (error) {
+          showConversionError(error.message || "Chưa thể chuyển đổi ngày này.");
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Đổi sang dương lịch";
+        }
+      });
+    }
+
+    function isValidSolarDate(day, month, year) {
+      if (!Number.isInteger(day) || !Number.isInteger(month) || !Number.isInteger(year)) return false;
+      if (year < 1000 || year > 3000 || month < 1 || month > 12) return false;
+      const date = new Date(Date.UTC(year, month - 1, day));
+      return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+    }
+
+    function clearConversionOutput() {
+      document.getElementById("conversionMessage").textContent = "";
+      document.getElementById("conversionResult").hidden = true;
+      document.getElementById("conversionResultValue").textContent = "";
+    }
+
+    function showConversionError(message) {
+      document.getElementById("conversionMessage").textContent = message;
+      document.getElementById("conversionResult").hidden = true;
+    }
+
+    function showConversionResult(message) {
+      document.getElementById("conversionMessage").textContent = "";
+      document.getElementById("conversionResultValue").textContent = message;
+      document.getElementById("conversionResult").hidden = false;
     }
 
     function getVietnamToday() {
@@ -1223,6 +1692,8 @@
     }
 
     render();
+    setupAppTabs();
+    setupConversionTool();
     setupLocationPicker();
     loadWeather();
     loadMarkets();

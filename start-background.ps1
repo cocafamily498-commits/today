@@ -7,7 +7,8 @@ $stderrFile = Join-Path $projectDir "local-server-error.log"
 
 if (Test-Path $pidFile) {
   $savedPid = Get-Content $pidFile -ErrorAction SilentlyContinue
-  if ($savedPid -and (Get-Process -Id $savedPid -ErrorAction SilentlyContinue)) {
+  $savedProcess = if ($savedPid) { Get-Process -Id $savedPid -ErrorAction SilentlyContinue } else { $null }
+  if ($savedProcess -and $savedProcess.ProcessName -eq "node") {
     Write-Host "Server dang chay (PID $savedPid): http://localhost:3000"
     exit 0
   }
@@ -32,4 +33,4 @@ if ($process.HasExited) {
 
 Set-Content -LiteralPath $pidFile -Value $process.Id
 Write-Host "Server da chay nen (PID $($process.Id)): http://localhost:3000"
-Write-Host "Ban co the dong terminal. Chay .\stop-background.ps1 de dung server."
+Write-Host "Ban co the dong terminal. Chay stop-background.cmd de dung server."
