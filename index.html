@@ -37,6 +37,7 @@
 
     main {
       width: min(100%, 520px);
+      min-width: 0;
     }
 
     .app-tabs {
@@ -187,6 +188,7 @@
     }
 
     .converter-card {
+      min-width: 0;
       overflow: hidden;
       border: 1px solid #d7d7d7;
       border-radius: 8px;
@@ -216,6 +218,7 @@
     }
 
     .converter-body {
+      min-width: 0;
       padding: 24px 28px 30px;
       background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
     }
@@ -272,8 +275,12 @@
 
     .date-fields {
       display: grid;
-      grid-template-columns: .8fr .9fr 1.2fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
+    }
+
+    .date-field {
+      min-width: 0;
     }
 
     .date-field label {
@@ -288,8 +295,10 @@
 
     .date-field input,
     .date-field select {
+      display: block;
       width: 100%;
-      min-height: 44px;
+      min-width: 0;
+      height: 44px;
       padding: 9px 10px;
       color: var(--ink);
       font: inherit;
@@ -300,6 +309,50 @@
       background: #fff;
       box-shadow: 0 1px 2px rgba(18, 52, 90, .06);
       outline: none;
+    }
+
+    .date-field select {
+      -webkit-appearance: none;
+      appearance: none;
+      padding-right: 30px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.25 6 6.25l5-5' fill='none' stroke='%2333475e' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 12px 8px;
+    }
+
+    .number-entry-control {
+      position: relative;
+    }
+
+    .number-entry-control input {
+      padding-right: 38px;
+    }
+
+    .number-picker-select {
+      position: absolute;
+      z-index: 2;
+      top: 0;
+      right: 0;
+      width: 38px !important;
+      height: 44px !important;
+      padding: 0 !important;
+      border: 0 !important;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .number-entry-control::after {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid #33475e;
+      border-bottom: 2px solid #33475e;
+      content: "";
+      pointer-events: none;
+      transform: translateY(-70%) rotate(45deg);
     }
 
     .date-field input:focus,
@@ -350,6 +403,45 @@
       cursor: pointer;
     }
 
+    .conversion-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .conversion-actions .convert-submit {
+      margin-top: 0;
+    }
+
+    .view-month-button {
+      width: 100%;
+      min-height: 46px;
+      padding: 9px 12px;
+      color: #fff;
+      font: inherit;
+      font-size: .82rem;
+      font-weight: 800;
+      line-height: 1.25;
+      border: 0;
+      border-radius: 5px;
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+      box-shadow: 0 5px 12px rgba(18, 52, 90, .2);
+      cursor: pointer;
+    }
+
+    .view-month-button:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    .view-month-button:disabled {
+      color: #7b8794;
+      background: #d8dee5;
+      box-shadow: none;
+      cursor: not-allowed;
+      opacity: .78;
+    }
+
     .convert-submit:hover {
       filter: brightness(.93);
     }
@@ -392,6 +484,294 @@
       font-size: 1.2rem;
       font-weight: 800;
       line-height: 1.45;
+    }
+
+    .monthly-calendar-section {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid #cbd6e2;
+    }
+
+    .monthly-calendar-heading {
+      margin: 0 0 6px;
+      color: var(--red-dark);
+      font-size: 1.25rem;
+      text-align: center;
+    }
+
+    .monthly-calendar-help {
+      margin: 0 0 16px;
+      color: #526579;
+      font-size: .8rem;
+      text-align: center;
+    }
+
+    .selected-date-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .selected-date-card {
+      min-width: 0;
+      padding: 14px 10px;
+      text-align: center;
+      border: 1px solid #c6d2df;
+      border-radius: 7px;
+      background: #fff;
+    }
+
+    .selected-date-label {
+      margin: 0 0 6px;
+      color: #526579;
+      font-size: .69rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .selected-date-day {
+      margin: 0;
+      color: var(--red-dark);
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .selected-date-card.lunar .selected-date-day {
+      color: #b54708;
+    }
+
+    .selected-date-meta {
+      margin: 7px 0 0;
+      overflow-wrap: anywhere;
+      color: #45586d;
+      font-size: .72rem;
+      line-height: 1.35;
+    }
+
+    .month-calendar-toolbar {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 9px;
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+      border-radius: 7px 7px 0 0;
+    }
+
+    .month-nav-button,
+    .month-today-button {
+      min-width: 38px;
+      min-height: 38px;
+      padding: 7px 10px;
+      color: #fff;
+      font: inherit;
+      font-weight: 800;
+      border: 1px solid rgba(255, 255, 255, .28);
+      border-radius: 5px;
+      background: rgba(255, 255, 255, .12);
+      cursor: pointer;
+    }
+
+    .month-nav-button:hover,
+    .month-today-button:hover {
+      background: rgba(255, 255, 255, .24);
+    }
+
+    .month-nav-button:disabled {
+      cursor: not-allowed;
+      opacity: .4;
+    }
+
+    .month-calendar-selectors {
+      display: flex;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .calendar-number-control {
+      position: relative;
+      width: 50%;
+      min-width: 0;
+    }
+
+    .calendar-number-control input {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      height: 38px;
+      padding: 6px 30px 6px 8px;
+      color: var(--red-dark);
+      font: inherit;
+      font-size: .8rem;
+      font-weight: 800;
+      border: 0;
+      border-radius: 5px;
+      background: #fff;
+      outline: none;
+    }
+
+    .calendar-picker-select {
+      position: absolute;
+      z-index: 2;
+      top: 0;
+      right: 0;
+      width: 34px;
+      height: 38px;
+      border: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .calendar-number-control::after {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      width: 7px;
+      height: 7px;
+      border-right: 2px solid #33475e;
+      border-bottom: 2px solid #33475e;
+      content: "";
+      pointer-events: none;
+      transform: translateY(-70%) rotate(45deg);
+    }
+
+    .month-today-row {
+      display: flex;
+      justify-content: center;
+      padding: 8px;
+      background: #dfe8f1;
+      border-right: 1px solid #b8c7d8;
+      border-left: 1px solid #b8c7d8;
+    }
+
+    .month-today-button {
+      min-height: 34px;
+      color: var(--red-dark);
+      border-color: #9fb2c6;
+      background: #fff;
+      font-size: .76rem;
+    }
+
+    .month-calendar-weekdays,
+    .month-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .month-calendar-weekdays {
+      border: 1px solid #b8c7d8;
+      border-bottom: 0;
+      background: #edf3f8;
+    }
+
+    .month-weekday {
+      padding: 8px 1px;
+      color: #33475e;
+      font-size: .68rem;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .month-weekday.weekend {
+      color: #b42318;
+    }
+
+    .month-calendar-grid {
+      overflow: hidden;
+      gap: 1px;
+      padding: 1px;
+      border: 1px solid #b8c7d8;
+      border-radius: 0 0 7px 7px;
+      background: #d6dee7;
+    }
+
+    .month-day-empty {
+      min-height: 61px;
+      background: #f0f3f6;
+    }
+
+    .month-day-button {
+      position: relative;
+      min-width: 0;
+      min-height: 61px;
+      padding: 6px 2px 5px;
+      color: #172b42;
+      font: inherit;
+      border: 0;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .month-day-button:hover {
+      z-index: 1;
+      background: #e9f0f7;
+      box-shadow: inset 0 0 0 2px #7893b1;
+    }
+
+    .month-day-button:focus-visible {
+      z-index: 3;
+      outline: 3px solid #2563eb;
+      outline-offset: -3px;
+    }
+
+    .month-day-button.weekend .month-solar-day {
+      color: #b42318;
+    }
+
+    .month-solar-day {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 29px;
+      height: 29px;
+      color: var(--red-dark);
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1;
+      border-radius: 50%;
+    }
+
+    .month-lunar-day {
+      display: block;
+      margin-top: 2px;
+      color: #68788a;
+      font-size: .64rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .month-lunar-day.month-start {
+      color: #b42318;
+      font-weight: 800;
+    }
+
+    .month-lunar-day.full-moon {
+      color: #a12622;
+    }
+
+    .month-lunar-day.leap-month {
+      color: #b42318;
+      font-weight: 800;
+    }
+
+    .month-day-button.today .month-solar-day {
+      color: #fff !important;
+      background: var(--green);
+      box-shadow: 0 2px 6px rgba(8, 122, 77, .3);
+    }
+
+    .month-day-button.selected {
+      z-index: 2;
+      background: #fff7cf;
+      box-shadow: inset 0 0 0 2px var(--gold);
+    }
+
+    .month-day-button.today.selected {
+      box-shadow: inset 0 0 0 2px var(--gold), inset 0 0 0 4px #fff;
     }
 
     .weather-panel {
@@ -769,7 +1149,14 @@
 
     @media (max-width: 520px) {
       body {
+        display: block;
         padding: 16px;
+      }
+
+      main {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
       }
 
       .header {
@@ -791,6 +1178,53 @@
       .date-field input,
       .date-field select {
         padding-inline: 7px;
+      }
+
+      .date-field select {
+        padding-right: 27px;
+        background-position: right 7px center;
+      }
+
+      .conversion-actions {
+        gap: 7px;
+      }
+
+      .view-month-button {
+        padding-inline: 7px;
+        font-size: .75rem;
+      }
+
+      .selected-date-day {
+        font-size: 1.7rem;
+      }
+
+      .month-calendar-toolbar {
+        gap: 5px;
+        padding: 7px;
+      }
+
+      .month-nav-button {
+        min-width: 34px;
+        padding-inline: 7px;
+      }
+
+      .month-calendar-selectors {
+        gap: 5px;
+      }
+
+      .calendar-number-control input {
+        padding-left: 5px;
+        padding-right: 27px;
+        font-size: .72rem;
+      }
+
+      .month-day-button,
+      .month-day-empty {
+        min-height: 57px;
+      }
+
+      .month-weekday {
+        font-size: .62rem;
       }
 
       .market-grid {
@@ -979,22 +1413,30 @@
           <div class="date-fields">
             <div class="date-field">
               <label for="solarInputDay">Ngày</label>
-              <input id="solarInputDay" name="day" type="number" min="1" max="31" required inputmode="numeric">
+              <div class="number-entry-control">
+                <input id="solarInputDay" name="day" type="number" min="1" max="31" required inputmode="numeric">
+                <select id="solarDayPicker" class="number-picker-select" aria-label="Cuộn chọn ngày dương lịch" tabindex="-1"></select>
+              </div>
             </div>
             <div class="date-field">
               <label for="solarInputMonth">Tháng</label>
-              <select id="solarInputMonth" name="month" required>
-                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
-                <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
-                <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
-              </select>
+              <div class="number-entry-control">
+                <input id="solarInputMonth" name="month" type="number" min="1" max="12" required inputmode="numeric">
+                <select id="solarMonthPicker" class="number-picker-select" aria-label="Cuộn chọn tháng dương lịch" tabindex="-1"></select>
+              </div>
             </div>
             <div class="date-field">
               <label for="solarInputYear">Năm</label>
-              <input id="solarInputYear" name="year" type="number" min="1000" max="3000" required inputmode="numeric">
+              <div class="number-entry-control">
+                <input id="solarInputYear" name="year" type="number" min="1900" max="2100" required inputmode="numeric">
+                <select id="solarYearPicker" class="number-picker-select" aria-label="Cuộn chọn năm dương lịch" tabindex="-1"></select>
+              </div>
             </div>
           </div>
-          <button class="convert-submit" type="submit">Đổi sang âm lịch</button>
+          <div class="conversion-actions">
+            <button class="convert-submit" type="submit">Đổi sang âm lịch</button>
+            <button id="viewSolarMonthButton" class="view-month-button" type="button" disabled>Xem lịch trong tháng</button>
+          </div>
         </form>
 
         <form id="lunarToSolarForm" class="conversion-form" role="tabpanel" aria-labelledby="lunarDirectionButton" hidden>
@@ -1003,26 +1445,34 @@
           <div class="date-fields">
             <div class="date-field">
               <label for="lunarInputDay">Ngày</label>
-              <input id="lunarInputDay" name="day" type="number" min="1" max="30" required inputmode="numeric">
+              <div class="number-entry-control">
+                <input id="lunarInputDay" name="day" type="number" min="1" max="30" required inputmode="numeric">
+                <select id="lunarDayPicker" class="number-picker-select" aria-label="Cuộn chọn ngày âm lịch" tabindex="-1"></select>
+              </div>
             </div>
             <div class="date-field">
               <label for="lunarInputMonth">Tháng</label>
-              <select id="lunarInputMonth" name="month" required>
-                <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
-                <option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
-                <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
-              </select>
+              <div class="number-entry-control">
+                <input id="lunarInputMonth" name="month" type="number" min="1" max="12" required inputmode="numeric">
+                <select id="lunarMonthPicker" class="number-picker-select" aria-label="Cuộn chọn tháng âm lịch" tabindex="-1"></select>
+              </div>
             </div>
             <div class="date-field">
               <label for="lunarInputYear">Năm</label>
-              <input id="lunarInputYear" name="year" type="number" min="1000" max="3000" required inputmode="numeric">
+              <div class="number-entry-control">
+                <input id="lunarInputYear" name="year" type="number" min="1900" max="2100" required inputmode="numeric">
+                <select id="lunarYearPicker" class="number-picker-select" aria-label="Cuộn chọn năm âm lịch" tabindex="-1"></select>
+              </div>
             </div>
           </div>
           <label class="leap-option" for="lunarInputLeap">
             <input id="lunarInputLeap" name="leap" type="checkbox">
             <span><strong>Tháng nhuận</strong><small>Đánh dấu nếu ngày trên thuộc tháng nhuận.</small></span>
           </label>
-          <button class="convert-submit" type="submit">Đổi sang dương lịch</button>
+          <div class="conversion-actions">
+            <button class="convert-submit" type="submit">Đổi sang dương lịch</button>
+            <button id="viewLunarMonthButton" class="view-month-button" type="button" disabled>Xem lịch trong tháng</button>
+          </div>
         </form>
 
         <p id="conversionMessage" class="conversion-message" aria-live="polite"></p>
@@ -1030,6 +1480,52 @@
           <p class="conversion-result-label">Kết quả chuyển đổi</p>
           <p id="conversionResultValue" class="conversion-result-value"></p>
         </div>
+
+        <section class="monthly-calendar-section" aria-labelledby="monthlyCalendarHeading">
+          <h2 id="monthlyCalendarHeading" class="monthly-calendar-heading">Lịch vạn niên</h2>
+          <p class="monthly-calendar-help">Chọn một ngày để xem nhanh ngày dương và ngày âm tương ứng.</p>
+
+          <div class="selected-date-summary" aria-live="polite">
+            <div class="selected-date-card solar">
+              <p class="selected-date-label">Dương lịch</p>
+              <p id="selectedSolarDay" class="selected-date-day">--</p>
+              <p id="selectedSolarMeta" class="selected-date-meta">--</p>
+            </div>
+            <div class="selected-date-card lunar">
+              <p class="selected-date-label">Âm lịch</p>
+              <p id="selectedLunarDay" class="selected-date-day">--</p>
+              <p id="selectedLunarMeta" class="selected-date-meta">--</p>
+            </div>
+          </div>
+
+          <div class="month-calendar-toolbar">
+            <button id="previousMonthButton" class="month-nav-button" type="button" aria-label="Tháng trước">‹</button>
+            <div class="month-calendar-selectors">
+              <div class="calendar-number-control">
+                <input id="calendarMonthInput" type="number" min="1" max="12" inputmode="numeric" aria-label="Nhập tháng">
+                <select id="calendarMonthSelect" class="calendar-picker-select" aria-label="Cuộn chọn tháng" tabindex="-1"></select>
+              </div>
+              <div class="calendar-number-control">
+                <input id="calendarYearInput" type="number" min="1900" max="2100" inputmode="numeric" aria-label="Nhập năm">
+                <select id="calendarYearSelect" class="calendar-picker-select" aria-label="Cuộn chọn năm" tabindex="-1"></select>
+              </div>
+            </div>
+            <button id="nextMonthButton" class="month-nav-button" type="button" aria-label="Tháng sau">›</button>
+          </div>
+          <div class="month-today-row">
+            <button id="calendarTodayButton" class="month-today-button" type="button">Hôm nay</button>
+          </div>
+          <div class="month-calendar-weekdays" aria-hidden="true">
+            <div class="month-weekday">T2</div>
+            <div class="month-weekday">T3</div>
+            <div class="month-weekday">T4</div>
+            <div class="month-weekday">T5</div>
+            <div class="month-weekday">T6</div>
+            <div class="month-weekday weekend">T7</div>
+            <div class="month-weekday weekend">CN</div>
+          </div>
+          <div id="monthCalendarGrid" class="month-calendar-grid" role="grid" aria-label="Lịch tháng"></div>
+        </section>
       </div>
     </section>
   </main>
@@ -1211,13 +1707,230 @@
       if (location.hash === "#converterTab") activate(document.getElementById("converterTabButton"), false);
     }
 
+    const CALENDAR_MIN_YEAR = 1900;
+    const CALENDAR_MAX_YEAR = 2100;
+    let calendarViewYear;
+    let calendarViewMonth;
+    let calendarSelectedDay;
+
+    function setupMonthlyCalendar() {
+      const today = getVietnamToday();
+      const params = new URLSearchParams(location.search);
+      const queryYear = Number(params.get("year"));
+      const queryMonth = Number(params.get("month"));
+      const queryDay = Number(params.get("day"));
+      const validQueryMonth = Number.isInteger(queryYear)
+        && queryYear >= CALENDAR_MIN_YEAR
+        && queryYear <= CALENDAR_MAX_YEAR
+        && Number.isInteger(queryMonth)
+        && queryMonth >= 1
+        && queryMonth <= 12;
+
+      calendarViewYear = validQueryMonth ? queryYear : today.getFullYear();
+      calendarViewMonth = validQueryMonth ? queryMonth : today.getMonth() + 1;
+      const daysInMonth = getDaysInMonth(calendarViewYear, calendarViewMonth);
+      calendarSelectedDay = validQueryMonth && Number.isInteger(queryDay) && queryDay >= 1 && queryDay <= daysInMonth
+        ? queryDay
+        : validQueryMonth ? 1 : today.getDate();
+
+      const monthSelect = document.getElementById("calendarMonthSelect");
+      const yearSelect = document.getElementById("calendarYearSelect");
+      const monthInput = document.getElementById("calendarMonthInput");
+      const yearInput = document.getElementById("calendarYearInput");
+      setupNumberEntryControl("calendarMonthInput", "calendarMonthSelect", 1, 12, (month) => `Tháng ${month}`);
+      setupNumberEntryControl("calendarYearInput", "calendarYearSelect", CALENDAR_MIN_YEAR, CALENDAR_MAX_YEAR);
+
+      document.getElementById("previousMonthButton").addEventListener("click", () => changeCalendarMonth(-1));
+      document.getElementById("nextMonthButton").addEventListener("click", () => changeCalendarMonth(1));
+      document.getElementById("calendarTodayButton").addEventListener("click", () => {
+        const vietnamToday = getVietnamToday();
+        setMonthlyCalendarDate(vietnamToday.getFullYear(), vietnamToday.getMonth() + 1, vietnamToday.getDate());
+      });
+      monthSelect.addEventListener("change", () => {
+        setMonthlyCalendarDate(calendarViewYear, Number(monthSelect.value), calendarSelectedDay);
+      });
+      yearSelect.addEventListener("change", () => {
+        setMonthlyCalendarDate(Number(yearSelect.value), calendarViewMonth, calendarSelectedDay);
+      });
+      monthInput.addEventListener("change", () => {
+        const month = Number(monthInput.value);
+        if (Number.isInteger(month) && month >= 1 && month <= 12) {
+          setMonthlyCalendarDate(calendarViewYear, month, calendarSelectedDay);
+        } else {
+          renderMonthlyCalendar();
+        }
+      });
+      yearInput.addEventListener("change", () => {
+        const year = Number(yearInput.value);
+        if (Number.isInteger(year) && year >= CALENDAR_MIN_YEAR && year <= CALENDAR_MAX_YEAR) {
+          setMonthlyCalendarDate(year, calendarViewMonth, calendarSelectedDay);
+        } else {
+          renderMonthlyCalendar();
+        }
+      });
+
+      renderMonthlyCalendar();
+    }
+
+    function getDaysInMonth(year, month) {
+      return new Date(Date.UTC(year, month, 0)).getUTCDate();
+    }
+
+    function changeCalendarMonth(offset) {
+      const date = new Date(Date.UTC(calendarViewYear, calendarViewMonth - 1 + offset, 1));
+      const year = date.getUTCFullYear();
+      const month = date.getUTCMonth() + 1;
+      if (year < CALENDAR_MIN_YEAR || year > CALENDAR_MAX_YEAR) return;
+      setMonthlyCalendarDate(year, month, calendarSelectedDay);
+    }
+
+    function setMonthlyCalendarDate(year, month, day) {
+      if (!Number.isInteger(year) || year < CALENDAR_MIN_YEAR || year > CALENDAR_MAX_YEAR) return;
+      if (!Number.isInteger(month) || month < 1 || month > 12) return;
+      calendarViewYear = year;
+      calendarViewMonth = month;
+      calendarSelectedDay = Math.min(Math.max(Number(day) || 1, 1), getDaysInMonth(year, month));
+      renderMonthlyCalendar();
+      updateMonthlyCalendarUrl();
+    }
+
+    function openDateInMonthlyCalendar(date) {
+      if (!date) return;
+      setMonthlyCalendarDate(date.year, date.month, date.day);
+      requestAnimationFrame(() => {
+        const selectedDay = document.querySelector("#monthCalendarGrid .month-day-button.selected");
+        if (!selectedDay) return;
+        selectedDay.focus({ preventScroll: true });
+        selectedDay.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+      });
+    }
+
+    function setupNumberEntryControl(inputId, pickerId, minimum, maximum, formatOption = String) {
+      const input = document.getElementById(inputId);
+      const picker = document.getElementById(pickerId);
+      for (let value = minimum; value <= maximum; value += 1) {
+        picker.add(new Option(formatOption(value), String(value)));
+      }
+      const syncPicker = () => {
+        const value = Number(input.value);
+        if (Number.isInteger(value) && value >= minimum && value <= maximum) picker.value = String(value);
+      };
+      input.addEventListener("input", syncPicker);
+      picker.addEventListener("change", () => {
+        input.value = picker.value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      syncPicker();
+    }
+
+    function renderMonthlyCalendar() {
+      const grid = document.getElementById("monthCalendarGrid");
+      const monthInput = document.getElementById("calendarMonthInput");
+      const yearInput = document.getElementById("calendarYearInput");
+      const monthSelect = document.getElementById("calendarMonthSelect");
+      const yearSelect = document.getElementById("calendarYearSelect");
+      const previousButton = document.getElementById("previousMonthButton");
+      const nextButton = document.getElementById("nextMonthButton");
+      const today = getVietnamToday();
+      const daysInMonth = getDaysInMonth(calendarViewYear, calendarViewMonth);
+      const firstWeekday = new Date(Date.UTC(calendarViewYear, calendarViewMonth - 1, 1)).getUTCDay();
+      const leadingBlanks = (firstWeekday + 6) % 7;
+      const cellCount = Math.ceil((leadingBlanks + daysInMonth) / 7) * 7;
+
+      monthInput.value = String(calendarViewMonth);
+      yearInput.value = String(calendarViewYear);
+      monthSelect.value = String(calendarViewMonth);
+      yearSelect.value = String(calendarViewYear);
+      previousButton.disabled = calendarViewYear === CALENDAR_MIN_YEAR && calendarViewMonth === 1;
+      nextButton.disabled = calendarViewYear === CALENDAR_MAX_YEAR && calendarViewMonth === 12;
+      grid.setAttribute("aria-label", `Lịch tháng ${calendarViewMonth} năm ${calendarViewYear}`);
+      grid.replaceChildren();
+
+      for (let index = 0; index < cellCount; index += 1) {
+        const day = index - leadingBlanks + 1;
+        if (day < 1 || day > daysInMonth) {
+          const empty = document.createElement("div");
+          empty.className = "month-day-empty";
+          empty.setAttribute("aria-hidden", "true");
+          grid.appendChild(empty);
+          continue;
+        }
+
+        const lunar = convertSolarToLunar(day, calendarViewMonth, calendarViewYear, TIME_ZONE);
+        const column = index % 7;
+        const isWeekend = column >= 5;
+        const isToday = day === today.getDate()
+          && calendarViewMonth === today.getMonth() + 1
+          && calendarViewYear === today.getFullYear();
+        const isSelected = day === calendarSelectedDay;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = ["month-day-button", isWeekend ? "weekend" : "", isToday ? "today" : "", isSelected ? "selected" : ""]
+          .filter(Boolean).join(" ");
+        button.setAttribute("role", "gridcell");
+        button.dataset.calendarDay = String(day);
+        button.setAttribute("aria-selected", isSelected ? "true" : "false");
+        button.setAttribute(
+          "aria-label",
+          `${day}/${calendarViewMonth}/${calendarViewYear}, âm lịch ${lunar.day}/${lunar.month}/${lunar.year}${lunar.leap ? " nhuận" : ""}`
+        );
+
+        const solarDay = document.createElement("span");
+        solarDay.className = "month-solar-day";
+        solarDay.textContent = day;
+        const lunarDay = document.createElement("span");
+        lunarDay.className = [
+          "month-lunar-day",
+          lunar.day === 1 ? "month-start" : "",
+          lunar.day === 15 ? "full-moon" : "",
+          lunar.leap ? "leap-month" : ""
+        ].filter(Boolean).join(" ");
+        if (lunar.day === 1) {
+          lunarDay.textContent = `1/${lunar.month}${lunar.leap ? "N" : ""}`;
+        } else if (lunar.day === 15) {
+          lunarDay.textContent = `● 15${lunar.leap ? "N" : ""}`;
+        } else {
+          lunarDay.textContent = `${lunar.day}${lunar.leap ? "N" : ""}`;
+        }
+        button.append(solarDay, lunarDay);
+        button.addEventListener("click", () => setMonthlyCalendarDate(calendarViewYear, calendarViewMonth, day));
+        grid.appendChild(button);
+      }
+
+      renderSelectedCalendarDate();
+    }
+
+    function renderSelectedCalendarDate() {
+      const lunar = convertSolarToLunar(calendarSelectedDay, calendarViewMonth, calendarViewYear, TIME_ZONE);
+      const date = new Date(Date.UTC(calendarViewYear, calendarViewMonth - 1, calendarSelectedDay));
+      const weekday = titleCaseWords(WEEKDAYS[date.getUTCDay()]);
+      const lunarMonth = lunar.leap ? `${lunar.month} nhuận` : lunar.month;
+      document.getElementById("selectedSolarDay").textContent = calendarSelectedDay;
+      document.getElementById("selectedSolarMeta").textContent = `${weekday} · Tháng ${calendarViewMonth}/${calendarViewYear}`;
+      document.getElementById("selectedLunarDay").textContent = lunar.day;
+      document.getElementById("selectedLunarMeta").textContent = `Tháng ${lunarMonth} · ${canChiYear(lunar.year)}`;
+    }
+
+    function updateMonthlyCalendarUrl() {
+      if (location.protocol === "file:") return;
+      const url = new URL(location.href);
+      url.searchParams.set("year", calendarViewYear);
+      url.searchParams.set("month", calendarViewMonth);
+      url.searchParams.set("day", calendarSelectedDay);
+      history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+
     function setupConversionTool() {
       const solarDirectionButton = document.getElementById("solarDirectionButton");
       const lunarDirectionButton = document.getElementById("lunarDirectionButton");
       const solarForm = document.getElementById("solarToLunarForm");
       const lunarForm = document.getElementById("lunarToSolarForm");
+      const viewSolarMonthButton = document.getElementById("viewSolarMonthButton");
+      const viewLunarMonthButton = document.getElementById("viewLunarMonthButton");
       const today = getVietnamToday();
       const todayLunar = convertSolarToLunar(today.getDate(), today.getMonth() + 1, today.getFullYear(), TIME_ZONE);
+      let solarCalendarTarget = null;
+      let lunarCalendarTarget = null;
 
       document.getElementById("solarInputDay").value = today.getDate();
       document.getElementById("solarInputMonth").value = today.getMonth() + 1;
@@ -1226,6 +1939,25 @@
       document.getElementById("lunarInputMonth").value = todayLunar.month;
       document.getElementById("lunarInputYear").value = todayLunar.year;
       document.getElementById("lunarInputLeap").checked = todayLunar.leap;
+      setupNumberEntryControl("solarInputDay", "solarDayPicker", 1, 31);
+      setupNumberEntryControl("solarInputMonth", "solarMonthPicker", 1, 12);
+      setupNumberEntryControl("solarInputYear", "solarYearPicker", CALENDAR_MIN_YEAR, CALENDAR_MAX_YEAR);
+      setupNumberEntryControl("lunarInputDay", "lunarDayPicker", 1, 30);
+      setupNumberEntryControl("lunarInputMonth", "lunarMonthPicker", 1, 12);
+      setupNumberEntryControl("lunarInputYear", "lunarYearPicker", CALENDAR_MIN_YEAR, CALENDAR_MAX_YEAR);
+
+      solarForm.addEventListener("input", () => {
+        solarCalendarTarget = null;
+        viewSolarMonthButton.disabled = true;
+        clearConversionOutput();
+      });
+      lunarForm.addEventListener("input", () => {
+        lunarCalendarTarget = null;
+        viewLunarMonthButton.disabled = true;
+        clearConversionOutput();
+      });
+      viewSolarMonthButton.addEventListener("click", () => openDateInMonthlyCalendar(solarCalendarTarget));
+      viewLunarMonthButton.addEventListener("click", () => openDateInMonthlyCalendar(lunarCalendarTarget));
 
       [solarDirectionButton, lunarDirectionButton].forEach((button) => {
         button.addEventListener("click", () => {
@@ -1241,6 +1973,8 @@
       solarForm.addEventListener("submit", (event) => {
         event.preventDefault();
         clearConversionOutput();
+        solarCalendarTarget = null;
+        viewSolarMonthButton.disabled = true;
         const day = Number(document.getElementById("solarInputDay").value);
         const month = Number(document.getElementById("solarInputMonth").value);
         const year = Number(document.getElementById("solarInputYear").value);
@@ -1251,11 +1985,15 @@
         const lunar = convertSolarToLunar(day, month, year, TIME_ZONE);
         const lunarMonth = lunar.leap ? `${lunar.month} nhuận` : lunar.month;
         showConversionResult(`Ngày ${lunar.day} tháng ${lunarMonth} năm ${canChiYear(lunar.year)} (${lunar.year})`);
+        solarCalendarTarget = { day, month, year };
+        viewSolarMonthButton.disabled = false;
       });
 
       lunarForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         clearConversionOutput();
+        lunarCalendarTarget = null;
+        viewLunarMonthButton.disabled = true;
         const submit = lunarForm.querySelector("button[type='submit']");
         const day = Number(document.getElementById("lunarInputDay").value);
         const month = Number(document.getElementById("lunarInputMonth").value);
@@ -1268,6 +2006,8 @@
           const date = new Date(Date.UTC(solar.year, solar.month - 1, solar.day));
           const weekday = titleCaseWords(WEEKDAYS[date.getUTCDay()]);
           showConversionResult(`${weekday}, ngày ${solar.day} tháng ${solar.month} năm ${solar.year}`);
+          lunarCalendarTarget = { day: solar.day, month: solar.month, year: solar.year };
+          viewLunarMonthButton.disabled = false;
         } catch (error) {
           showConversionError(error.message || "Chưa thể chuyển đổi ngày này.");
         } finally {
@@ -1279,7 +2019,7 @@
 
     function isValidSolarDate(day, month, year) {
       if (!Number.isInteger(day) || !Number.isInteger(month) || !Number.isInteger(year)) return false;
-      if (year < 1000 || year > 3000 || month < 1 || month > 12) return false;
+      if (year < CALENDAR_MIN_YEAR || year > CALENDAR_MAX_YEAR || month < 1 || month > 12) return false;
       const date = new Date(Date.UTC(year, month - 1, day));
       return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
     }
@@ -1694,6 +2434,7 @@
     render();
     setupAppTabs();
     setupConversionTool();
+    setupMonthlyCalendar();
     setupLocationPicker();
     loadWeather();
     loadMarkets();
