@@ -40,6 +40,76 @@
       min-width: 0;
     }
 
+    .app-info {
+      margin-top: 14px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .app-info-button {
+      padding: 7px 12px;
+      color: #526579;
+      font: inherit;
+      font-size: .72rem;
+      font-weight: 700;
+      border: 1px solid #c6d2df;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .86);
+      cursor: pointer;
+    }
+
+    .app-info-button:hover {
+      color: var(--red-dark);
+      background: #fff;
+    }
+
+    .app-info-dialog {
+      width: min(calc(100% - 32px), 430px);
+      padding: 0;
+      color: #33475e;
+      font: inherit;
+      border: 1px solid #b8c7d8;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 20px 55px rgba(0, 0, 0, .25);
+    }
+
+    .app-info-dialog::backdrop {
+      background: rgba(15, 29, 45, .58);
+    }
+
+    .app-info-dialog-content {
+      padding: 20px;
+    }
+
+    .app-info-dialog h2 {
+      margin: 0 0 14px;
+      color: var(--red-dark);
+      font-size: 1.05rem;
+      text-align: center;
+    }
+
+    .app-info-dialog p {
+      margin: 9px 0;
+      font-size: .78rem;
+      line-height: 1.55;
+    }
+
+    .app-info-close {
+      display: block;
+      min-width: 88px;
+      min-height: 36px;
+      margin: 16px auto 0;
+      color: #fff;
+      font: inherit;
+      font-size: .78rem;
+      font-weight: 800;
+      border: 0;
+      border-radius: 6px;
+      background: var(--red-dark);
+      cursor: pointer;
+    }
+
     .app-tabs {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -551,6 +621,24 @@
       line-height: 1.35;
     }
 
+    .selected-lunar-details {
+      display: grid;
+      gap: 3px;
+      margin-top: 7px;
+    }
+
+    .selected-lunar-detail {
+      margin: 0;
+      color: #45586d;
+      font-size: .69rem;
+      line-height: 1.35;
+    }
+
+    .selected-lunar-detail.is-auspicious {
+      color: #f4b400;
+      font-weight: 700;
+    }
+
     .month-calendar-toolbar {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
@@ -640,11 +728,23 @@
 
     .month-today-row {
       display: flex;
+      flex-direction: column;
+      gap: 7px;
+      align-items: center;
       justify-content: center;
       padding: 8px;
       background: #dfe8f1;
       border-right: 1px solid #b8c7d8;
       border-left: 1px solid #b8c7d8;
+    }
+
+    .month-lunar-heading {
+      margin: 0;
+      color: #33475e;
+      font-size: .76rem;
+      font-weight: 800;
+      line-height: 1.35;
+      text-align: center;
     }
 
     .month-today-button {
@@ -720,6 +820,20 @@
 
     .month-day-button.weekend .month-solar-day {
       color: #b42318;
+    }
+
+    .month-day-type-dot {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 1px rgba(23, 43, 66, .15);
+    }
+
+    .month-day-type-dot.auspicious {
+      background: #f4b400;
     }
 
     .month-solar-day {
@@ -1495,6 +1609,11 @@
               <p class="selected-date-label">Âm lịch</p>
               <p id="selectedLunarDay" class="selected-date-day">--</p>
               <p id="selectedLunarMeta" class="selected-date-meta">--</p>
+              <div class="selected-lunar-details">
+                <p id="selectedLunarCanChi" class="selected-lunar-detail">--</p>
+                <p id="selectedLunarDayType" class="selected-lunar-detail">--</p>
+                <p id="selectedLunarSolarTerm" class="selected-lunar-detail" hidden></p>
+              </div>
             </div>
           </div>
 
@@ -1513,6 +1632,7 @@
             <button id="nextMonthButton" class="month-nav-button" type="button" aria-label="Tháng sau">›</button>
           </div>
           <div class="month-today-row">
+            <p id="monthLunarHeading" class="month-lunar-heading">Tháng âm lịch</p>
             <button id="calendarTodayButton" class="month-today-button" type="button">Hôm nay</button>
           </div>
           <div class="month-calendar-weekdays" aria-hidden="true">
@@ -1528,6 +1648,20 @@
         </section>
       </div>
     </section>
+    <footer class="app-info">
+      <button id="appInfoButton" class="app-info-button" type="button">Thông tin ứng dụng</button>
+    </footer>
+    <dialog id="appInfoDialog" class="app-info-dialog" aria-labelledby="appInfoHeading">
+      <div class="app-info-dialog-content">
+        <h2 id="appInfoHeading">Thông tin ứng dụng</h2>
+        <p><strong>Phiên bản 1.0 · by Ong Thua Phu.</strong></p>
+        <p><strong>Nguồn dữ liệu:</strong> Tổng hợp từ các nguồn công khai và dịch vụ bên thứ ba; dữ liệu có thể chậm hoặc thay đổi.</p>
+        <p><strong>Miễn trừ trách nhiệm:</strong> Thông tin chỉ mang tính tham khảo, không phải tư vấn tài chính, đầu tư hay quyết định chuyên môn.</p>
+        <form method="dialog">
+          <button class="app-info-close" type="submit">Đóng</button>
+        </form>
+      </div>
+    </dialog>
   </main>
 
   <script>
@@ -1592,7 +1726,7 @@
       return jd1 + c1 - deltaT;
     }
 
-    function sunLongitude(jdn) {
+    function solarLongitudeDegrees(jdn) {
       const t = (jdn - 2451545) / 36525;
       const t2 = t * t;
       const dr = PI / 180;
@@ -1603,7 +1737,11 @@
       let l = l0 + dl;
       l *= dr;
       l -= PI * 2 * Math.floor(l / (PI * 2));
-      return Math.floor(l / PI * 6);
+      return l / dr;
+    }
+
+    function sunLongitude(jdn) {
+      return Math.floor(solarLongitudeDegrees(jdn) / 30);
     }
 
     function getNewMoonDay(k, timeZone) {
@@ -1705,6 +1843,15 @@
         button.addEventListener("click", () => activate(button, true));
       });
       if (location.hash === "#converterTab") activate(document.getElementById("converterTabButton"), false);
+    }
+
+    function setupApplicationInfo() {
+      const button = document.getElementById("appInfoButton");
+      const dialog = document.getElementById("appInfoDialog");
+      button.addEventListener("click", () => dialog.showModal());
+      dialog.addEventListener("click", (event) => {
+        if (event.target === dialog) dialog.close();
+      });
     }
 
     const CALENDAR_MIN_YEAR = 1900;
@@ -1857,6 +2004,8 @@
         }
 
         const lunar = convertSolarToLunar(day, calendarViewMonth, calendarViewYear, TIME_ZONE);
+        const dayType = getLunarDayType(lunar.jd, lunar.month);
+        const isAuspicious = dayType === "Ngày Hoàng đạo";
         const column = index % 7;
         const isWeekend = column >= 5;
         const isToday = day === today.getDate()
@@ -1872,9 +2021,15 @@
         button.setAttribute("aria-selected", isSelected ? "true" : "false");
         button.setAttribute(
           "aria-label",
-          `${day}/${calendarViewMonth}/${calendarViewYear}, âm lịch ${lunar.day}/${lunar.month}/${lunar.year}${lunar.leap ? " nhuận" : ""}`
+          `${day}/${calendarViewMonth}/${calendarViewYear}, âm lịch ${lunar.day}/${lunar.month}/${lunar.year}${lunar.leap ? " nhuận" : ""}${isAuspicious ? `, ${dayType}` : ""}`
         );
 
+        const dayTypeDot = isAuspicious ? document.createElement("span") : null;
+        if (dayTypeDot) {
+          dayTypeDot.className = "month-day-type-dot auspicious";
+          dayTypeDot.title = dayType;
+          dayTypeDot.setAttribute("aria-hidden", "true");
+        }
         const solarDay = document.createElement("span");
         solarDay.className = "month-solar-day";
         solarDay.textContent = day;
@@ -1892,7 +2047,7 @@
         } else {
           lunarDay.textContent = `${lunar.day}${lunar.leap ? "N" : ""}`;
         }
-        button.append(solarDay, lunarDay);
+        button.append(...(dayTypeDot ? [dayTypeDot] : []), solarDay, lunarDay);
         button.addEventListener("click", () => setMonthlyCalendarDate(calendarViewYear, calendarViewMonth, day));
         grid.appendChild(button);
       }
@@ -1905,10 +2060,24 @@
       const date = new Date(Date.UTC(calendarViewYear, calendarViewMonth - 1, calendarSelectedDay));
       const weekday = titleCaseWords(WEEKDAYS[date.getUTCDay()]);
       const lunarMonth = lunar.leap ? `${lunar.month} nhuận` : lunar.month;
+      const dayType = getLunarDayType(lunar.jd, lunar.month);
+      const dayOfficer = getDayOfficer(lunar.jd, TIME_ZONE);
+      const solarTerm = getSolarTermForDate(lunar.jd, TIME_ZONE);
       document.getElementById("selectedSolarDay").textContent = calendarSelectedDay;
       document.getElementById("selectedSolarMeta").textContent = `${weekday} · Tháng ${calendarViewMonth}/${calendarViewYear}`;
       document.getElementById("selectedLunarDay").textContent = lunar.day;
-      document.getElementById("selectedLunarMeta").textContent = `Tháng ${lunarMonth} · ${canChiYear(lunar.year)}`;
+      document.getElementById("selectedLunarMeta").textContent = `Tháng ${lunarMonth}-${canChiMonth(lunar.year, lunar.month)} năm ${canChiYear(lunar.year)}`;
+      const lunarMonthCanChi = `${canChiMonth(lunar.year, lunar.month)}${lunar.leap ? " nhuận" : ""}`;
+      document.getElementById("monthLunarHeading").textContent = `Tháng ${lunarMonthCanChi} năm ${canChiYear(lunar.year)}`;
+      document.getElementById("selectedLunarCanChi").textContent = `Ngày ${canChiDay(lunar.jd)} - Trực ${dayOfficer}`;
+      const dayTypeElement = document.getElementById("selectedLunarDayType");
+      const isAuspicious = dayType === "Ngày Hoàng đạo";
+      dayTypeElement.textContent = isAuspicious ? dayType : "";
+      dayTypeElement.classList.toggle("is-auspicious", isAuspicious);
+      dayTypeElement.hidden = !isAuspicious;
+      const solarTermElement = document.getElementById("selectedLunarSolarTerm");
+      solarTermElement.textContent = solarTerm ? `Tiết khí: ${solarTerm}` : "";
+      solarTermElement.hidden = !solarTerm;
     }
 
     function updateMonthlyCalendarUrl() {
@@ -2057,6 +2226,38 @@
 
     function canChiDay(jd) {
       return `${CAN[(jd + 9) % 10]} ${CHI[(jd + 1) % 12]}`;
+    }
+
+    function getLunarDayType(jd, lunarMonth) {
+      const dayBranch = (jd + 1) % 12;
+      const firstAuspiciousBranch = ((lunarMonth - 1) % 6) * 2;
+      const deityIndex = (dayBranch - firstAuspiciousBranch + 12) % 12;
+      return [0, 1, 4, 5, 7, 10].includes(deityIndex) ? "Ngày Hoàng đạo" : "Ngày Hắc đạo";
+    }
+
+    function getDayOfficer(jd, timeZone) {
+      const dayOfficers = ["Kiến", "Trừ", "Mãn", "Bình", "Định", "Chấp", "Phá", "Nguy", "Thành", "Thu", "Khai", "Bế"];
+      const dayBranch = (jd + 1) % 12;
+      const longitudeAtLocalNoon = solarLongitudeDegrees(jd - timeZone / 24);
+      const solarMonthOffset = Math.floor(((longitudeAtLocalNoon - 315 + 360) % 360) / 30);
+      const monthBranch = (solarMonthOffset + 2) % 12;
+      return dayOfficers[(dayBranch - monthBranch + 12) % 12];
+    }
+
+    function getSolarTermForDate(jd, timeZone) {
+      const solarTerms = [
+        "Xuân phân", "Thanh minh", "Cốc vũ", "Lập hạ", "Tiểu mãn", "Mang chủng",
+        "Hạ chí", "Tiểu thử", "Đại thử", "Lập thu", "Xử thử", "Bạch lộ",
+        "Thu phân", "Hàn lộ", "Sương giáng", "Lập đông", "Tiểu tuyết", "Đại tuyết",
+        "Đông chí", "Tiểu hàn", "Đại hàn", "Lập xuân", "Vũ thủy", "Kinh trập"
+      ];
+      const startOfLocalDay = jd - .5 - timeZone / 24;
+      const startLongitude = solarLongitudeDegrees(startOfLocalDay);
+      let endLongitude = solarLongitudeDegrees(startOfLocalDay + 1);
+      if (endLongitude < startLongitude) endLongitude += 360;
+      const boundary = (Math.floor(startLongitude / 15) + 1) * 15;
+      if (boundary > endLongitude + 1e-7) return "";
+      return solarTerms[Math.round(boundary / 15) % 24];
     }
 
     function render() {
@@ -2433,6 +2634,7 @@
 
     render();
     setupAppTabs();
+    setupApplicationInfo();
     setupConversionTool();
     setupMonthlyCalendar();
     setupLocationPicker();
