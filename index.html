@@ -258,6 +258,7 @@
     }
 
     .converter-card {
+      position: relative;
       min-width: 0;
       overflow: hidden;
       border: 1px solid #d7d7d7;
@@ -266,7 +267,59 @@
       box-shadow: var(--shadow);
     }
 
+    .calendar-tools-layout {
+      display: grid;
+      gap: 14px;
+    }
+
+    .calendar-detail-card,
+    .monthly-calendar-section {
+      position: relative;
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid #d7d7d7;
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: var(--shadow);
+    }
+
+    .calendar-card-header {
+      position: relative;
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) 30px;
+      align-items: center;
+      padding: 14px 48px 12px;
+      color: #ffffff;
+      text-align: center;
+      background: var(--red-dark);
+      border-bottom: 4px solid var(--gold);
+    }
+
+    .calendar-card-heading {
+      grid-column: 2;
+      margin: 0;
+      font-size: 1.05rem;
+      line-height: 1.3;
+    }
+
+    .calendar-detail-card .selected-date-summary {
+      margin: 0;
+      padding: 16px 18px 18px;
+    }
+
+    .calendar-collapsible.is-collapsed > :not(.market-restore-button) {
+      display: none;
+    }
+
+    .calendar-collapsible.is-collapsed > .market-restore-button {
+      display: block;
+    }
+
     .converter-header {
+      position: relative;
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) 30px;
+      align-items: center;
       padding: 24px 26px 20px;
       color: #fff;
       text-align: center;
@@ -276,12 +329,14 @@
     }
 
     .converter-title {
+      grid-column: 2;
       margin: 0;
       font-size: 1.55rem;
       line-height: 1.25;
     }
 
     .converter-subtitle {
+      grid-column: 2;
       margin: 7px 0 0;
       color: rgba(255, 255, 255, .78);
       font-size: .86rem;
@@ -561,9 +616,8 @@
     }
 
     .monthly-calendar-section {
-      margin-top: 8px;
-      padding-top: 10px;
-      border-top: 1px solid #cbd6e2;
+      margin-top: 0;
+      padding: 20px 28px 28px;
     }
 
     .monthly-calendar-heading {
@@ -960,6 +1014,7 @@
     }
 
     .weather-panel {
+      position: relative;
       margin-top: 18px;
       overflow: hidden;
       border: 1px solid #d7d7d7;
@@ -1200,6 +1255,7 @@
     }
 
     .market-panel {
+      position: relative;
       margin-top: 18px;
       overflow: hidden;
       border: 1px solid #d7d7d7;
@@ -1216,9 +1272,110 @@
       letter-spacing: .08em;
       text-align: center;
       text-transform: uppercase;
-      background: var(--red-dark);
       color: #ffffff;
+    }
+
+    .market-panel-header {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) 30px;
+      align-items: center;
+      padding: 0 5px;
+      background: var(--red-dark);
       border-bottom: 3px solid var(--gold);
+    }
+
+    .market-panel-header .market-title {
+      grid-column: 2;
+    }
+
+    .market-collapse-button {
+      position: absolute;
+      top: 5px;
+      right: 7px;
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      padding: 0;
+      color: #ffffff;
+      font: inherit;
+      font-size: 0;
+      font-weight: 900;
+      line-height: 1;
+      border: 0;
+      border-radius: 4px;
+      background-color: rgba(255, 255, 255, .12);
+      background-image: linear-gradient(currentColor, currentColor);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 12px 2px;
+      cursor: pointer;
+    }
+
+    .market-panel-header > .market-collapse-button,
+    .calendar-card-header > .market-collapse-button,
+    .converter-header > .market-collapse-button {
+      position: static;
+      grid-column: 3;
+      grid-row: 1 / -1;
+      align-self: center;
+      justify-self: center;
+    }
+
+    .market-collapse-button:hover,
+    .market-collapse-button:focus-visible {
+      background-color: rgba(255, 255, 255, .24);
+      outline: 2px solid rgba(255, 255, 255, .8);
+      outline-offset: -2px;
+    }
+
+    .weather-panel > .market-collapse-button {
+      z-index: 6;
+      color: var(--red-dark);
+      background-color: #edf3f8;
+    }
+
+    .weather-panel > .market-collapse-button:hover,
+    .weather-panel > .market-collapse-button:focus-visible {
+      color: #ffffff;
+      background-color: var(--red-dark);
+      outline-color: var(--red-dark);
+    }
+
+    .market-restore-button {
+      display: none;
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 14px;
+      color: #ffffff;
+      font: inherit;
+      font-size: .86rem;
+      font-weight: 800;
+      border: 0;
+      border-bottom: 3px solid var(--gold);
+      background: var(--red-dark);
+      cursor: pointer;
+    }
+
+    .market-restore-button:hover,
+    .market-restore-button:focus-visible {
+      color: #ffffff;
+      background: var(--red-dark);
+      outline: 2px solid rgba(255, 255, 255, .8);
+      outline-offset: -4px;
+    }
+
+    .market-panel.is-collapsed > :not(.market-restore-button) {
+      display: none;
+    }
+
+    .weather-panel.is-collapsed > :not(.market-restore-button) {
+      display: none;
+    }
+
+    .market-panel.is-collapsed .market-restore-button,
+    .weather-panel.is-collapsed .market-restore-button {
+      display: block;
     }
 
     .market-grid {
@@ -1356,6 +1513,10 @@
         padding: 20px;
       }
 
+      .monthly-calendar-section {
+        padding: 18px 14px 20px;
+      }
+
       .date-fields {
         gap: 7px;
       }
@@ -1466,7 +1627,11 @@
           </section>
         </div>
 
-        <section class="weather-panel" aria-label="Thời tiết hôm nay">
+        <section id="weatherPanel" class="weather-panel" data-collapse-key="weather" aria-label="Thời tiết hôm nay">
+          <header class="market-panel-header">
+            <p class="market-title">Thời tiết</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn thời tiết" aria-controls="weatherCard">−</button>
+          </header>
           <form id="locationForm" class="location-picker" autocomplete="off">
             <label class="location-picker-label" for="locationInput">Chọn thành phố</label>
             <div class="location-picker-row">
@@ -1482,7 +1647,7 @@
             <div class="weather-main">
               <div class="weather-icon" aria-hidden="true"></div>
               <div>
-                <p class="weather-location">Thời tiết</p>
+                <p class="weather-location">Đang xác định địa điểm</p>
                 <div class="weather-temp-row">
                   <p class="weather-temp">--°</p>
                   <p class="weather-condition">Đang tải</p>
@@ -1490,10 +1655,14 @@
               </div>
             </div>
           </div>
+          <button class="market-restore-button" type="button" aria-controls="weatherCard">Bấm để xem thời tiết</button>
         </section>
 
-        <section class="market-panel" aria-label="Chỉ số thị trường">
-          <p class="market-title">Chỉ số thị trường</p>
+        <section id="marketPanel" class="market-panel" data-collapse-key="market" aria-label="Chỉ số thị trường">
+          <header class="market-panel-header">
+            <p class="market-title">Chỉ số thị trường</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn chỉ số thị trường" aria-controls="marketGrid">−</button>
+          </header>
           <div id="marketGrid" class="market-grid">
             <div class="market-item">
               <p class="market-name">Dow Jones</p>
@@ -1516,10 +1685,14 @@
               <p class="market-change flat">Đang tải</p>
             </div>
           </div>
+          <button class="market-restore-button" type="button" aria-controls="marketGrid">Bấm để xem chỉ số thị trường</button>
         </section>
 
-        <section class="market-panel" aria-label="Giá vàng Việt Nam và thế giới">
-          <p class="market-title">Vàng</p>
+        <section id="goldPanel" class="market-panel" data-collapse-key="gold" aria-label="Giá vàng Việt Nam và thế giới">
+          <header class="market-panel-header">
+            <p class="market-title">Vàng</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn giá vàng" aria-controls="quoteGrid">−</button>
+          </header>
           <div id="quoteGrid" class="market-grid">
             <div class="market-item">
               <p class="market-name">Vàng miếng SJC</p>
@@ -1541,10 +1714,14 @@
               <p class="quote-unit">Đang tải</p>
             </div>
           </div>
+          <button class="market-restore-button" type="button" aria-controls="quoteGrid">Bấm để xem giá vàng</button>
         </section>
 
-        <section class="market-panel" aria-label="Giá bạc Việt Nam và thế giới">
-          <p class="market-title">Bạc</p>
+        <section id="silverPanel" class="market-panel" data-collapse-key="silver" aria-label="Giá bạc Việt Nam và thế giới">
+          <header class="market-panel-header">
+            <p class="market-title">Bạc</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn giá bạc" aria-controls="silverGrid">−</button>
+          </header>
           <div id="silverGrid" class="market-grid">
             <div class="market-item">
               <p class="market-name">Bạc miếng Phú Quý 999</p>
@@ -1566,10 +1743,14 @@
               <p class="quote-unit">Đang tải</p>
             </div>
           </div>
+          <button class="market-restore-button" type="button" aria-controls="silverGrid">Bấm để xem giá bạc</button>
         </section>
 
-        <section class="market-panel" aria-label="Tỷ giá ngoại tệ">
-          <p class="market-title">Ngoại tệ</p>
+        <section id="currencyPanel" class="market-panel" data-collapse-key="currency" aria-label="Tỷ giá ngoại tệ">
+          <header class="market-panel-header">
+            <p class="market-title">Ngoại tệ</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn tỷ giá ngoại tệ" aria-controls="currencyGrid">−</button>
+          </header>
           <div id="currencyGrid" class="market-grid">
             <div class="market-item">
               <p class="market-name">USD Vietcombank</p>
@@ -1582,10 +1763,14 @@
               <p class="quote-unit">Đang tải</p>
             </div>
           </div>
+          <button class="market-restore-button" type="button" aria-controls="currencyGrid">Bấm để xem tỷ giá ngoại tệ</button>
         </section>
 
-        <section class="market-panel" aria-label="Bitcoin và giá dầu">
-          <p class="market-title">Bitcoin &amp; dầu</p>
+        <section id="assetPanel" class="market-panel" data-collapse-key="assets" aria-label="Bitcoin và giá dầu">
+          <header class="market-panel-header">
+            <p class="market-title">Bitcoin &amp; dầu</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn Bitcoin và giá dầu" aria-controls="assetGrid">−</button>
+          </header>
           <div id="assetGrid" class="market-grid">
             <div class="market-item">
               <p class="market-name">Bitcoin</p>
@@ -1608,17 +1793,20 @@
               <p class="market-change flat">Đang tải</p>
             </div>
           </div>
+          <button class="market-restore-button" type="button" aria-controls="assetGrid">Bấm để xem Bitcoin và giá dầu</button>
         </section>
       </section>
       </article>
     </div>
 
-    <section id="converterTab" class="tab-panel converter-card" role="tabpanel" aria-labelledby="converterTabButton" hidden>
-      <header class="converter-header">
-        <h1 class="converter-title">Chuyển đổi lịch âm/dương</h1>
-        <p class="converter-subtitle">Tra cứu hai chiều theo múi giờ Việt Nam (UTC+7)</p>
-      </header>
-      <div class="converter-body">
+    <section id="converterTab" class="tab-panel calendar-tools-layout" role="tabpanel" aria-labelledby="converterTabButton" hidden>
+      <section id="conversionToolPanel" class="converter-card calendar-collapsible" data-collapse-key="conversionTool" aria-labelledby="conversionToolHeading">
+        <header class="converter-header">
+          <h1 id="conversionToolHeading" class="converter-title">Chuyển đổi lịch âm/dương</h1>
+          <p class="converter-subtitle">Tra cứu hai chiều theo múi giờ Việt Nam (UTC+7)</p>
+          <button class="market-collapse-button" type="button" aria-label="Thu gọn công cụ chuyển đổi" aria-controls="conversionToolContent">−</button>
+        </header>
+        <div id="conversionToolContent" class="converter-body">
         <div class="direction-tabs" role="tablist" aria-label="Chọn chiều chuyển đổi">
           <button id="solarDirectionButton" class="direction-tab" type="button" role="tab" aria-selected="true" aria-controls="solarToLunarForm">Dương → Âm</button>
           <button id="lunarDirectionButton" class="direction-tab" type="button" role="tab" aria-selected="false" aria-controls="lunarToSolarForm">Âm → Dương</button>
@@ -1698,10 +1886,16 @@
           <p id="conversionResultValue" class="conversion-result-value"></p>
         </div>
 
-        <section class="monthly-calendar-section" aria-labelledby="monthlyCalendarHeading">
-          <h2 id="monthlyCalendarHeading" class="monthly-calendar-heading">Lịch vạn niên</h2>
-          <p class="monthly-calendar-help">Chọn một ngày để xem nhanh ngày dương và ngày âm tương ứng.</p>
+        </div>
+        <button class="market-restore-button" type="button" aria-controls="conversionToolContent">Bấm để mở công cụ chuyển đổi</button>
+      </section>
 
+      <section id="calendarDetailsPanel" class="calendar-detail-card calendar-collapsible" data-collapse-key="calendarDetails" aria-labelledby="calendarDetailsHeading">
+        <header class="calendar-card-header">
+          <h2 id="calendarDetailsHeading" class="calendar-card-heading">Dương lịch / Âm lịch</h2>
+          <button class="market-collapse-button" type="button" aria-label="Thu gọn thông tin dương lịch và âm lịch" aria-controls="selectedDateContent">−</button>
+        </header>
+        <div id="selectedDateContent">
           <div class="selected-date-summary" aria-live="polite">
             <p class="selected-solar-line"><strong>Dương lịch:</strong> <span id="selectedSolarFullDate">--</span></p>
             <div class="selected-date-card lunar">
@@ -1720,6 +1914,13 @@
               </div>
             </div>
           </div>
+        </div>
+        <button class="market-restore-button" type="button" aria-controls="selectedDateContent">Bấm để xem Dương lịch / Âm lịch</button>
+      </section>
+
+      <section class="monthly-calendar-section" aria-labelledby="monthlyCalendarHeading">
+          <h2 id="monthlyCalendarHeading" class="monthly-calendar-heading">Lịch vạn niên</h2>
+          <p class="monthly-calendar-help">Chọn một ngày để xem nhanh ngày dương và ngày âm tương ứng.</p>
 
           <div class="month-calendar-toolbar">
             <button id="previousMonthButton" class="month-nav-button" type="button" aria-label="Tháng trước">‹</button>
@@ -1749,8 +1950,7 @@
             <div class="month-weekday weekend">CN</div>
           </div>
           <div id="monthCalendarGrid" class="month-calendar-grid" role="grid" aria-label="Lịch tháng"></div>
-        </section>
-      </div>
+      </section>
     </section>
     <footer class="app-info">
       <button id="appInfoButton" class="app-info-button" type="button">Thông tin ứng dụng</button>
@@ -2457,7 +2657,7 @@
         <div class="weather-main">
           <div class="weather-icon weather-icon-${condition.icon}" aria-hidden="true">${renderWeatherIcon(condition.icon)}</div>
           <div>
-            <p class="weather-location">Thời tiết tại ${locationName}</p>
+            <p class="weather-location">Tại ${locationName}</p>
             <div class="weather-temp-row">
               <p class="weather-temp">${formatWeatherValue(weather.temperature, "°")}</p>
               <p class="weather-condition">${condition.text}</p>
@@ -2595,7 +2795,7 @@
           <div class="weather-main">
             <div class="weather-icon weather-icon-cloud" aria-hidden="true">${renderWeatherIcon("cloud")}</div>
             <div>
-              <p class="weather-location">Thời tiết tại Thành phố Hồ Chí Minh</p>
+              <p class="weather-location">Tại Thành phố Hồ Chí Minh</p>
               <div class="weather-temp-row">
                 <p class="weather-temp">--°</p>
                 <p class="weather-condition">Đang tải</p>
@@ -2792,12 +2992,46 @@
       }
     }
 
+    function setupCollapsiblePanels() {
+      document.querySelectorAll("[data-collapse-key]").forEach((panel) => {
+        const storageKey = `homnay.${panel.dataset.collapseKey}PanelCollapsed`;
+        const collapseButton = panel.querySelector(".market-collapse-button");
+        const restoreButton = panel.querySelector(".market-restore-button");
+
+        if (!collapseButton || !restoreButton) return;
+
+        const setCollapsed = (collapsed) => {
+          panel.classList.toggle("is-collapsed", collapsed);
+          collapseButton.setAttribute("aria-expanded", String(!collapsed));
+          restoreButton.setAttribute("aria-expanded", String(!collapsed));
+
+          try {
+            localStorage.setItem(storageKey, String(collapsed));
+          } catch (error) {
+            // The controls still work when browser storage is unavailable.
+          }
+        };
+
+        let initiallyCollapsed = false;
+        try {
+          initiallyCollapsed = localStorage.getItem(storageKey) === "true";
+        } catch (error) {
+          // Keep the panel expanded when browser storage is unavailable.
+        }
+
+        setCollapsed(initiallyCollapsed);
+        collapseButton.addEventListener("click", () => setCollapsed(true));
+        restoreButton.addEventListener("click", () => setCollapsed(false));
+      });
+    }
+
     render();
     setupAppTabs();
     setupApplicationInfo();
     setupConversionTool();
     setupMonthlyCalendar();
     setupLocationPicker();
+    setupCollapsiblePanels();
     loadWeather();
     loadMarkets();
     loadAssets();
