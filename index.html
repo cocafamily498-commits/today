@@ -530,6 +530,10 @@
       text-align: center;
     }
 
+    .conversion-message:empty {
+      display: none;
+    }
+
     .conversion-result {
       margin-top: 18px;
       padding: 18px;
@@ -557,8 +561,8 @@
     }
 
     .monthly-calendar-section {
-      margin-top: 28px;
-      padding-top: 24px;
+      margin-top: 8px;
+      padding-top: 10px;
       border-top: 1px solid #cbd6e2;
     }
 
@@ -578,9 +582,21 @@
 
     .selected-date-summary {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 10px;
       margin-bottom: 14px;
+    }
+
+    .selected-solar-line {
+      margin: 0;
+      color: #33475e;
+      font-size: .82rem;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .selected-solar-line strong {
+      color: var(--red-dark);
     }
 
     .selected-date-card {
@@ -613,6 +629,10 @@
       color: #b54708;
     }
 
+    .selected-date-card.lunar {
+      background: #dfe8f1;
+    }
+
     .selected-date-meta {
       margin: 7px 0 0;
       overflow-wrap: anywhere;
@@ -627,6 +647,17 @@
       margin-top: 7px;
     }
 
+    .selected-lunar-full-date {
+      margin: 0;
+      color: #45586d;
+      font-size: .82rem;
+      line-height: 1.4;
+    }
+
+    .selected-lunar-full-date strong {
+      color: #b54708;
+    }
+
     .selected-lunar-detail {
       margin: 0;
       color: #45586d;
@@ -637,6 +668,46 @@
     .selected-lunar-detail.is-auspicious {
       color: #f4b400;
       font-weight: 700;
+    }
+
+    .selected-lunar-highlight-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .selected-lunar-guidance {
+      display: grid;
+      gap: 5px;
+      margin-top: 9px;
+      padding-top: 9px;
+      text-align: left;
+      border-top: 1px solid #e1e7ee;
+    }
+
+    .selected-lunar-guidance p {
+      margin: 0;
+      color: #526579;
+      font-size: .69rem;
+      line-height: 1.45;
+    }
+
+    .guidance-do {
+      color: #2563eb;
+    }
+
+    .guidance-avoid {
+      color: #6a4aa0;
+    }
+
+    .selected-lunar-guidance-note {
+      margin-top: 2px !important;
+      color: #7a8795 !important;
+      font-size: .69rem !important;
+      font-style: italic;
+      text-align: center;
     }
 
     .month-calendar-toolbar {
@@ -1447,8 +1518,8 @@
           </div>
         </section>
 
-        <section class="market-panel" aria-label="Giá vàng và ngoại tệ">
-          <p class="market-title">Vàng &amp; ngoại tệ</p>
+        <section class="market-panel" aria-label="Giá vàng Việt Nam và thế giới">
+          <p class="market-title">Vàng</p>
           <div id="quoteGrid" class="market-grid">
             <div class="market-item">
               <p class="market-name">Vàng miếng SJC</p>
@@ -1465,7 +1536,18 @@
               <p class="quote-unit">Đang tải</p>
             </div>
             <div class="market-item">
-              <p class="market-name">USD Vietcombank</p>
+              <p class="market-name">Vàng thế giới</p>
+              <p class="market-value">--</p>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="market-panel" aria-label="Giá bạc Việt Nam và thế giới">
+          <p class="market-title">Bạc</p>
+          <div id="silverGrid" class="market-grid">
+            <div class="market-item">
+              <p class="market-name">Bạc miếng Phú Quý 999</p>
               <div class="quote-row">
                 <div class="quote-side">
                   <p class="quote-label">Mua vào</p>
@@ -1476,6 +1558,27 @@
                   <p class="quote-value">--</p>
                 </div>
               </div>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">Bạc thế giới</p>
+              <p class="market-value">--</p>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="market-panel" aria-label="Tỷ giá ngoại tệ">
+          <p class="market-title">Ngoại tệ</p>
+          <div id="currencyGrid" class="market-grid">
+            <div class="market-item">
+              <p class="market-name">USD Vietcombank</p>
+              <p class="market-value">--</p>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">EUR Vietcombank</p>
+              <p class="market-value">--</p>
               <p class="quote-unit">Đang tải</p>
             </div>
           </div>
@@ -1600,19 +1703,20 @@
           <p class="monthly-calendar-help">Chọn một ngày để xem nhanh ngày dương và ngày âm tương ứng.</p>
 
           <div class="selected-date-summary" aria-live="polite">
-            <div class="selected-date-card solar">
-              <p class="selected-date-label">Dương lịch</p>
-              <p id="selectedSolarDay" class="selected-date-day">--</p>
-              <p id="selectedSolarMeta" class="selected-date-meta">--</p>
-            </div>
+            <p class="selected-solar-line"><strong>Dương lịch:</strong> <span id="selectedSolarFullDate">--</span></p>
             <div class="selected-date-card lunar">
-              <p class="selected-date-label">Âm lịch</p>
-              <p id="selectedLunarDay" class="selected-date-day">--</p>
-              <p id="selectedLunarMeta" class="selected-date-meta">--</p>
+              <p class="selected-lunar-full-date"><strong>Âm lịch:</strong> <span id="selectedLunarFullDate">--</span></p>
               <div class="selected-lunar-details">
                 <p id="selectedLunarCanChi" class="selected-lunar-detail">--</p>
-                <p id="selectedLunarDayType" class="selected-lunar-detail">--</p>
-                <p id="selectedLunarSolarTerm" class="selected-lunar-detail" hidden></p>
+                <div class="selected-lunar-highlight-row">
+                  <p id="selectedLunarDayType" class="selected-lunar-detail">--</p>
+                  <p id="selectedLunarSolarTerm" class="selected-lunar-detail" hidden></p>
+                </div>
+              </div>
+              <div class="selected-lunar-guidance">
+                <p class="selected-lunar-guidance-note"><strong>Lưu ý:</strong> Hạp/Kỵ theo 12 Trực trong quan niệm dân gian (chỉ mang tính tham khảo).</p>
+                <p><strong class="guidance-do">Hạp:</strong> <span id="selectedLunarShouldDo">--</span></p>
+                <p><strong class="guidance-avoid">Kỵ:</strong> <span id="selectedLunarShouldAvoid">--</span></p>
               </div>
             </div>
           </div>
@@ -1654,7 +1758,7 @@
     <dialog id="appInfoDialog" class="app-info-dialog" aria-labelledby="appInfoHeading">
       <div class="app-info-dialog-content">
         <h2 id="appInfoHeading">Thông tin ứng dụng</h2>
-        <p><strong>Phiên bản 1.0 · by Ong Thua Phu.</strong></p>
+        <p><strong>Phiên bản 1.0 · Phát triển bởi Ong Thua Phu</strong></p>
         <p><strong>Nguồn dữ liệu:</strong> Tổng hợp từ các nguồn công khai và dịch vụ bên thứ ba; dữ liệu có thể chậm hoặc thay đổi.</p>
         <p><strong>Miễn trừ trách nhiệm:</strong> Thông tin chỉ mang tính tham khảo, không phải tư vấn tài chính, đầu tư hay quyết định chuyên môn.</p>
         <form method="dialog">
@@ -2063,13 +2167,14 @@
       const dayType = getLunarDayType(lunar.jd, lunar.month);
       const dayOfficer = getDayOfficer(lunar.jd, TIME_ZONE);
       const solarTerm = getSolarTermForDate(lunar.jd, TIME_ZONE);
-      document.getElementById("selectedSolarDay").textContent = calendarSelectedDay;
-      document.getElementById("selectedSolarMeta").textContent = `${weekday} · Tháng ${calendarViewMonth}/${calendarViewYear}`;
-      document.getElementById("selectedLunarDay").textContent = lunar.day;
-      document.getElementById("selectedLunarMeta").textContent = `Tháng ${lunarMonth}-${canChiMonth(lunar.year, lunar.month)} năm ${canChiYear(lunar.year)}`;
+      document.getElementById("selectedSolarFullDate").textContent = `${weekday}, ngày ${calendarSelectedDay} tháng ${calendarViewMonth} năm ${calendarViewYear}`;
+      document.getElementById("selectedLunarFullDate").textContent = `${lunar.day} tháng ${lunarMonth} năm ${lunar.year}`;
       const lunarMonthCanChi = `${canChiMonth(lunar.year, lunar.month)}${lunar.leap ? " nhuận" : ""}`;
       document.getElementById("monthLunarHeading").textContent = `Tháng ${lunarMonthCanChi} năm ${canChiYear(lunar.year)}`;
-      document.getElementById("selectedLunarCanChi").textContent = `Ngày ${canChiDay(lunar.jd)} - Trực ${dayOfficer}`;
+      document.getElementById("selectedLunarCanChi").textContent = `Năm ${canChiYear(lunar.year)}-Tháng ${lunarMonthCanChi}-Ngày ${canChiDay(lunar.jd)}-Trực ${dayOfficer}`;
+      const guidance = getDayOfficerGuidance(dayOfficer);
+      document.getElementById("selectedLunarShouldDo").textContent = guidance.shouldDo;
+      document.getElementById("selectedLunarShouldAvoid").textContent = guidance.shouldAvoid;
       const dayTypeElement = document.getElementById("selectedLunarDayType");
       const isAuspicious = dayType === "Ngày Hoàng đạo";
       dayTypeElement.textContent = isAuspicious ? dayType : "";
@@ -2242,6 +2347,24 @@
       const solarMonthOffset = Math.floor(((longitudeAtLocalNoon - 315 + 360) % 360) / 30);
       const monthBranch = (solarMonthOffset + 2) % 12;
       return dayOfficers[(dayBranch - monthBranch + 12) % 12];
+    }
+
+    function getDayOfficerGuidance(dayOfficer) {
+      const guidance = {
+        "Kiến": { shouldDo: "Xuất hành, khai trương, cưới hỏi.", shouldAvoid: "Động thổ." },
+        "Trừ": { shouldDo: "Tẩy uế, chữa bệnh, giải trừ việc xấu.", shouldAvoid: "Cưới hỏi, khai trương." },
+        "Mãn": { shouldDo: "Cầu tài, khai trương, tế lễ.", shouldAvoid: "Kiện tụng." },
+        "Bình": { shouldDo: "Xuất hành, sửa chữa, hòa giải.", shouldAvoid: "Kiện tụng, tranh chấp." },
+        "Định": { shouldDo: "Cầu tài, giao dịch, ký kết, yến tiệc.", shouldAvoid: "Kiện tụng, đi xa." },
+        "Chấp": { shouldDo: "Khởi công, xây dựng, sửa chữa.", shouldAvoid: "Di chuyển, xuất hành, khai trương." },
+        "Phá": { shouldDo: "Chữa bệnh, phá dỡ, loại bỏ việc cũ.", shouldAvoid: "Cưới hỏi, khai trương, việc lớn." },
+        "Nguy": { shouldDo: "Tế lễ, cầu an, làm việc thận trọng.", shouldAvoid: "Đi xa, leo cao, tiến hành việc lớn." },
+        "Thành": { shouldDo: "Khai trương, cưới hỏi, nhập học, cầu tài.", shouldAvoid: "Kiện tụng, tranh chấp." },
+        "Thu": { shouldDo: "Thu hoạch, cất giữ, thu tiền, thu nợ.", shouldAvoid: "Khởi công, xuất hành." },
+        "Khai": { shouldDo: "Khai trương, xuất hành, cầu tài, mở việc mới.", shouldAvoid: "Đóng cửa, kết thúc việc đang tiến hành." },
+        "Bế": { shouldDo: "Cất giữ, đóng cửa, đắp đê, an táng.", shouldAvoid: "Khai trương, xuất hành, mở việc mới." }
+      };
+      return guidance[dayOfficer] || { shouldDo: "Xem xét theo tính chất công việc.", shouldAvoid: "Tránh quyết định vội vàng." };
     }
 
     function getSolarTermForDate(jd, timeZone) {
@@ -2550,7 +2673,16 @@
       }).join("");
     }
 
-    function renderQuoteCard(quote) {
+    function renderQuoteCard(quote, fallbackName = "Giá mua và bán") {
+      if (!quote) {
+        return `
+          <div class="market-item">
+            <p class="market-name">${fallbackName}</p>
+            <p class="market-value">--</p>
+            <p class="market-change flat">Tạm thời chưa có dữ liệu</p>
+          </div>
+        `;
+      }
       return `
         <div class="market-item">
           <p class="market-name">${quote.name}</p>
@@ -2571,8 +2703,16 @@
       `;
     }
 
-    function renderWorldGoldCard(quote) {
-      if (!quote) return "";
+    function renderWorldMetalCard(quote, fallbackName = "Giá thế giới") {
+      if (!quote) {
+        return `
+          <div class="market-item">
+            <p class="market-name">${fallbackName}</p>
+            <p class="market-value">--</p>
+            <p class="market-change flat">Tạm thời chưa có dữ liệu</p>
+          </div>
+        `;
+      }
 
       const direction = quote.changeAbs > 0 ? "up" : quote.changeAbs < 0 ? "down" : "flat";
       const sign = quote.changeAbs > 0 ? "+" : "";
@@ -2617,16 +2757,36 @@
         const data = await response.json();
         document.getElementById("quoteGrid").innerHTML = [
           renderQuoteCard(data.gold),
-          renderWorldGoldCard(data.worldGold),
+          renderWorldMetalCard(data.worldGold)
+        ].join("");
+        document.getElementById("currencyGrid").innerHTML = [
           renderQuoteCard(data.usd),
           renderQuoteCard(data.eur)
+        ].join("");
+        document.getElementById("silverGrid").innerHTML = [
+          renderQuoteCard(data.silver, "Bạc miếng Phú Quý 999"),
+          renderWorldMetalCard(data.worldSilver, "Bạc thế giới")
         ].join("");
       } catch (error) {
         document.getElementById("quoteGrid").innerHTML = `
           <div class="market-item">
-            <p class="market-name">Vàng & ngoại tệ</p>
+            <p class="market-name">Vàng</p>
             <p class="market-value">--</p>
             <p class="market-change flat">Chạy bằng server local để tải dữ liệu</p>
+          </div>
+        `;
+        document.getElementById("currencyGrid").innerHTML = `
+          <div class="market-item">
+            <p class="market-name">Ngoại tệ</p>
+            <p class="market-value">--</p>
+            <p class="market-change flat">Tạm thời chưa tải được dữ liệu</p>
+          </div>
+        `;
+        document.getElementById("silverGrid").innerHTML = `
+          <div class="market-item">
+            <p class="market-name">Bạc</p>
+            <p class="market-value">--</p>
+            <p class="market-change flat">Tạm thời chưa tải được dữ liệu</p>
           </div>
         `;
       }
