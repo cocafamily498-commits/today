@@ -1,0 +1,187 @@
+<div id="todayTab" class="tab-panel" role="tabpanel" aria-labelledby="todayTabButton">
+      <article class="calendar">
+      <header class="header">
+        <div id="solarFullDate" class="solar-full-date">--</div>
+        <div id="solarMonth" class="solar-month">Tháng</div>
+      </header>
+
+      <section class="page">
+        <h1 id="solarDay" class="solar-day">--</h1>
+
+        <div class="lunar-panel">
+          <section class="lunar-main" aria-label="Ngày âm lịch">
+            <p id="lunarDate" class="lunar-date">--</p>
+          </section>
+        </div>
+
+        <section id="weatherPanel" class="weather-panel" data-collapse-key="weather" aria-label="Thời tiết hôm nay">
+          <header class="market-panel-header">
+            <p class="market-title">Thời tiết</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn thời tiết" aria-controls="weatherCard">−</button>
+          </header>
+          <form id="locationForm" class="location-picker" autocomplete="off">
+            <label class="location-picker-label" for="locationInput">Chọn thành phố</label>
+            <div class="location-picker-row">
+              <div class="location-input-wrap">
+                <input id="locationInput" class="location-input" type="search" placeholder="Nhập tên thành phố..." aria-autocomplete="list" aria-controls="locationSuggestions" aria-expanded="false">
+                <div id="locationSuggestions" class="location-suggestions" role="listbox"></div>
+              </div>
+              <button class="location-submit" type="submit">Áp dụng</button>
+            </div>
+            <p id="locationStatus" class="location-status" aria-live="polite"></p>
+          </form>
+          <div id="weatherCard">
+            <div class="weather-main">
+              <div class="weather-icon" aria-hidden="true"></div>
+              <div>
+                <p class="weather-location">Đang xác định địa điểm</p>
+                <div class="weather-temp-row">
+                  <p class="weather-temp">--°</p>
+                  <p class="weather-condition">Đang tải</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="market-restore-button" type="button" aria-controls="weatherCard">Bấm để xem thời tiết</button>
+        </section>
+
+        <section id="marketPanel" class="market-panel" data-collapse-key="market" aria-label="Chỉ số thị trường">
+          <header class="market-panel-header">
+            <p class="market-title">Chỉ số thị trường</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn chỉ số thị trường" aria-controls="marketGrid">−</button>
+          </header>
+          <div id="marketGrid" class="market-grid">
+            <div class="market-item">
+              <p class="market-name">Dow Jones</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">S&amp;P 500</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">VN-Index</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">HNX-Index</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+          </div>
+          <button class="market-restore-button" type="button" aria-controls="marketGrid">Bấm để xem chỉ số thị trường</button>
+        </section>
+
+        <section id="goldPanel" class="market-panel" data-collapse-key="gold" aria-label="Giá vàng Việt Nam và thế giới">
+          <header class="market-panel-header">
+            <p class="market-title">Vàng</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn giá vàng" aria-controls="quoteGrid">−</button>
+          </header>
+          <div id="quoteGrid" class="market-grid">
+            <div class="market-item">
+              <p class="market-name">Vàng miếng SJC</p>
+              <div class="quote-row">
+                <div class="quote-side">
+                  <p class="quote-label">Mua vào</p>
+                  <p class="quote-value">--</p>
+                </div>
+                <div class="quote-side">
+                  <p class="quote-label">Bán ra</p>
+                  <p class="quote-value">--</p>
+                </div>
+              </div>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">Vàng thế giới</p>
+              <p class="market-value">--</p>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+          </div>
+          <button class="market-restore-button" type="button" aria-controls="quoteGrid">Bấm để xem giá vàng</button>
+        </section>
+
+        <section id="silverPanel" class="market-panel" data-collapse-key="silver" aria-label="Giá bạc Việt Nam và thế giới">
+          <header class="market-panel-header">
+            <p class="market-title">Bạc</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn giá bạc" aria-controls="silverGrid">−</button>
+          </header>
+          <div id="silverGrid" class="market-grid">
+            <div class="market-item">
+              <p class="market-name">Bạc miếng Phú Quý 999</p>
+              <div class="quote-row">
+                <div class="quote-side">
+                  <p class="quote-label">Mua vào</p>
+                  <p class="quote-value">--</p>
+                </div>
+                <div class="quote-side">
+                  <p class="quote-label">Bán ra</p>
+                  <p class="quote-value">--</p>
+                </div>
+              </div>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">Bạc thế giới</p>
+              <p class="market-value">--</p>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+          </div>
+          <button class="market-restore-button" type="button" aria-controls="silverGrid">Bấm để xem giá bạc</button>
+        </section>
+
+        <section id="currencyPanel" class="market-panel" data-collapse-key="currency" aria-label="Tỷ giá ngoại tệ">
+          <header class="market-panel-header">
+            <p class="market-title">Ngoại tệ</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn tỷ giá ngoại tệ" aria-controls="currencyGrid">−</button>
+          </header>
+          <div id="currencyGrid" class="market-grid">
+            <div class="market-item">
+              <p class="market-name">USD Vietcombank</p>
+              <p class="market-value">--</p>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">EUR Vietcombank</p>
+              <p class="market-value">--</p>
+              <p class="quote-unit">Đang tải</p>
+            </div>
+          </div>
+          <button class="market-restore-button" type="button" aria-controls="currencyGrid">Bấm để xem tỷ giá ngoại tệ</button>
+        </section>
+
+        <section id="assetPanel" class="market-panel" data-collapse-key="assets" aria-label="Bitcoin và giá dầu">
+          <header class="market-panel-header">
+            <p class="market-title">Bitcoin &amp; dầu</p>
+            <button class="market-collapse-button" type="button" aria-label="Thu gọn Bitcoin và giá dầu" aria-controls="assetGrid">−</button>
+          </header>
+          <div id="assetGrid" class="market-grid">
+            <div class="market-item">
+              <p class="market-name">Bitcoin</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">Ethereum</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">Dầu WTI</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+            <div class="market-item">
+              <p class="market-name">Dầu Brent</p>
+              <p class="market-value">--</p>
+              <p class="market-change flat">Đang tải</p>
+            </div>
+          </div>
+          <button class="market-restore-button" type="button" aria-controls="assetGrid">Bấm để xem Bitcoin và giá dầu</button>
+        </section>
+      </section>
+      </article>
+    </div>

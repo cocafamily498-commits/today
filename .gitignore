@@ -1,5 +1,8 @@
 quotes-cache.json
 local-server.log
 local-server-error.log
+local-server.err.log
+local-server.out.log
 .local-server.pid
+.local-server-job.id
 dist/

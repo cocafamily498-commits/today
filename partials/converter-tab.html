@@ -1,0 +1,153 @@
+<section id="converterTab" class="tab-panel calendar-tools-layout" role="tabpanel" aria-labelledby="converterTabButton" hidden>
+      <section id="conversionToolPanel" class="converter-card calendar-collapsible" data-collapse-key="conversionTool" aria-labelledby="conversionToolHeading">
+        <header class="converter-header">
+          <h1 id="conversionToolHeading" class="converter-title">Chuyển đổi lịch âm/dương</h1>
+          <p class="converter-subtitle">Tra cứu hai chiều theo múi giờ Việt Nam (UTC+7)</p>
+          <button class="market-collapse-button" type="button" aria-label="Thu gọn công cụ chuyển đổi" aria-controls="conversionToolContent">−</button>
+        </header>
+        <div id="conversionToolContent" class="converter-body">
+        <div class="direction-tabs" role="tablist" aria-label="Chọn chiều chuyển đổi">
+          <button id="solarDirectionButton" class="direction-tab" type="button" role="tab" aria-selected="true" aria-controls="solarToLunarForm">Dương → Âm</button>
+          <button id="lunarDirectionButton" class="direction-tab" type="button" role="tab" aria-selected="false" aria-controls="lunarToSolarForm">Âm → Dương</button>
+        </div>
+
+        <form id="solarToLunarForm" class="conversion-form" role="tabpanel" aria-labelledby="solarDirectionButton">
+          <h2 class="conversion-heading">Ngày dương lịch</h2>
+          <p class="conversion-help">Nhập ngày cần tra để xem ngày âm lịch tương ứng.</p>
+          <div class="date-fields">
+            <div class="date-field">
+              <label for="solarInputDay">Ngày</label>
+              <div class="number-entry-control">
+                <input id="solarInputDay" name="day" type="number" min="1" max="31" required inputmode="numeric">
+                <select id="solarDayPicker" class="number-picker-select" aria-label="Cuộn chọn ngày dương lịch" tabindex="-1"></select>
+              </div>
+            </div>
+            <div class="date-field">
+              <label for="solarInputMonth">Tháng</label>
+              <div class="number-entry-control">
+                <input id="solarInputMonth" name="month" type="number" min="1" max="12" required inputmode="numeric">
+                <select id="solarMonthPicker" class="number-picker-select" aria-label="Cuộn chọn tháng dương lịch" tabindex="-1"></select>
+              </div>
+            </div>
+            <div class="date-field">
+              <label for="solarInputYear">Năm</label>
+              <div class="number-entry-control">
+                <input id="solarInputYear" name="year" type="number" min="1900" max="2100" required inputmode="numeric">
+                <select id="solarYearPicker" class="number-picker-select" aria-label="Cuộn chọn năm dương lịch" tabindex="-1"></select>
+              </div>
+            </div>
+          </div>
+          <div class="conversion-actions">
+            <button class="convert-submit" type="submit">Đổi sang âm lịch</button>
+            <button id="viewSolarMonthButton" class="view-month-button" type="button" disabled>Xem lịch trong tháng</button>
+          </div>
+        </form>
+
+        <form id="lunarToSolarForm" class="conversion-form" role="tabpanel" aria-labelledby="lunarDirectionButton" hidden>
+          <h2 class="conversion-heading">Ngày âm lịch</h2>
+          <p class="conversion-help">Nếu năm đó có hai tháng cùng số, hãy xác định rõ tháng thường hay tháng nhuận.</p>
+          <div class="date-fields">
+            <div class="date-field">
+              <label for="lunarInputDay">Ngày</label>
+              <div class="number-entry-control">
+                <input id="lunarInputDay" name="day" type="number" min="1" max="30" required inputmode="numeric">
+                <select id="lunarDayPicker" class="number-picker-select" aria-label="Cuộn chọn ngày âm lịch" tabindex="-1"></select>
+              </div>
+            </div>
+            <div class="date-field">
+              <label for="lunarInputMonth">Tháng</label>
+              <div class="number-entry-control">
+                <input id="lunarInputMonth" name="month" type="number" min="1" max="12" required inputmode="numeric">
+                <select id="lunarMonthPicker" class="number-picker-select" aria-label="Cuộn chọn tháng âm lịch" tabindex="-1"></select>
+              </div>
+            </div>
+            <div class="date-field">
+              <label for="lunarInputYear">Năm</label>
+              <div class="number-entry-control">
+                <input id="lunarInputYear" name="year" type="number" min="1900" max="2100" required inputmode="numeric">
+                <select id="lunarYearPicker" class="number-picker-select" aria-label="Cuộn chọn năm âm lịch" tabindex="-1"></select>
+              </div>
+            </div>
+          </div>
+          <label class="leap-option" for="lunarInputLeap">
+            <input id="lunarInputLeap" name="leap" type="checkbox">
+            <span><strong>Tháng nhuận</strong><small>Đánh dấu nếu ngày trên thuộc tháng nhuận.</small></span>
+          </label>
+          <div class="conversion-actions">
+            <button class="convert-submit" type="submit">Đổi sang dương lịch</button>
+            <button id="viewLunarMonthButton" class="view-month-button" type="button" disabled>Xem lịch trong tháng</button>
+          </div>
+        </form>
+
+        <p id="conversionMessage" class="conversion-message" aria-live="polite"></p>
+        <div id="conversionResult" class="conversion-result" aria-live="polite" hidden>
+          <p class="conversion-result-label">Kết quả chuyển đổi</p>
+          <p id="conversionResultValue" class="conversion-result-value"></p>
+        </div>
+
+        </div>
+        <button class="market-restore-button" type="button" aria-controls="conversionToolContent">Bấm để mở công cụ chuyển đổi</button>
+      </section>
+
+      <section id="calendarDetailsPanel" class="calendar-detail-card calendar-collapsible" data-collapse-key="calendarDetails" aria-labelledby="calendarDetailsHeading">
+        <header class="calendar-card-header">
+          <h2 id="calendarDetailsHeading" class="calendar-card-heading">Dương lịch / Âm lịch</h2>
+          <button class="market-collapse-button" type="button" aria-label="Thu gọn thông tin dương lịch và âm lịch" aria-controls="selectedDateContent">−</button>
+        </header>
+        <div id="selectedDateContent">
+          <div class="selected-date-summary" aria-live="polite">
+            <p class="selected-solar-line"><strong>Dương lịch:</strong> <span id="selectedSolarFullDate">--</span></p>
+            <div class="selected-date-card lunar">
+              <p class="selected-lunar-full-date"><strong>Âm lịch:</strong> <span id="selectedLunarFullDate">--</span></p>
+              <div class="selected-lunar-details">
+                <p id="selectedLunarCanChi" class="selected-lunar-detail">--</p>
+                <div class="selected-lunar-highlight-row">
+                  <p id="selectedLunarDayType" class="selected-lunar-detail">--</p>
+                  <p id="selectedLunarSolarTerm" class="selected-lunar-detail" hidden></p>
+                </div>
+              </div>
+              <div class="selected-lunar-guidance">
+                <p class="selected-lunar-guidance-note"><strong>Lưu ý:</strong> Hạp/Kỵ theo 12 Trực trong quan niệm dân gian (chỉ mang tính tham khảo).</p>
+                <p><strong class="guidance-do">Hạp:</strong> <span id="selectedLunarShouldDo">--</span></p>
+                <p><strong class="guidance-avoid">Kỵ:</strong> <span id="selectedLunarShouldAvoid">--</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="market-restore-button" type="button" aria-controls="selectedDateContent">Bấm để xem Dương lịch / Âm lịch</button>
+      </section>
+
+      <section class="monthly-calendar-section" aria-labelledby="monthlyCalendarHeading">
+          <h2 id="monthlyCalendarHeading" class="monthly-calendar-heading">Lịch vạn niên</h2>
+          <p class="monthly-calendar-help">Chọn một ngày để xem nhanh ngày dương và ngày âm tương ứng.</p>
+
+          <div class="month-calendar-toolbar">
+            <button id="previousMonthButton" class="month-nav-button" type="button" aria-label="Tháng trước">‹</button>
+            <div class="month-calendar-selectors">
+              <div class="calendar-number-control">
+                <input id="calendarMonthInput" type="number" min="1" max="12" inputmode="numeric" aria-label="Nhập tháng">
+                <select id="calendarMonthSelect" class="calendar-picker-select" aria-label="Cuộn chọn tháng" tabindex="-1"></select>
+              </div>
+              <div class="calendar-number-control">
+                <input id="calendarYearInput" type="number" min="1900" max="2100" inputmode="numeric" aria-label="Nhập năm">
+                <select id="calendarYearSelect" class="calendar-picker-select" aria-label="Cuộn chọn năm" tabindex="-1"></select>
+              </div>
+            </div>
+            <button id="nextMonthButton" class="month-nav-button" type="button" aria-label="Tháng sau">›</button>
+          </div>
+          <div class="month-today-row">
+            <p id="monthLunarHeading" class="month-lunar-heading">Tháng âm lịch</p>
+            <button id="calendarTodayButton" class="month-today-button" type="button">Hôm nay</button>
+          </div>
+          <div class="month-calendar-weekdays" aria-hidden="true">
+            <div class="month-weekday">T2</div>
+            <div class="month-weekday">T3</div>
+            <div class="month-weekday">T4</div>
+            <div class="month-weekday">T5</div>
+            <div class="month-weekday">T6</div>
+            <div class="month-weekday weekend">T7</div>
+            <div class="month-weekday weekend">CN</div>
+          </div>
+          <div id="monthCalendarGrid" class="month-calendar-grid" role="grid" aria-label="Lịch tháng"></div>
+      </section>
+    </section>

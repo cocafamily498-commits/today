@@ -15,6 +15,18 @@ function Test-LocalServer {
   }
 }
 
+function Get-LocalServerProcess {
+  $portLine = netstat -ano | Select-String "LISTENING\s+(\d+)$" | Where-Object {
+    $_.Line -match "[:.]3000\s+"
+  } | Select-Object -First 1
+
+  if (-not $portLine -or $portLine.Line -notmatch "LISTENING\s+(\d+)$") {
+    return $null
+  }
+
+  return Get-Process -Id $Matches[1] -ErrorAction SilentlyContinue
+}
+
 if (Test-Path $pidFile) {
   $savedPid = Get-Content $pidFile -ErrorAction SilentlyContinue
   $savedProcess = if ($savedPid) { Get-Process -Id $savedPid -ErrorAction SilentlyContinue } else { $null }
@@ -26,6 +38,17 @@ if (Test-Path $pidFile) {
     Stop-Process -Id $savedProcess.Id -Force -ErrorAction SilentlyContinue
   }
   Remove-Item $pidFile -Force
+}
+
+$portProcess = Get-LocalServerProcess
+if ($portProcess -and $portProcess.ProcessName -eq "node") {
+  Write-Host "Dung server Node cu dang giu cong 3000 (PID $($portProcess.Id))."
+  Stop-Process -Id $portProcess.Id -Force -ErrorAction SilentlyContinue
+  Start-Sleep -Milliseconds 500
+} elseif ($portProcess) {
+  Write-Host "Cong 3000 dang duoc su dung boi PID $($portProcess.Id) ($($portProcess.ProcessName))."
+  Write-Host "Hay tat process do roi chay lai start-background.cmd."
+  exit 1
 }
 
 $process = Start-Process `

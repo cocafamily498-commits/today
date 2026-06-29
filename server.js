@@ -5,6 +5,24 @@ const path = require("path");
 const { convertLunarToSolar, parseInput: parseLunarInput } = require("./netlify/functions/lunar-to-solar");
 
 const PORT = process.env.PORT || 3000;
+const STATIC_FILES = {
+  "/": { file: "index.html", type: "text/html; charset=utf-8" },
+  "/index.html": { file: "index.html", type: "text/html; charset=utf-8" },
+  "/styles.css": { file: "styles.css", type: "text/css; charset=utf-8" },
+  "/app-data.js": { file: "app-data.js", type: "text/javascript; charset=utf-8" }
+};
+const STATIC_TYPES = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8"
+};
+const STATIC_DIRECTORIES = ["partials", "scripts"];
+const API_CORS_HEADERS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, POST, OPTIONS",
+  "access-control-allow-headers": "content-type"
+};
 const MARKET_GROUPS = [
   {
     scanner: "vietnam",
@@ -185,6 +203,52 @@ async function getMarkets() {
 
 function emptyMarket(item) {
   return { symbol: item.symbol, name: item.name, close: null, change: null, changeAbs: null };
+}
+
+function getFallbackMarkets() {
+  return [
+    ...US_MARKETS.map((item) => emptyMarket({ ...item, symbol: decodeURIComponent(item.symbol) })),
+    ...MARKET_GROUPS.flatMap((group) => group.symbols.map(emptyMarket))
+  ];
+}
+
+function getFallbackAssets() {
+  return ASSET_GROUPS.flatMap((group) => group.symbols.map(emptyMarket));
+}
+
+function getFallbackQuotes() {
+  return {
+    gold: null,
+    worldGold: null,
+    usd: null,
+    eur: null,
+    silver: null,
+    worldSilver: null
+  };
+}
+
+function getFallbackWeather(requestedLocation) {
+  return {
+    location: requestedLocation || DEFAULT_WEATHER_LOCATION,
+    condition: { text: "Tam thoi chua co du lieu", icon: "cloud" },
+    temperature: null,
+    apparentTemperature: null,
+    high: null,
+    low: null,
+    humidity: null,
+    windSpeed: null,
+    windGust: null,
+    windDirection: null,
+    uvIndex: null,
+    uvLabel: "--",
+    aqi: null,
+    aqiLabel: "--",
+    pm25: null,
+    precipitation: null,
+    cloudCover: null,
+    updatedAt: null,
+    source: "Du lieu tam thoi chua tai duoc"
+  };
 }
 
 async function fetchYahooMarket(item) {
@@ -740,6 +804,26 @@ function send(response, status, contentType, body, extraHeaders = {}) {
   response.end(body);
 }
 
+function getStaticFile(pathname) {
+  const knownFile = STATIC_FILES[pathname];
+  if (knownFile) return knownFile;
+
+  const normalizedPath = path.posix.normalize(decodeURIComponent(pathname));
+  if (normalizedPath !== pathname || normalizedPath.includes("..")) return null;
+
+  const parts = normalizedPath.replace(/^\//, "").split("/");
+  if (!STATIC_DIRECTORIES.includes(parts[0])) return null;
+
+  const extension = path.extname(normalizedPath);
+  const type = STATIC_TYPES[extension];
+  if (!type) return null;
+
+  return {
+    file: normalizedPath.replace(/^\//, ""),
+    type
+  };
+}
+
 function readJsonBody(request) {
   return new Promise((resolve, reject) => {
     let body = "";
@@ -762,53 +846,54 @@ function readJsonBody(request) {
 const server = http.createServer(async (request, response) => {
   try {
     const requestUrl = new URL(request.url, `http://${request.headers.host || "localhost"}`);
+    if (requestUrl.pathname.startsWith("/api/") && request.method === "OPTIONS") {
+      send(response, 204, "text/plain; charset=utf-8", "", API_CORS_HEADERS);
+      return;
+    }
+
     if (requestUrl.pathname === "/api/markets") {
-      const markets = await getMarkets();
-      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ markets }));
+      const markets = await getMarkets().catch(() => getFallbackMarkets());
+      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ markets }), API_CORS_HEADERS);
       return;
     }
 
     if (requestUrl.pathname === "/api/assets") {
-      const assets = await getAssets();
-      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ assets }));
+      const assets = await getAssets().catch(() => getFallbackAssets());
+      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ assets }), API_CORS_HEADERS);
       return;
     }
 
     if (requestUrl.pathname === "/api/quotes") {
-      const quotes = await getQuotes();
-      send(response, 200, "application/json; charset=utf-8", JSON.stringify(quotes));
+      const quotes = await getQuotes().catch(() => getFallbackQuotes());
+      send(response, 200, "application/json; charset=utf-8", JSON.stringify(quotes), API_CORS_HEADERS);
       return;
     }
 
     if (requestUrl.pathname === "/api/locations") {
-      const locations = await searchLocations(requestUrl.searchParams.get("q"));
-      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ locations }));
+      const locations = await searchLocations(requestUrl.searchParams.get("q")).catch(() => []);
+      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ locations }), API_CORS_HEADERS);
       return;
     }
 
     if (requestUrl.pathname === "/api/weather") {
       const clientIp = request.headers["x-forwarded-for"] || request.socket.remoteAddress;
-      const weather = await getWeather(clientIp, {
+      const requestedLocation = normalizeRequestedLocation({
         name: requestUrl.searchParams.get("name"),
         latitude: requestUrl.searchParams.get("lat"),
         longitude: requestUrl.searchParams.get("lon")
       });
-      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ weather }));
+      const weather = await getWeather(clientIp, requestedLocation).catch(() => getFallbackWeather(requestedLocation));
+      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ weather }), API_CORS_HEADERS);
       return;
     }
 
     if (requestUrl.pathname === "/api/lunar-to-solar") {
-      const corsHeaders = {
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "POST, OPTIONS",
-        "access-control-allow-headers": "content-type"
-      };
       if (request.method === "OPTIONS") {
-        send(response, 204, "text/plain; charset=utf-8", "", corsHeaders);
+        send(response, 204, "text/plain; charset=utf-8", "", API_CORS_HEADERS);
         return;
       }
       if (request.method !== "POST") {
-        send(response, 405, "application/json; charset=utf-8", JSON.stringify({ error: "Chỉ hỗ trợ phương thức POST" }), corsHeaders);
+        send(response, 405, "application/json; charset=utf-8", JSON.stringify({ error: "Chỉ hỗ trợ phương thức POST" }), API_CORS_HEADERS);
         return;
       }
       const input = parseLunarInput(await readJsonBody(request));
@@ -820,16 +905,22 @@ const server = http.createServer(async (request, response) => {
         input.timeZone
       );
       if (!solar) {
-        send(response, 400, "application/json; charset=utf-8", JSON.stringify({ error: "Ngày âm hoặc tháng nhuận không hợp lệ" }), corsHeaders);
+        send(response, 400, "application/json; charset=utf-8", JSON.stringify({ error: "Ngày âm hoặc tháng nhuận không hợp lệ" }), API_CORS_HEADERS);
         return;
       }
-      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ solar }), corsHeaders);
+      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ solar }), API_CORS_HEADERS);
       return;
     }
 
-    const filePath = path.join(__dirname, "index.html");
-    const html = fs.readFileSync(filePath);
-    send(response, 200, "text/html; charset=utf-8", html);
+    const staticFile = getStaticFile(requestUrl.pathname);
+    if (!staticFile) {
+      send(response, 404, "text/plain; charset=utf-8", "Not found");
+      return;
+    }
+
+    const filePath = path.join(__dirname, staticFile.file);
+    const content = fs.readFileSync(filePath);
+    send(response, 200, staticFile.type, content);
   } catch (error) {
     send(response, 500, "application/json; charset=utf-8", JSON.stringify({ error: error.message }));
   }

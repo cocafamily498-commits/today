@@ -1,0 +1,58 @@
+<section id="eventsTab" class="tab-panel" role="tabpanel" aria-labelledby="eventsTabButton" hidden>
+      <section class="event-manager-card" aria-labelledby="eventManagerHeading">
+        <header class="event-manager-header">
+          <h1 id="eventManagerHeading" class="event-manager-title">
+            <button id="eventListWindowButton" class="event-manager-title-button" type="button">Danh sách sự kiện</button>
+          </h1>
+        </header>
+        <div class="event-manager-body">
+          <section class="monthly-calendar-section" aria-labelledby="eventCalendarHeading">
+            <h2 id="eventCalendarHeading" class="monthly-calendar-heading">
+              <span class="event-calendar-heading-text">Lịch sự kiện</span>
+              <span class="event-backup-actions">
+                <button id="eventBackupButton" class="event-backup-button" type="button">Sao lưu dữ liệu</button>
+                <button id="eventRestoreButton" class="event-backup-button" type="button">Khôi phục dữ liệu</button>
+                <input id="eventRestoreInput" type="file" accept=".lichviet,application/json" hidden>
+              </span>
+            </h2>
+            <div class="month-calendar-toolbar">
+              <button id="eventPreviousMonthButton" class="month-nav-button" type="button" aria-label="Tháng trước">‹</button>
+              <div class="month-calendar-selectors">
+                <div class="calendar-number-control">
+                  <input id="eventCalendarMonthInput" type="number" min="1" max="12" inputmode="numeric" aria-label="Nhập tháng sự kiện">
+                  <select id="eventCalendarMonthSelect" class="calendar-picker-select" aria-label="Cuộn chọn tháng sự kiện" tabindex="-1"></select>
+                </div>
+                <div class="calendar-number-control">
+                  <input id="eventCalendarYearInput" type="number" min="1900" max="2100" inputmode="numeric" aria-label="Nhập năm sự kiện">
+                  <select id="eventCalendarYearSelect" class="calendar-picker-select" aria-label="Cuộn chọn năm sự kiện" tabindex="-1"></select>
+                </div>
+              </div>
+              <button id="eventNextMonthButton" class="month-nav-button" type="button" aria-label="Tháng sau">›</button>
+            </div>
+            <div class="month-today-row">
+              <p id="eventCalendarHeadingText" class="month-lunar-heading">Tháng sự kiện</p>
+              <button id="eventCalendarTodayButton" class="month-today-button" type="button">Hôm nay</button>
+            </div>
+            <div class="month-calendar-weekdays" aria-hidden="true">
+              <div class="month-weekday">T2</div>
+              <div class="month-weekday">T3</div>
+              <div class="month-weekday">T4</div>
+              <div class="month-weekday">T5</div>
+              <div class="month-weekday">T6</div>
+              <div class="month-weekday weekend">T7</div>
+              <div class="month-weekday weekend">CN</div>
+            </div>
+            <div id="eventCalendarGrid" class="month-calendar-grid" role="grid" aria-label="Lịch sự kiện"></div>
+            <div class="month-event-legend" aria-label="Chú giải sự kiện">
+              <span><span class="month-event-icon birthday" aria-hidden="true">☀</span> Sinh nhật</span>
+              <span><span class="month-event-icon deathAnniversary" aria-hidden="true">☾</span> Đám giỗ</span>
+              <span><span class="month-event-icon other" aria-hidden="true">★</span> Sự kiện khác</span>
+            </div>
+          </section>
+          <section id="eventChoiceListPanel" class="event-list event-choice-list" aria-label="Chọn sự kiện để sửa" hidden>
+            <p id="eventChoiceListStatus" class="event-choice-status"></p>
+            <div id="eventChoiceList"></div>
+          </section>
+        </div>
+      </section>
+    </section>
