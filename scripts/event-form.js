@@ -189,23 +189,24 @@ async function restoreEventDataFromFile(file) {
     clearEventChoiceList();
     resetEventForm(toDateInputValue(getVietnamToday()));
     await loadEventCalendarOccurrences();
+    await refreshJournalDataAfterRestore();
     setEventFormStatus("Đã khôi phục dữ liệu sao lưu.");
   } catch (error) {
     setEventFormStatus("Chưa khôi phục được dữ liệu. Hãy kiểm tra file sao lưu.", true);
   }
 }
 
+async function refreshJournalDataAfterRestore() {
+  if (typeof resetJournalForm === "function") {
+    resetJournalForm(toDateInputValue(getVietnamToday()));
+  }
+  if (typeof loadJournalCalendarEntries === "function") {
+    await loadJournalCalendarEntries();
+  }
+}
+
 function setupTodayEventReminderPrompt() {
-  const eventsTabButton = document.getElementById("eventsTabButton");
-  if (eventsTabButton) {
-    eventsTabButton.addEventListener("click", () => {
-      requestAnimationFrame(() => showTodayEventRemindersIfNeeded());
-    });
-  }
-  const eventsTab = document.getElementById("eventsTab");
-  if (eventsTab && !eventsTab.hidden) {
-    requestAnimationFrame(() => showTodayEventRemindersIfNeeded());
-  }
+  requestAnimationFrame(() => showTodayEventRemindersIfNeeded());
 }
 
 async function showTodayEventRemindersIfNeeded() {

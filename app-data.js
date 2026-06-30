@@ -292,6 +292,10 @@
     });
   }
 
+  async function getAllJournals() {
+    return withStore("journals", "readonly", (store) => requestToPromise(store.getAll()));
+  }
+
   async function deleteJournalByDate(date) {
     const journal = await getJournalByDate(date);
     if (!journal) return false;
@@ -496,6 +500,7 @@
     getEventsByMonth,
     upsertJournalByDate,
     getJournalByDate,
+    getAllJournals,
     deleteJournalByDate,
     saveJournalImage,
     getImage,

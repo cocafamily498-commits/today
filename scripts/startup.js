@@ -50,6 +50,7 @@ async function startApplication() {
     [setupAppTabs, "setupAppTabs"],
     [setupApplicationInfo, "setupApplicationInfo"],
     [setupEventForm, "setupEventForm"],
+    [setupJournalCalendar, "setupJournalCalendar"],
     [setupConversionTool, "setupConversionTool"],
     [setupMonthlyCalendar, "setupMonthlyCalendar"],
     [setupLocationPicker, "setupLocationPicker"],

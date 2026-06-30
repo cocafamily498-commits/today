@@ -22,9 +22,13 @@ function renderCalendarGrid(options) {
     selectedDay,
     ariaLabel,
     eventsByDay = null,
+    journalsByDay = null,
     showEventIcons = false,
+    showJournalContent = false,
     showAuspiciousDot = false,
-    onDayClick
+    onDayClick,
+    onDayHover,
+    onDayHoverEnd
   } = options;
   const today = getVietnamToday();
   const daysInMonth = getDaysInMonth(year, month);
@@ -55,16 +59,24 @@ function renderCalendarGrid(options) {
       && year === today.getFullYear();
     const isSelected = day === selectedDay;
     const dayEvents = eventsByDay && eventsByDay[day] ? eventsByDay[day] : [];
+    const dayJournal = journalsByDay && journalsByDay[day] ? journalsByDay[day] : null;
     const button = document.createElement("button");
     button.type = "button";
-    button.className = ["month-day-button", isWeekend ? "weekend" : "", isToday ? "today" : "", isSelected ? "selected" : ""]
+    button.className = [
+      "month-day-button",
+      isWeekend ? "weekend" : "",
+      isToday ? "today" : "",
+      isSelected ? "selected" : "",
+      showJournalContent ? "journal-day-button" : "",
+      dayJournal ? "has-journal" : ""
+    ]
       .filter(Boolean).join(" ");
     button.setAttribute("role", "gridcell");
     button.dataset.calendarDay = String(day);
     button.setAttribute("aria-selected", isSelected ? "true" : "false");
     button.setAttribute(
       "aria-label",
-      `${day}/${month}/${year}, âm lịch ${lunar.day}/${lunar.month}/${lunar.year}${lunar.leap ? " nhuận" : ""}${showAuspiciousDot && isAuspicious ? `, ${dayType}` : ""}${dayEvents.length ? `, ${dayEvents.length} sự kiện` : ""}`
+      `${day}/${month}/${year}, âm lịch ${lunar.day}/${lunar.month}/${lunar.year}${lunar.leap ? " nhuận" : ""}${showAuspiciousDot && isAuspicious ? `, ${dayType}` : ""}${dayEvents.length ? `, ${dayEvents.length} sự kiện` : ""}${dayJournal ? ", có nhật ký/ghi chú" : ""}`
     );
 
     const dayTypeDot = showAuspiciousDot && isAuspicious ? document.createElement("span") : null;
@@ -104,8 +116,35 @@ function renderCalendarGrid(options) {
       });
       children.push(eventIcons);
     }
+    if (showJournalContent && dayJournal) {
+      const journalPreview = document.createElement("span");
+      journalPreview.className = "month-journal-preview";
+
+      const journalText = document.createElement("span");
+      journalText.className = "month-journal-text";
+      journalText.textContent = dayJournal.text || "(Không có nội dung)";
+      journalPreview.appendChild(journalText);
+
+      if (Array.isArray(dayJournal.imageIds) && dayJournal.imageIds.length > 0) {
+        const imageIcon = document.createElement("span");
+        imageIcon.className = "month-journal-image-icon";
+        imageIcon.setAttribute("aria-hidden", "true");
+        imageIcon.textContent = "▣";
+        journalPreview.appendChild(imageIcon);
+      }
+
+      children.push(journalPreview);
+    }
     button.append(...children);
     button.addEventListener("click", () => onDayClick(day));
+    if (typeof onDayHover === "function") {
+      button.addEventListener("mouseenter", () => onDayHover(day, dayJournal, button));
+      button.addEventListener("focus", () => onDayHover(day, dayJournal, button));
+    }
+    if (typeof onDayHoverEnd === "function") {
+      button.addEventListener("mouseleave", onDayHoverEnd);
+      button.addEventListener("blur", onDayHoverEnd);
+    }
     grid.appendChild(button);
   }
 }

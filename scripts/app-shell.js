@@ -2,8 +2,10 @@ function setupAppTabs() {
   const buttons = [
     document.getElementById("todayTabButton"),
     document.getElementById("converterTabButton"),
-    document.getElementById("eventsTabButton")
-  ];
+    document.getElementById("eventsTabButton"),
+    document.getElementById("journalsTabButton"),
+    document.getElementById("appInfoTabButton")
+  ].filter(Boolean);
   const activate = (button, updateHash) => {
     buttons.forEach((item) => {
       const selected = item === button;
@@ -22,6 +24,7 @@ function setupAppTabs() {
 function setupApplicationInfo() {
   const button = document.getElementById("appInfoButton");
   const dialog = document.getElementById("appInfoDialog");
+  if (!button || !dialog) return;
   button.addEventListener("click", () => dialog.showModal());
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();

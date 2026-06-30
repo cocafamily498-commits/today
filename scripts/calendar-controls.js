@@ -10,6 +10,15 @@ let eventCalendarOccurrences = {};
 let eventCalendarKey = "";
 let editingEventId = null;
 let eventReminderDialogShownThisSession = false;
+let journalCalendarYear;
+let journalCalendarMonth;
+let journalCalendarSelectedDay;
+let journalCalendarEntries = {};
+let journalCalendarKey = "";
+let editingJournalDate = null;
+let journalHoverPreviewEnabled = true;
+let journalImagePreviewUrls = [];
+let journalImageItems = [];
 const MONTHLY_CALENDAR_NAVIGATION = {
   monthInputId: "calendarMonthInput",
   monthSelectId: "calendarMonthSelect",
@@ -27,6 +36,15 @@ const EVENT_CALENDAR_NAVIGATION = {
   previousButtonId: "eventPreviousMonthButton",
   nextButtonId: "eventNextMonthButton",
   todayButtonId: "eventCalendarTodayButton"
+};
+const JOURNAL_CALENDAR_NAVIGATION = {
+  monthInputId: "journalCalendarMonthInput",
+  monthSelectId: "journalCalendarMonthSelect",
+  yearInputId: "journalCalendarYearInput",
+  yearSelectId: "journalCalendarYearSelect",
+  previousButtonId: "journalPreviousMonthButton",
+  nextButtonId: "journalNextMonthButton",
+  todayButtonId: "journalCalendarTodayButton"
 };
 
 function setupMonthlyCalendar() {

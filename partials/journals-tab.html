@@ -1,0 +1,80 @@
+<section id="journalsTab" class="tab-panel" role="tabpanel" aria-labelledby="journalsTabButton" hidden>
+      <section class="event-manager-card journal-manager-card" aria-labelledby="journalManagerHeading">
+        <header class="event-manager-header">
+          <h1 id="journalManagerHeading" class="event-manager-title">
+            <button id="journalListToggleButton" class="event-manager-title-button" type="button">Danh sách nhật ký/ghi chú</button>
+          </h1>
+        </header>
+        <div class="event-manager-body">
+          <section class="monthly-calendar-section journal-calendar-section" aria-labelledby="journalCalendarHeading">
+            <h2 id="journalCalendarHeading" class="monthly-calendar-heading">
+              <span class="event-calendar-heading-text">Lịch nhật ký/ghi chú</span>
+            </h2>
+            <div class="month-calendar-toolbar">
+              <button id="journalPreviousMonthButton" class="month-nav-button" type="button" aria-label="Tháng trước">‹</button>
+              <div class="month-calendar-selectors">
+                <div class="calendar-number-control">
+                  <input id="journalCalendarMonthInput" type="number" min="1" max="12" inputmode="numeric" aria-label="Nhập tháng nhật ký">
+                  <select id="journalCalendarMonthSelect" class="calendar-picker-select" aria-label="Cuộn chọn tháng nhật ký" tabindex="-1"></select>
+                </div>
+                <div class="calendar-number-control">
+                  <input id="journalCalendarYearInput" type="number" min="1900" max="2100" inputmode="numeric" aria-label="Nhập năm nhật ký">
+                  <select id="journalCalendarYearSelect" class="calendar-picker-select" aria-label="Cuộn chọn năm nhật ký" tabindex="-1"></select>
+                </div>
+              </div>
+              <button id="journalNextMonthButton" class="month-nav-button" type="button" aria-label="Tháng sau">›</button>
+            </div>
+            <div class="month-today-row">
+              <p id="journalCalendarHeadingText" class="month-lunar-heading">Tháng nhật ký</p>
+              <button id="journalCalendarTodayButton" class="month-today-button" type="button">Hôm nay</button>
+            </div>
+            <div class="month-calendar-weekdays" aria-hidden="true">
+              <div class="month-weekday">T2</div>
+              <div class="month-weekday">T3</div>
+              <div class="month-weekday">T4</div>
+              <div class="month-weekday">T5</div>
+              <div class="month-weekday">T6</div>
+              <div class="month-weekday weekend">T7</div>
+              <div class="month-weekday weekend">CN</div>
+            </div>
+            <div id="journalCalendarGrid" class="month-calendar-grid journal-calendar-grid" role="grid" aria-label="Lịch nhật ký/ghi chú"></div>
+            <div class="journal-calendar-options">
+              <label class="journal-hover-toggle">
+                <input id="journalHoverPreviewToggle" type="checkbox" checked>
+                <span>Xem nhanh khi rê chuột</span>
+              </label>
+            </div>
+            <div id="journalHoverPreview" class="journal-hover-preview" role="tooltip" hidden></div>
+          </section>
+
+          <section id="journalListPanel" class="event-list journal-list-panel" aria-label="Danh sách nhật ký/ghi chú" hidden>
+            <form id="journalFilterForm" class="journal-filter-form" autocomplete="off">
+              <label class="event-filter-group">
+                <span class="event-filter-label">Tháng</span>
+                <select id="journalMonthFilter" class="event-month-filter">
+                  <option value="">Tất cả</option>
+                  <option value="01">Tháng 1</option>
+                  <option value="02">Tháng 2</option>
+                  <option value="03">Tháng 3</option>
+                  <option value="04">Tháng 4</option>
+                  <option value="05">Tháng 5</option>
+                  <option value="06">Tháng 6</option>
+                  <option value="07">Tháng 7</option>
+                  <option value="08">Tháng 8</option>
+                  <option value="09">Tháng 9</option>
+                  <option value="10">Tháng 10</option>
+                  <option value="11">Tháng 11</option>
+                  <option value="12">Tháng 12</option>
+                </select>
+              </label>
+              <label class="event-filter-group">
+                <span class="event-filter-label">Nội dung</span>
+                <input id="journalContentFilter" class="event-name-filter" type="search" placeholder="Nhập nội dung...">
+              </label>
+            </form>
+            <div id="journalList" class="journal-list"></div>
+            <p id="journalFilterEmptyState" class="empty-state" hidden>Không có nhật ký/ghi chú phù hợp với bộ lọc.</p>
+          </section>
+        </div>
+      </section>
+    </section>

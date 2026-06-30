@@ -5,7 +5,10 @@ async function loadAppPartials() {
     "today-tab",
     "converter-tab",
     "events-tab",
+    "journals-tab",
+    "app-info-tab",
     "event-dialog",
+    "journal-dialog",
     "app-info-dialog"
   ];
   const html = await Promise.all(partials.map(async (name) => {
