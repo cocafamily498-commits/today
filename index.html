@@ -3,11 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tờ lịch hôm nay</title>
+  <meta name="theme-color" content="#12345a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Sổ tay lịch Việt">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Sổ tay lịch Việt</title>
+  <link rel="manifest" href="manifest.webmanifest?v=5">
+  <link rel="icon" href="favicon-lichviet.ico" sizes="any">
+  <link rel="icon" href="icons/app-icon-lichviet-transparent-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="icons/app-icon-lichviet-transparent-192.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main id="appRoot" aria-label="Lịch hôm nay và công cụ đổi lịch">
+  <main id="appRoot" aria-label="Sổ tay lịch Việt">
     <p class="app-loading" aria-live="polite">Đang tải ứng dụng...</p>
   </main>
 
@@ -32,6 +40,7 @@
   <script src="scripts/today-panel.js"></script>
   <script src="scripts/weather-panel.js"></script>
   <script src="scripts/market-panels.js"></script>
+  <script src="scripts/pwa-install.js"></script>
   <script src="scripts/startup.js"></script>
 </body>
 </html>

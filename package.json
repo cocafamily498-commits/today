@@ -1,4 +1,12 @@
 {
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.2.0",
+    "@netlify/functions": "^2.8.2",
+    "web-push": "^3.6.7"
+  },
   "scripts": {
     "build": "node build.js",
     "start": "node server.js"

@@ -8,6 +8,7 @@ async function saveEventEditorValues(values, mode = null) {
   clearEventChoiceList();
   resetEventForm(savedEvent.date);
   await loadEventCalendarOccurrences();
+  await syncEventWebPushReminders();
   setEventFormStatus("");
   return savedEvent;
 }
@@ -18,6 +19,7 @@ async function deleteCurrentEditingEvent() {
   resetEventForm(getSelectedEventCalendarDate());
   clearEventChoiceList();
   await loadEventCalendarOccurrences();
+  await syncEventWebPushReminders();
   setEventFormStatus("");
 }
 
@@ -59,6 +61,7 @@ async function deleteEditingEvent() {
   resetEventForm(`${eventCalendarYear}-${String(eventCalendarMonth).padStart(2, "0")}-${String(eventCalendarSelectedDay).padStart(2, "0")}`);
   clearEventChoiceList();
   await loadEventCalendarOccurrences();
+  await syncEventWebPushReminders();
   setEventFormStatus("Đã xóa sự kiện.");
   closeEventDialog();
 }

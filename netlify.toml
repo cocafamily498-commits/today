@@ -34,3 +34,13 @@
   from = "/api/lunar-to-solar"
   to = "/.netlify/functions/lunar-to-solar"
   status = 200
+
+[[redirects]]
+  from = "/api/push-vapid-public-key"
+  to = "/.netlify/functions/push-vapid-public-key"
+  status = 200
+
+[[redirects]]
+  from = "/api/push-subscription"
+  to = "/.netlify/functions/push-subscription"
+  status = 200

@@ -183,5 +183,7 @@ ids.form.addEventListener("submit", async (event) => {
 });
 setMode(initialState.mode);
 setValues(initialState.values);
-requestAnimationFrame(() => ids.title.focus());`;
+if (!window.matchMedia("(max-width: 760px), (pointer: coarse)").matches) {
+  requestAnimationFrame(() => ids.title.focus());
+}`;
 }

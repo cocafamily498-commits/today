@@ -650,10 +650,31 @@ function openJournalDialog() {
   if (!dialog) return;
   document.body.classList.add("event-dialog-open");
   if (!dialog.open) dialog.showModal();
+  if (shouldAvoidJournalVirtualKeyboard()) {
+    requestAnimationFrame(blurActiveJournalEditableElement);
+    return;
+  }
   requestAnimationFrame(() => {
     const textInput = document.getElementById("journalText");
     if (textInput) textInput.focus({ preventScroll: true });
   });
+}
+
+function shouldAvoidJournalVirtualKeyboard() {
+  if (typeof shouldAvoidOpeningVirtualKeyboard === "function") {
+    return shouldAvoidOpeningVirtualKeyboard(document);
+  }
+  return window.matchMedia("(max-width: 760px), (pointer: coarse)").matches;
+}
+
+function blurActiveJournalEditableElement() {
+  if (typeof blurEditableElementInDocument === "function") {
+    blurEditableElementInDocument(document);
+    return;
+  }
+  const active = document.activeElement;
+  if (!active || !["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName)) return;
+  active.blur();
 }
 
 function closeJournalDialog() {

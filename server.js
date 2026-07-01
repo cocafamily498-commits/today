@@ -4,20 +4,30 @@ const fs = require("fs");
 const path = require("path");
 const { convertLunarToSolar, parseInput: parseLunarInput } = require("./netlify/functions/lunar-to-solar");
 
+loadEnvFile(path.join(__dirname, ".env"));
+
 const PORT = process.env.PORT || 3000;
 const STATIC_FILES = {
   "/": { file: "index.html", type: "text/html; charset=utf-8" },
   "/index.html": { file: "index.html", type: "text/html; charset=utf-8" },
   "/styles.css": { file: "styles.css", type: "text/css; charset=utf-8" },
-  "/app-data.js": { file: "app-data.js", type: "text/javascript; charset=utf-8" }
+  "/app-data.js": { file: "app-data.js", type: "text/javascript; charset=utf-8" },
+  "/favicon.ico": { file: "favicon.ico", type: "image/x-icon" },
+  "/favicon-lichviet.ico": { file: "favicon-lichviet.ico", type: "image/x-icon" },
+  "/manifest.webmanifest": { file: "manifest.webmanifest", type: "application/manifest+json; charset=utf-8" },
+  "/service-worker.js": { file: "service-worker.js", type: "text/javascript; charset=utf-8" }
 };
 const STATIC_TYPES = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8"
+  ".json": "application/json; charset=utf-8",
+  ".png": "image/png",
+  ".ico": "image/x-icon",
+  ".svg": "image/svg+xml; charset=utf-8",
+  ".webmanifest": "application/manifest+json; charset=utf-8"
 };
-const STATIC_DIRECTORIES = ["partials", "scripts"];
+const STATIC_DIRECTORIES = ["partials", "scripts", "icons"];
 const API_CORS_HEADERS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, OPTIONS",
@@ -50,6 +60,20 @@ const ASSET_GROUPS = [
 ];
 const VCB_EXCHANGE_URL = "https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=68";
 const GOLD_PRICE_URL = "https://giavang.org/";
+
+function loadEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) return;
+  const content = fs.readFileSync(filePath, "utf8");
+  content.split(/\r?\n/).forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) return;
+    const separatorIndex = trimmed.indexOf("=");
+    if (separatorIndex < 0) return;
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const value = trimmed.slice(separatorIndex + 1).trim();
+    if (key && process.env[key] === undefined) process.env[key] = value;
+  });
+}
 const SILVER_PRICE_URL = "https://giabac.phuquygroup.vn/";
 const QUOTE_CACHE_PATH = path.join(__dirname, "quotes-cache.json");
 const WORLD_GOLD_SYMBOL = "OANDA:XAUUSD";
@@ -830,7 +854,7 @@ function readJsonBody(request) {
     request.setEncoding("utf8");
     request.on("data", (chunk) => {
       body += chunk;
-      if (body.length > 10000) request.destroy(new Error("Request body too large"));
+      if (body.length > 250000) request.destroy(new Error("Request body too large"));
     });
     request.on("end", () => {
       try {
@@ -912,6 +936,26 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
+    if (requestUrl.pathname === "/api/push-vapid-public-key") {
+      send(response, 200, "application/json; charset=utf-8", JSON.stringify({
+        publicKey: process.env.VAPID_PUBLIC_KEY || "",
+        configured: Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY)
+      }), API_CORS_HEADERS);
+      return;
+    }
+
+    if (requestUrl.pathname === "/api/push-subscription") {
+      if (request.method !== "POST") {
+        send(response, 405, "application/json; charset=utf-8", JSON.stringify({ error: "Chỉ hỗ trợ phương thức POST" }), API_CORS_HEADERS);
+        return;
+      }
+
+      const input = await readJsonBody(request);
+      const reminders = Array.isArray(input.reminders) ? input.reminders.length : 0;
+      send(response, 200, "application/json; charset=utf-8", JSON.stringify({ ok: true, local: true, reminders }), API_CORS_HEADERS);
+      return;
+    }
+
     const staticFile = getStaticFile(requestUrl.pathname);
     if (!staticFile) {
       send(response, 404, "text/plain; charset=utf-8", "Not found");
@@ -927,5 +971,5 @@ const server = http.createServer(async (request, response) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Hom nay app: http://localhost:${PORT}`);
+  console.log(`So tay lich Viet app: http://localhost:${PORT}`);
 });

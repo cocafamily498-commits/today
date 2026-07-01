@@ -191,9 +191,9 @@ main {
   box-shadow: var(--shadow);
 }
 
-.app-tabs {
+.app-topbar {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 5px;
   margin-bottom: 10px;
   padding: 5px;
@@ -201,6 +201,13 @@ main {
   border-radius: 9px;
   background: rgba(255, 255, 255, .92);
   box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+}
+
+.app-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  min-width: 0;
 }
 
 .app-tab {
@@ -226,6 +233,90 @@ main {
 .app-tab[aria-selected="true"] {
   color: #fff;
   background: var(--red-dark);
+}
+
+.app-reminder-button,
+.app-install-button {
+  min-height: 44px;
+  min-width: 92px;
+  padding: 9px 13px;
+  color: #fff;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 800;
+  white-space: nowrap;
+  border: 0;
+  border-radius: 6px;
+  background: var(--green);
+  cursor: pointer;
+}
+
+.app-reminder-button {
+  min-width: 112px;
+  background: #087f5b;
+}
+
+.app-reminder-button.is-enabled {
+  background: #0f766e;
+}
+
+.app-reminder-button.is-warning {
+  color: #7f1d1d;
+  background: #fff1f2;
+}
+
+.app-reminder-button:hover,
+.app-reminder-button:focus-visible,
+.app-install-button:hover,
+.app-install-button:focus-visible {
+  background: #05643f;
+  outline: 3px solid rgba(8, 122, 77, .18);
+}
+
+.app-reminder-button.is-warning:hover,
+.app-reminder-button.is-warning:focus-visible {
+  background: #ffe4e6;
+}
+
+.app-install-button[hidden] {
+  display: none;
+}
+
+.app-install-dialog {
+  width: min(calc(100% - 32px), 420px);
+  padding: 0;
+  color: #33475e;
+  font: inherit;
+  border: 1px solid #b8c7d8;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 29, 45, .28);
+}
+
+.app-install-dialog::backdrop {
+  background: rgba(15, 29, 45, .58);
+}
+
+.app-install-dialog-content {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+}
+
+.app-install-dialog h2,
+.app-install-dialog p {
+  margin: 0;
+}
+
+.app-install-dialog h2 {
+  color: var(--red-dark);
+  font-size: 1.15rem;
+}
+
+.app-install-dialog p {
+  font-size: .92rem;
+  font-weight: 650;
+  line-height: 1.5;
 }
 
 .tab-panel[hidden],
@@ -786,11 +877,17 @@ main {
 }
 
 .event-backup-actions {
-  position: absolute;
-  right: 14px;
   display: inline-flex;
   gap: 8px;
   align-items: center;
+}
+
+.event-tools-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 10px 14px 0;
 }
 
 .event-backup-button {
@@ -811,6 +908,17 @@ main {
 .event-backup-button:focus-visible {
   border-color: #fff;
   outline: 3px solid rgba(255, 255, 255, .28);
+}
+
+.event-backup-button.is-enabled {
+  color: #fff;
+  border-color: rgba(255, 255, 255, .78);
+  background: #087f5b;
+}
+
+.event-backup-button.is-warning {
+  color: #7f1d1d;
+  background: #fff1f2;
 }
 
 .journal-calendar-options {
@@ -2763,9 +2871,18 @@ button.event-list-item:hover {
     margin: 0 auto;
   }
 
+  .app-topbar {
+    grid-template-columns: 1fr;
+  }
+
   .app-tabs {
     gap: 3px;
     padding: 4px;
+  }
+
+  .app-reminder-button,
+  .app-install-button {
+    width: 100%;
   }
 
   .app-tab {
@@ -2815,14 +2932,27 @@ button.event-list-item:hover {
 
   #eventsTab .monthly-calendar-heading,
   #journalsTab .monthly-calendar-heading {
-    justify-content: flex-start;
-    padding-left: 10px;
+    justify-content: center;
+    padding-left: 0;
+    text-align: center;
+  }
+
+  #eventsTab .monthly-calendar-heading .event-calendar-heading-text,
+  #journalsTab .monthly-calendar-heading .event-calendar-heading-text {
+    width: 100%;
+  }
+
+  .event-tools-row {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 10px 0;
   }
 
   .event-backup-actions {
     position: static;
-    margin-left: auto;
-    padding-right: 8px;
+    justify-content: flex-end;
+    margin-left: 0;
+    padding-right: 0;
     gap: 5px;
   }
 

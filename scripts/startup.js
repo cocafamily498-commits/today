@@ -55,6 +55,8 @@ async function startApplication() {
     [setupMonthlyCalendar, "setupMonthlyCalendar"],
     [setupLocationPicker, "setupLocationPicker"],
     [setupCollapsiblePanels, "setupCollapsiblePanels"],
+    [setupPwaInstall, "setupPwaInstall"],
+    [registerServiceWorker, "registerServiceWorker"],
     [loadWeather, "loadWeather"],
     [loadMarkets, "loadMarkets"],
     [loadAssets, "loadAssets"],
