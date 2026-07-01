@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v27";
+const CACHE_NAME = "homnay-pwa-v28";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -36,6 +36,8 @@ const APP_SHELL = [
   "/manifest.webmanifest",
   "/icons/app-icon-lichviet-transparent-192.png",
   "/icons/app-icon-lichviet-transparent-512.png",
+  "/icons/app-icon-lichviet-calendar-192.png",
+  "/icons/app-icon-lichviet-calendar-512.png",
   "/partials/tabs.html",
   "/partials/today-tab.html",
   "/partials/converter-tab.html",
@@ -136,8 +138,8 @@ self.addEventListener("push", (event) => {
     body: data.body || "",
     tag: data.tag || "lichviet-event-reminder",
     renotify: true,
-    icon: data.icon || "/icons/app-icon-lichviet-transparent-192.png",
-    badge: data.badge || "/icons/app-icon-lichviet-transparent-192.png",
+    icon: data.icon || "/icons/app-icon-lichviet-calendar-192.png",
+    badge: data.badge || "/icons/app-icon-lichviet-calendar-192.png",
     data: {
       url: data.url || "/#eventsTab",
       eventId: data.eventId || "",

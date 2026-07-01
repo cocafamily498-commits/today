@@ -184,8 +184,8 @@ async function showEventSystemNotification({ event, occurrenceDate }) {
     body,
     tag: `lichviet-event-${event.id}-${occurrenceDate}`,
     renotify: true,
-    icon: "/icons/app-icon-lichviet-transparent-192.png",
-    badge: "/icons/app-icon-lichviet-transparent-192.png",
+    icon: "/icons/app-icon-lichviet-calendar-192.png",
+    badge: "/icons/app-icon-lichviet-calendar-192.png",
     data: {
       url: `${window.location.origin}${window.location.pathname}#eventsTab`,
       eventId: event.id,
@@ -207,8 +207,8 @@ async function showEventSystemTestNotification() {
     body: "Thông báo hệ thống đã bật. Các nhắc sự kiện sẽ hiện ở đây khi đến giờ.",
     tag: "lichviet-event-reminder-test",
     renotify: true,
-    icon: "/icons/app-icon-lichviet-transparent-192.png",
-    badge: "/icons/app-icon-lichviet-transparent-192.png",
+    icon: "/icons/app-icon-lichviet-calendar-192.png",
+    badge: "/icons/app-icon-lichviet-calendar-192.png",
     data: {
       url: `${window.location.origin}${window.location.pathname}#eventsTab`
     }

@@ -23,8 +23,8 @@ async function buildEventPushReminderPayloads() {
           ].filter(Boolean).join("\n"),
           tag: `lichviet-event-${event.id}-${occurrenceDate}`,
           url: `${window.location.origin}${window.location.pathname}#eventsTab`,
-          icon: "/icons/app-icon-lichviet-transparent-192.png",
-          badge: "/icons/app-icon-lichviet-transparent-192.png",
+          icon: "/icons/app-icon-lichviet-calendar-192.png",
+          badge: "/icons/app-icon-lichviet-calendar-192.png",
           eventId: event.id,
           occurrenceDate
         });

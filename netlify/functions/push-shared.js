@@ -94,8 +94,8 @@ function sanitizeReminder(reminder) {
     body: String(source.body || "").slice(0, 400),
     tag: String(source.tag || source.id).slice(0, 240),
     url: String(source.url || "/").slice(0, 500),
-    icon: String(source.icon || "/icons/app-icon-lichviet-transparent-192.png").slice(0, 200),
-    badge: String(source.badge || "/icons/app-icon-lichviet-transparent-192.png").slice(0, 200),
+    icon: String(source.icon || "/icons/app-icon-lichviet-calendar-192.png").slice(0, 200),
+    badge: String(source.badge || "/icons/app-icon-lichviet-calendar-192.png").slice(0, 200),
     eventId: source.eventId ? String(source.eventId).slice(0, 120) : "",
     occurrenceDate: source.occurrenceDate ? String(source.occurrenceDate).slice(0, 20) : ""
   };
