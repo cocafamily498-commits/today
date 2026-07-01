@@ -1,5 +1,7 @@
 let deferredInstallPrompt = null;
 let appUpdateDialogShown = false;
+const APP_VERSION = "homnay-pwa-v29";
+const APP_VERSION_STORAGE_KEY = "homnay.appVersion";
 
 function isStandalonePwa() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
@@ -47,6 +49,7 @@ function showAppUpdatedDialog() {
     <div class="app-install-dialog-content">
       <h2>\u0110\u00e3 c\u1eadp nh\u1eadt phi\u00ean b\u1ea3n m\u1edbi</h2>
       <p>\u1ee8ng d\u1ee5ng \u0111\u00e3 t\u1ea3i v\u00e0 \u0111ang ch\u1ea1y phi\u00ean b\u1ea3n m\u1edbi nh\u1ea5t.</p>
+      <p>N\u1ebfu bi\u1ec3u t\u01b0\u1ee3ng ngo\u00e0i m\u00e0n h\u00ecnh ch\u00ednh v\u1eabn l\u00e0 icon c\u0169, Android \u0111ang gi\u1eef cache shortcut. H\u00e3y g\u1ee1 app/shortcut r\u1ed3i c\u00e0i l\u1ea1i \u0111\u1ec3 \u0111\u1ed5i icon ngay.</p>
       <button class="event-submit" type="button">\u0110\u00e3 hi\u1ec3u</button>
     </div>
   `;
@@ -55,6 +58,21 @@ function showAppUpdatedDialog() {
   dialog.addEventListener("close", () => dialog.remove());
   dialog.querySelector("button").addEventListener("click", () => dialog.close());
   dialog.showModal();
+}
+
+function checkAppVersionNotice() {
+  let previousVersion = "";
+  try {
+    previousVersion = localStorage.getItem(APP_VERSION_STORAGE_KEY) || "";
+    if (previousVersion === APP_VERSION) return;
+    localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
+  } catch (error) {
+    return;
+  }
+
+  if (previousVersion || isStandalonePwa()) {
+    window.setTimeout(showAppUpdatedDialog, 600);
+  }
 }
 
 async function handleInstallClick() {
@@ -69,6 +87,8 @@ async function handleInstallClick() {
 }
 
 function setupPwaInstall() {
+  checkAppVersionNotice();
+
   const installButton = document.getElementById("appInstallButton");
   if (!installButton) return;
 

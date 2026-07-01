@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v28";
+const CACHE_NAME = "homnay-pwa-v29";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -85,7 +85,7 @@ const APP_SHELL = [
   "/scripts/today-panel.js",
   "/scripts/weather-panel.js",
   "/scripts/market-panels.js",
-  "/scripts/pwa-install.js",
+  "/scripts/pwa-install.js?v=2",
   "/scripts/startup.js"
 ];
 
