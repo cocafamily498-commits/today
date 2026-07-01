@@ -1,0 +1,187 @@
+
+.event-confirm-dialog {
+  width: min(calc(100% - 32px), 430px);
+  padding: 0;
+  color: var(--ink);
+  font: inherit;
+  border: 1px solid #b8c7d8;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 29, 45, .32);
+}
+
+.event-confirm-dialog::backdrop {
+  background: rgba(15, 29, 45, .58);
+}
+
+.event-confirm-content {
+  padding: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+}
+
+.event-confirm-content h2 {
+  margin: 0 0 10px;
+  color: var(--red-dark);
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+
+.event-confirm-content p {
+  margin: 0;
+  color: #45586d;
+  font-size: .92rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.event-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.event-backup-dialog {
+  width: min(calc(100% - 32px), 620px);
+  max-height: min(88vh, 720px);
+  overflow: hidden;
+  padding: 0;
+  color: var(--ink);
+  font: inherit;
+  border: 1px solid #b8c7d8;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 29, 45, .32);
+}
+
+.event-backup-dialog::backdrop {
+  background: rgba(15, 29, 45, .58);
+}
+
+.event-backup-content {
+  max-height: inherit;
+  overflow: auto;
+  padding: 22px;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+}
+
+.event-backup-content h2 {
+  margin: 0 0 12px;
+  color: var(--red-dark);
+  font-size: 1.3rem;
+  line-height: 1.25;
+}
+
+.event-backup-content p {
+  margin: 0 0 12px;
+  color: #45586d;
+  font-size: .94rem;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.event-backup-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.event-reminder-dialog {
+  width: min(calc(100% - 32px), 560px);
+  max-height: min(88vh, 680px);
+  overflow: hidden;
+  padding: 0;
+  color: var(--ink);
+  font: inherit;
+  border: 1px solid #b8c7d8;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15, 29, 45, .32);
+}
+
+.event-reminder-dialog::backdrop {
+  background: rgba(15, 29, 45, .58);
+}
+
+.event-reminder-content {
+  display: grid;
+  max-height: inherit;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+}
+
+.event-reminder-heading {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 12px;
+  line-height: 1;
+}
+
+.event-reminder-bell {
+  color: var(--gold);
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.event-reminder-list {
+  display: grid;
+  gap: 10px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.event-reminder-item {
+  padding: 12px;
+  border: 1px solid #d7e0ea;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.event-reminder-item-title {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  color: #12345a;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.event-reminder-item p {
+  margin: 5px 0 0;
+  color: #45586d;
+  font-size: .9rem;
+  line-height: 1.45;
+}
+
+.event-reminder-item .event-reminder-lead {
+  margin-top: 0;
+  color: #12345a;
+  font-weight: 800;
+}
+
+.event-reminder-item .month-event-icon {
+  flex: 0 0 auto;
+}
+
+.event-reminder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.event-form-status {
+  min-height: 20px;
+  margin: 0;
+  color: #05643f;
+  font-size: .82rem;
+  font-weight: 700;
+  text-align: right;
+}

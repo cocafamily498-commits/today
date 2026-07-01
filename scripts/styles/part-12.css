@@ -1,0 +1,183 @@
+
+.calendar-picker-select {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  width: 34px;
+  height: 38px;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.calendar-number-control::after {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid #33475e;
+  border-bottom: 2px solid #33475e;
+  content: "";
+  pointer-events: none;
+  transform: translateY(-70%) rotate(45deg);
+}
+
+.month-today-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: #dfe8f1;
+  border-right: 1px solid #b8c7d8;
+  border-left: 1px solid #b8c7d8;
+}
+
+.month-lunar-heading {
+  margin: 0;
+  color: #33475e;
+  font-size: .76rem;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.month-today-button {
+  min-height: 34px;
+  color: var(--red-dark);
+  border-color: #9fb2c6;
+  background: #fff;
+  font-size: .76rem;
+}
+
+.month-calendar-weekdays,
+.month-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.month-calendar-weekdays {
+  border: 1px solid #b8c7d8;
+  border-bottom: 0;
+  background: #edf3f8;
+}
+
+.month-weekday {
+  padding: 6px 1px;
+  color: #33475e;
+  font-size: .68rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.month-weekday.weekend {
+  color: #b42318;
+}
+
+.month-calendar-grid {
+  overflow: hidden;
+  gap: 1px;
+  padding: 1px;
+  border: 1px solid #b8c7d8;
+  border-radius: 0 0 7px 7px;
+  background: #d6dee7;
+}
+
+.month-day-empty {
+  min-height: 58px;
+  background: #f0f3f6;
+}
+
+.month-day-button {
+  position: relative;
+  min-width: 0;
+  min-height: 58px;
+  padding: 5px 2px 4px;
+  color: #172b42;
+  font: inherit;
+  border: 0;
+  background: #fff;
+  cursor: pointer;
+}
+
+.month-day-button:hover {
+  z-index: 1;
+  background: #e9f0f7;
+  box-shadow: inset 0 0 0 2px #7893b1;
+}
+
+.month-day-button:focus-visible {
+  z-index: 3;
+  outline: 3px solid #2563eb;
+  outline-offset: -3px;
+}
+
+.month-day-button.weekend .month-solar-day {
+  color: #b42318;
+}
+
+.month-day-type-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(23, 43, 66, .15);
+}
+
+.month-day-type-dot.auspicious {
+  background: #f4b400;
+}
+
+.month-solar-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  color: var(--red-dark);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  border-radius: 50%;
+}
+
+.month-lunar-day {
+  display: block;
+  margin-top: 2px;
+  color: #68788a;
+  font-size: .64rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.month-lunar-day.month-start {
+  color: #b42318;
+  font-weight: 800;
+}
+
+.month-lunar-day.full-moon {
+  color: #a12622;
+}
+
+.month-lunar-day.leap-month {
+  color: #b42318;
+  font-weight: 800;
+}
+
+.month-event-icons {
+  display: flex;
+  min-height: 16px;
+  margin-top: 3px;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  color: #12345a;
+  font-size: .74rem;
+  line-height: 1;
+}

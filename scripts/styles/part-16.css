@@ -1,0 +1,377 @@
+
+.market-name {
+  margin: 0 0 5px;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.market-value {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.market-change {
+  margin: 4px 0 0;
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+.market-change.up {
+  color: #087a4d;
+}
+
+.market-change.down {
+  color: #c62828;
+}
+
+.market-change.flat {
+  color: var(--muted);
+}
+
+.quote-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.quote-side {
+  min-width: 0;
+}
+
+.quote-label {
+  margin: 0 0 3px;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.quote-value {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.08rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.quote-change {
+  margin: 4px 0 0;
+  font-size: .78rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.quote-unit {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: .74rem;
+  line-height: 1.35;
+}
+
+.world-gold-row {
+  display: grid;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.world-gold-value {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.08rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.world-gold-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: .74rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 520px) {
+  body {
+    display: block;
+    padding: 16px;
+  }
+
+  main {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .app-topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .app-tabs {
+    gap: 3px;
+    padding: 4px;
+  }
+
+  .app-reminder-button,
+  .app-install-button {
+    width: 100%;
+  }
+
+  .app-tab {
+    min-height: 42px;
+    padding: 6px 3px;
+    font-size: .62rem;
+    line-height: 1.15;
+    white-space: normal;
+  }
+
+  .header {
+    padding-inline: 22px;
+  }
+
+  .page {
+    padding: 18px 20px 24px;
+  }
+
+  .converter-body {
+    padding: 20px;
+  }
+
+  .app-info-dialog-header {
+    padding: 22px 20px 20px;
+  }
+
+  .app-info-dialog-body {
+    padding: 20px;
+  }
+
+  .app-info-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .app-info-item {
+    padding: 14px;
+  }
+
+  #eventsTab .event-manager-body {
+    padding: 8px 0 24px;
+  }
+
+  #journalsTab .event-manager-body {
+    padding: 8px 0 24px;
+  }
+
+  #eventsTab .monthly-calendar-heading,
+  #journalsTab .monthly-calendar-heading {
+    justify-content: center;
+    padding-left: 0;
+    text-align: center;
+  }
+
+  #eventsTab .monthly-calendar-heading .event-calendar-heading-text,
+  #journalsTab .monthly-calendar-heading .event-calendar-heading-text {
+    width: 100%;
+  }
+
+  .event-tools-row {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 10px 0;
+  }
+
+  .event-backup-actions {
+    position: static;
+    justify-content: flex-end;
+    margin-left: 0;
+    padding-right: 0;
+    gap: 5px;
+  }
+
+  .event-backup-button {
+    min-height: 28px;
+    padding: 4px 6px;
+    font-size: .64rem;
+  }
+
+  .journal-hover-toggle {
+    position: static;
+    margin-left: auto;
+    padding-right: 8px;
+    font-size: .62rem;
+  }
+
+  .journal-hover-toggle span {
+    max-width: 74px;
+  }
+
+  .monthly-calendar-section {
+    padding: 18px 14px 20px;
+  }
+
+  #eventsTab .monthly-calendar-heading,
+  #journalsTab .monthly-calendar-heading {
+    margin-inline: 0;
+  }
+
+  .date-fields {
+    gap: 7px;
+  }
+
+  .date-field input,
+  .date-field select {
+    padding-inline: 7px;
+  }
+
+  .date-field select {
+    padding-right: 27px;
+    background-position: right 7px center;
+  }
+
+  .conversion-actions {
+    gap: 7px;
+  }
+
+  .view-month-button {
+    padding-inline: 7px;
+    font-size: .75rem;
+  }
+
+  .selected-date-day {
+    font-size: 1.7rem;
+  }
+
+  .month-calendar-toolbar {
+    gap: 5px;
+    padding: 7px;
+  }
+
+  .month-today-row {
+    flex-direction: column;
+  }
+
+  .month-nav-button {
+    min-width: 34px;
+    padding-inline: 7px;
+  }
+
+  .month-calendar-selectors {
+    gap: 5px;
+  }
+
+  .calendar-number-control input {
+    padding-left: 5px;
+    padding-right: 27px;
+    font-size: .72rem;
+  }
+
+  .month-day-button,
+  .month-day-empty {
+    min-height: 57px;
+  }
+
+  .journal-calendar-grid .month-day-empty,
+  .journal-calendar-grid .journal-day-button {
+    min-height: 86px;
+  }
+
+  .journal-calendar-grid .month-journal-preview {
+    font-size: .54rem;
+  }
+
+  .journal-calendar-grid .month-journal-text {
+    -webkit-line-clamp: 3;
+  }
+
+  .journal-filter-form {
+    grid-template-columns: 1fr;
+  }
+
+  .month-weekday {
+    font-size: .62rem;
+  }
+
+  .event-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .event-field,
+  .event-time-field,
+  .event-reminder-offset {
+    grid-column: 1 / -1;
+  }
+
+  .event-lunar-date-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 8px;
+    align-items: center;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .event-lunar-date-label {
+    grid-column: 1 / -1;
+    position: static;
+    display: block;
+    margin: 0;
+    transform: none;
+  }
+
+  .event-lunar-leap-badge {
+    position: static;
+    transform: none;
+  }
+
+  .market-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .weather-main {
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .weather-icon {
+    width: 66px;
+    height: 66px;
+  }
+
+  .weather-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .weather-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .event-reminder-offset-label {
+    font-size: .68rem;
+  }
+
+  .event-reminder-offset-controls {
+    gap: 8px;
+  }
+
+  .event-reminder-unit-control input {
+    padding-right: 46px;
+  }
+
+  .event-reminder-unit-control span {
+    right: 10px;
+    font-size: .68rem;
+  }
+
+}

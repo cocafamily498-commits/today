@@ -1,0 +1,180 @@
+
+.weather-feels {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.35;
+}
+
+.weather-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: #d7d7d7;
+}
+
+.weather-stat {
+  min-width: 0;
+  padding: 11px 12px;
+  background: #ffffff;
+}
+
+.weather-stat-label {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: .7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.weather-stat-value {
+  margin: 0;
+  color: var(--ink);
+  font-size: .98rem;
+  font-weight: 900;
+  line-height: 1.18;
+}
+
+.weather-stat-note {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: .72rem;
+  line-height: 1.25;
+}
+
+.market-panel {
+  position: relative;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid #d7d7d7;
+  border-radius: 4px;
+  background: #ffffff;
+}
+
+.market-title {
+  margin: 0;
+  padding: 10px 14px 8px;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-align: center;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.market-panel-header {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 30px;
+  align-items: center;
+  padding: 0 5px;
+  background: var(--red-dark);
+  border-bottom: 3px solid var(--gold);
+}
+
+.market-panel-header .market-title {
+  grid-column: 2;
+}
+
+.market-collapse-button {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0;
+  font-weight: 900;
+  line-height: 1;
+  border: 0;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, .12);
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 2px;
+  cursor: pointer;
+}
+
+.market-panel-header > .market-collapse-button,
+.calendar-card-header > .market-collapse-button,
+.converter-header > .market-collapse-button {
+  position: static;
+  grid-column: 3;
+  grid-row: 1 / -1;
+  align-self: center;
+  justify-self: center;
+}
+
+.market-collapse-button:hover,
+.market-collapse-button:focus-visible {
+  background-color: rgba(255, 255, 255, .24);
+  outline: 2px solid rgba(255, 255, 255, .8);
+  outline-offset: -2px;
+}
+
+.weather-panel > .market-collapse-button {
+  z-index: 6;
+  color: var(--red-dark);
+  background-color: #edf3f8;
+}
+
+.weather-panel > .market-collapse-button:hover,
+.weather-panel > .market-collapse-button:focus-visible {
+  color: #ffffff;
+  background-color: var(--red-dark);
+  outline-color: var(--red-dark);
+}
+
+.market-restore-button {
+  display: none;
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  color: #ffffff;
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 800;
+  border: 0;
+  border-bottom: 3px solid var(--gold);
+  background: var(--red-dark);
+  cursor: pointer;
+}
+
+.market-restore-button:hover,
+.market-restore-button:focus-visible {
+  color: #ffffff;
+  background: var(--red-dark);
+  outline: 2px solid rgba(255, 255, 255, .8);
+  outline-offset: -4px;
+}
+
+.market-panel.is-collapsed > :not(.market-restore-button) {
+  display: none;
+}
+
+.weather-panel.is-collapsed > :not(.market-restore-button) {
+  display: none;
+}
+
+.market-panel.is-collapsed .market-restore-button,
+.weather-panel.is-collapsed .market-restore-button {
+  display: block;
+}
+
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: #d7d7d7;
+}
+
+.market-item {
+  min-width: 0;
+  padding: 12px 14px;
+  background: #ffffff;
+}

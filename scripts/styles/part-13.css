@@ -1,0 +1,186 @@
+
+.month-event-icon {
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.month-event-icon.birthday {
+  color: #b45309;
+  background: #fff7cf;
+}
+
+.month-event-icon.deathAnniversary {
+  color: #9a6700;
+  background: #fff7cf;
+}
+
+.month-event-icon.other {
+  color: #00796b;
+  background: #dff7ec;
+}
+
+.month-event-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  justify-content: center;
+  margin: 10px 0 0;
+  color: #45586d;
+  font-size: .74rem;
+  font-weight: 700;
+}
+
+.month-event-legend > span {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.journal-day-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  gap: 1px;
+  padding-inline: 3px;
+}
+
+.journal-calendar-grid .month-day-empty,
+.journal-calendar-grid .journal-day-button {
+  min-height: clamp(96px, calc((100vh - 430px) / 5), 150px);
+}
+
+.journal-day-button .month-solar-day {
+  flex: 0 0 auto;
+}
+
+.journal-day-button .month-lunar-day {
+  flex: 0 0 auto;
+  margin-top: 0;
+}
+
+.month-journal-preview {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px;
+  align-items: start;
+  margin-top: 1px;
+  color: #33475e;
+  font-size: .58rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.journal-calendar-grid .month-journal-preview {
+  margin-top: 5px;
+  padding-inline: 4px;
+  font-size: .72rem;
+  line-height: 1.25;
+}
+
+.month-journal-text {
+  display: -webkit-box;
+  overflow: hidden;
+  text-align: left;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.journal-calendar-grid .month-journal-text {
+  -webkit-line-clamp: 4;
+}
+
+.month-journal-image-icon {
+  display: inline-flex;
+  width: 13px;
+  height: 13px;
+  align-items: center;
+  justify-content: center;
+  color: #00796b;
+  font-size: .62rem;
+  font-weight: 900;
+  line-height: 1;
+  border-radius: 3px;
+  background: #dff7ec;
+}
+
+.journal-hover-preview {
+  position: fixed;
+  z-index: 60;
+  width: min(320px, calc(100vw - 24px));
+  max-height: min(260px, calc(100vh - 24px));
+  overflow: auto;
+  padding: 12px 14px;
+  color: #172b42;
+  font-size: .88rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  border: 1px solid #b8c7d8;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 18px 44px rgba(15, 29, 45, .26);
+  pointer-events: none;
+}
+
+.journal-hover-preview[hidden] {
+  display: none;
+}
+
+.journal-hover-preview strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #12345a;
+}
+
+.journal-hover-preview p {
+  margin: 0;
+}
+
+.journal-hover-preview span {
+  display: block;
+  margin-top: 8px;
+  color: #00796b;
+  font-weight: 800;
+}
+
+.month-day-button.today .month-solar-day {
+  color: #fff !important;
+  background: var(--green);
+  box-shadow: 0 2px 6px rgba(8, 122, 77, .3);
+}
+
+.month-day-button.selected {
+  z-index: 2;
+  background: #fff7cf;
+  box-shadow: inset 0 0 0 2px var(--gold);
+}
+
+.month-day-button.today.selected {
+  box-shadow: inset 0 0 0 2px var(--gold), inset 0 0 0 4px #fff;
+}
+
+.weather-panel {
+  position: relative;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid #d7d7d7;
+  border-radius: 4px;
+  background: #ffffff;
+}
+
+.location-picker {
+  position: relative;
+  z-index: 5;
+  padding: 13px 14px;
+  background: #fff;
+  border-bottom: 1px solid #d7d7d7;
+}

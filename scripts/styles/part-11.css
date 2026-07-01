@@ -1,0 +1,192 @@
+
+.selected-date-summary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.selected-solar-line {
+  margin: 0;
+  color: #33475e;
+  font-size: .82rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.selected-solar-line strong {
+  color: var(--red-dark);
+}
+
+.selected-date-card {
+  min-width: 0;
+  padding: 9px 10px;
+  text-align: center;
+  border: 1px solid #c6d2df;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.selected-date-label {
+  margin: 0 0 6px;
+  color: #526579;
+  font-size: .69rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.selected-date-day {
+  margin: 0;
+  color: var(--red-dark);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.selected-date-card.lunar .selected-date-day {
+  color: #b54708;
+}
+
+.selected-date-card.lunar {
+  background: #dfe8f1;
+}
+
+.selected-date-meta {
+  margin: 7px 0 0;
+  overflow-wrap: anywhere;
+  color: #45586d;
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+.selected-lunar-details {
+  display: grid;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.selected-lunar-full-date {
+  margin: 0;
+  color: #45586d;
+  font-size: .82rem;
+  line-height: 1.4;
+}
+
+.selected-lunar-full-date strong {
+  color: #b54708;
+}
+
+.selected-lunar-detail {
+  margin: 0;
+  color: #45586d;
+  font-size: .69rem;
+  line-height: 1.35;
+}
+
+.selected-lunar-detail.is-auspicious {
+  color: #f4b400;
+  font-weight: 700;
+}
+
+.selected-lunar-highlight-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.selected-lunar-guidance {
+  display: grid;
+  gap: 3px;
+  margin-top: 6px;
+  padding-top: 6px;
+  text-align: left;
+  border-top: 1px solid #e1e7ee;
+}
+
+.selected-lunar-guidance p {
+  margin: 0;
+  color: #526579;
+  font-size: .69rem;
+  line-height: 1.35;
+}
+
+.guidance-do {
+  color: #2563eb;
+}
+
+.guidance-avoid {
+  color: #6a4aa0;
+}
+
+.selected-lunar-guidance-note {
+  margin-top: 0 !important;
+  color: #7a8795 !important;
+  font-size: .69rem !important;
+  font-style: italic;
+  text-align: center;
+}
+
+.month-calendar-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 7px;
+  background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+  border-radius: 7px 7px 0 0;
+}
+
+.month-nav-button,
+.month-today-button {
+  min-width: 38px;
+  min-height: 38px;
+  padding: 7px 10px;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, .12);
+  cursor: pointer;
+}
+
+.month-nav-button:hover,
+.month-today-button:hover {
+  background: rgba(255, 255, 255, .24);
+}
+
+.month-nav-button:disabled {
+  cursor: not-allowed;
+  opacity: .4;
+}
+
+.month-calendar-selectors {
+  display: flex;
+  gap: 7px;
+  min-width: 0;
+}
+
+.calendar-number-control {
+  position: relative;
+  width: 50%;
+  min-width: 0;
+}
+
+.calendar-number-control input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 6px 30px 6px 8px;
+  color: var(--red-dark);
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 800;
+  border: 0;
+  border-radius: 5px;
+  background: #fff;
+  outline: none;
+}

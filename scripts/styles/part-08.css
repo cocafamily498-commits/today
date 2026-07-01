@@ -1,0 +1,180 @@
+
+.journal-image-remove-button:hover,
+.journal-image-remove-button:focus-visible {
+  background: #a12622;
+}
+
+.journal-image-viewer-dialog {
+  width: min(960px, calc(100vw - 28px));
+  height: min(760px, calc(100vh - 28px));
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  background: #0f1720;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, .42);
+}
+
+.journal-image-viewer-dialog::backdrop {
+  background: rgba(4, 11, 20, .62);
+}
+
+.journal-image-viewer {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  color: #fff;
+}
+
+.journal-image-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 10px 8px 14px;
+  background: #162231;
+}
+
+.journal-image-viewer-toolbar strong {
+  overflow: hidden;
+  font-size: .92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.journal-image-viewer-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.journal-image-viewer-control,
+.journal-image-viewer-close {
+  min-width: 38px;
+  height: 36px;
+  padding: 0 10px;
+  color: #fff;
+  font-weight: 900;
+  border: 1px solid rgba(255, 255, 255, .24);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .1);
+  cursor: pointer;
+}
+
+.journal-image-viewer-control:hover,
+.journal-image-viewer-close:hover {
+  background: rgba(255, 255, 255, .18);
+}
+
+.journal-image-viewer-stage {
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 16px;
+}
+
+.journal-image-viewer-stage img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transform-origin: center center;
+  transition: transform .16s ease;
+}
+
+.event-field input:focus,
+.event-field select:focus,
+.event-field textarea:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(30, 58, 95, .12);
+}
+
+.event-reminder-offset {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.event-reminder-offset-label {
+  color: #33475e;
+  font-size: .74rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.event-reminder-offset-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.event-reminder-unit-control {
+  position: relative;
+  min-width: 0;
+}
+
+.event-reminder-unit-control input {
+  padding-right: 58px;
+  text-align: center;
+}
+
+.event-reminder-unit-control span {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  color: #33475e;
+  font-size: .76rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.event-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.event-submit,
+.event-secondary-button {
+  min-height: 44px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 800;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.event-submit {
+  color: #fff;
+  border: 0;
+  background: linear-gradient(135deg, #0b8958 0%, #05643f 100%);
+  box-shadow: 0 5px 12px rgba(8, 122, 77, .24);
+}
+
+.event-secondary-button {
+  color: #33475e;
+  border: 1px solid #b8c7d8;
+  background: #fff;
+}
+
+.event-danger-button {
+  min-height: 44px;
+  padding: 9px 14px;
+  color: #a12622;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 800;
+  border: 1px solid #f0b8b5;
+  border-radius: 5px;
+  background: #fff5f4;
+  cursor: pointer;
+}
