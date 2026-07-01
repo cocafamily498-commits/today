@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v30";
+const CACHE_NAME = "homnay-pwa-v31";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -38,8 +38,6 @@ const APP_SHELL = [
   "/icons/app-icon-lichviet-transparent-512.png",
   "/icons/app-icon-lichviet-calendar-192.png",
   "/icons/app-icon-lichviet-calendar-512.png",
-  "/icons/app-icon-lichviet-maskable-192.png",
-  "/icons/app-icon-lichviet-maskable-512.png",
   "/partials/tabs.html",
   "/partials/today-tab.html",
   "/partials/converter-tab.html",
