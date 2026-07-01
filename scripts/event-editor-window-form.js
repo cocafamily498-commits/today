@@ -1,5 +1,5 @@
 function renderEventEditorWindowForm(state, title) {
-  return `<h1>${escapeHtml(title)}</h1>
+  return `<h1 id="eventEditorWindowTitle">${escapeHtml(title)}</h1>
 <form id="eventForm" class="event-form" autocomplete="off">
   <div class="event-form-grid">
     <div class="event-field event-type-field">
@@ -69,10 +69,10 @@ function renderEventEditorWindowForm(state, title) {
   </div>
   <p id="eventFormStatus" class="event-form-status" aria-live="polite"></p>
   <div class="event-form-actions">
-    <button id="eventResetButton" class="event-secondary-button" type="button">Làm mới</button>
+    <button id="eventResetButton" class="event-secondary-button" type="button">Thêm mới</button>
     <button id="eventCancelButton" class="event-secondary-button" type="button">Hủy</button>
-    ${state.mode === "edit" ? `<button id="eventDeleteButton" class="event-danger-button" type="button">Xóa sự kiện</button>` : ""}
-    <button class="event-submit" type="submit">${state.mode === "edit" ? "Lưu thay đổi" : "Lưu sự kiện"}</button>
+    <button id="eventDeleteButton" class="event-danger-button" type="button" hidden>Xóa sự kiện</button>
+    <button id="eventSubmitButton" class="event-submit" type="submit">Lưu sự kiện</button>
   </div>
 </form>`;
 }

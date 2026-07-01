@@ -401,7 +401,7 @@ function setupEventListWindowDialog(listWindow, onChange) {
   }
   doc.getElementById("eventResetButton").addEventListener("click", () => {
     if (listWindow.editingEventId) {
-      loadEventIntoListWindowDialog(listWindow, listWindow.editingEventId);
+      openCreateEventInListWindowDialog(listWindow);
     } else {
       resetEventFormInDocument(doc);
     }
@@ -563,6 +563,7 @@ function setEventFormModeInDocument(doc, mode) {
   doc.getElementById("eventDialogHeading").textContent = isEdit ? "Sửa sự kiện" : "Tạo sự kiện";
   doc.getElementById("eventCancelButton").hidden = false;
   doc.getElementById("eventDeleteButton").hidden = !isEdit;
+  doc.getElementById("eventResetButton").textContent = "Thêm mới";
   doc.querySelector("#eventForm .event-submit").textContent = isEdit ? "Lưu thay đổi" : "Lưu sự kiện";
 }
 
@@ -604,6 +605,7 @@ function setEventFormMode(mode) {
   document.getElementById("eventDialogHeading").textContent = isEdit ? "Sửa sự kiện" : "Tạo sự kiện";
   document.getElementById("eventCancelButton").hidden = false;
   document.getElementById("eventDeleteButton").hidden = !isEdit;
+  document.getElementById("eventResetButton").textContent = "Thêm mới";
   document.querySelector("#eventForm .event-submit").textContent = isEdit ? "Lưu thay đổi" : "Lưu sự kiện";
 }
 

@@ -1,6 +1,7 @@
-async function saveEventEditorValues(values) {
+async function saveEventEditorValues(values, mode = null) {
   const eventData = buildEventFromValues(values);
-  const savedEvent = editingEventId
+  const shouldUpdate = editingEventId && mode !== "create";
+  const savedEvent = shouldUpdate
     ? await window.LichVietData.updateEvent(editingEventId, eventData)
     : await window.LichVietData.createEvent(eventData);
   editingEventId = null;

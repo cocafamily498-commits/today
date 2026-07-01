@@ -1059,6 +1059,15 @@ main {
   resize: vertical !important;
 }
 
+.journal-date-field,
+.journal-lunar-date-field {
+  grid-column: span 3;
+}
+
+.journal-lunar-date-row {
+  margin-top: 0;
+}
+
 .journal-image-summary {
   min-height: 18px;
   margin: 6px 0 0;
@@ -1069,10 +1078,8 @@ main {
 }
 
 .journal-image-picker {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: center;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .journal-add-image-button {

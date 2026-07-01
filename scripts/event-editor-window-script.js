@@ -4,6 +4,7 @@ const bridge = window.EventEditorBridge
   || (window.parent && window.parent !== window && window.parent.EventEditorBridge)
   || (window.opener && window.opener.EventEditorBridge);
 const ids = {
+  heading: document.getElementById("eventEditorWindowTitle"),
   form: document.getElementById("eventForm"),
   type: document.getElementById("eventType"),
   typeIcon: document.getElementById("eventTypeIcon"),
@@ -17,12 +18,41 @@ const ids = {
   hours: document.getElementById("eventBeforeHours"),
   time: document.getElementById("eventTime"),
   note: document.getElementById("eventNote"),
-  status: document.getElementById("eventFormStatus")
+  status: document.getElementById("eventFormStatus"),
+  reset: document.getElementById("eventResetButton"),
+  delete: document.getElementById("eventDeleteButton"),
+  submit: document.getElementById("eventSubmitButton")
 };
+let currentMode = initialState.mode;
+const initialCreateValues = initialState.mode === "create" ? initialState.values : getCreateValues();
 
 function setStatus(message, isError = false) {
   ids.status.textContent = message || "";
   ids.status.classList.toggle("error", isError);
+}
+
+function getCreateValues() {
+  return {
+    eventType: "birthday",
+    date: "",
+    title: "",
+    calendarLabel: "solar",
+    repeatFrequency: "yearly",
+    beforeDays: 0,
+    beforeHours: 0,
+    eventTime: "${DEFAULT_EVENT_TIME}",
+    note: ""
+  };
+}
+
+function setMode(mode) {
+  currentMode = mode === "edit" ? "edit" : "create";
+  const isEdit = currentMode === "edit";
+  ids.heading.textContent = isEdit ? "Sửa sự kiện" : "Tạo sự kiện";
+  ids.reset.textContent = "Thêm mới";
+  ids.delete.hidden = !isEdit;
+  ids.submit.textContent = isEdit ? "Lưu thay đổi" : "Lưu sự kiện";
+  document.title = ids.heading.textContent;
 }
 
 function updateTypeIcon(type) {
@@ -122,14 +152,15 @@ function confirmDelete() {
 ids.type.addEventListener("change", applyTypeDefaults);
 ids.date.addEventListener("input", updateLunarDate);
 ids.date.addEventListener("change", updateLunarDate);
-document.getElementById("eventResetButton").addEventListener("click", () => {
-  setValues(initialState.values);
+ids.reset.addEventListener("click", () => {
+  setMode("create");
+  setValues(initialCreateValues);
   setStatus("");
 });
 document.getElementById("eventCancelButton").addEventListener("click", () => window.close());
-const deleteButton = document.getElementById("eventDeleteButton");
-if (deleteButton) {
-  deleteButton.addEventListener("click", async () => {
+if (ids.delete) {
+  ids.delete.addEventListener("click", async () => {
+    if (currentMode !== "edit") return;
     if (!await confirmDelete()) return;
     try {
       setStatus("Đang xóa...");
@@ -144,12 +175,13 @@ ids.form.addEventListener("submit", async (event) => {
   event.preventDefault();
   try {
     setStatus("Đang lưu...");
-    await bridge.saveValues(getValues());
+    await bridge.saveValues(getValues(), currentMode);
     window.close();
   } catch (error) {
     setStatus("Chưa lưu được sự kiện. Vui lòng kiểm tra lại thông tin.", true);
   }
 });
+setMode(initialState.mode);
 setValues(initialState.values);
 requestAnimationFrame(() => ids.title.focus());`;
 }

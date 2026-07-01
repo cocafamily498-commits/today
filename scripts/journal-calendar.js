@@ -365,6 +365,7 @@ function setJournalFormMode(mode) {
   document.getElementById("journalDialogHeading").textContent = isEdit ? "Sửa nhật ký/ghi chú" : "Tạo nhật ký/ghi chú";
   document.getElementById("journalCancelButton").hidden = false;
   document.getElementById("journalDeleteButton").hidden = !isEdit;
+  document.getElementById("journalResetButton").textContent = "Thêm mới";
   document.querySelector("#journalForm .event-submit").textContent = isEdit ? "Lưu thay đổi" : "Lưu nhật ký";
 }
 
