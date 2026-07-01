@@ -1,6 +1,6 @@
 let deferredInstallPrompt = null;
 let appUpdateDialogShown = false;
-const APP_VERSION = "homnay-pwa-v29";
+const APP_VERSION = "homnay-pwa-v30";
 const APP_VERSION_STORAGE_KEY = "homnay.appVersion";
 
 function isStandalonePwa() {
