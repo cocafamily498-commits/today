@@ -32,7 +32,7 @@ function renderEventListWindowDocument(events, emptyText = "Chưa có sự kiệ
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Danh sách sự kiện</title>
   <base href="${escapeHtml(document.baseURI)}">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=16">
   <style>
 * { box-sizing: border-box; }
 body {

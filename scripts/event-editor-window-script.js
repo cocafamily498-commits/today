@@ -49,9 +49,9 @@ function setMode(mode) {
   currentMode = mode === "edit" ? "edit" : "create";
   const isEdit = currentMode === "edit";
   ids.heading.textContent = isEdit ? "Sửa sự kiện" : "Tạo sự kiện";
-  ids.reset.textContent = "Thêm mới";
+  ids.reset.textContent = "Mới";
   ids.delete.hidden = !isEdit;
-  ids.submit.textContent = isEdit ? "Lưu thay đổi" : "Lưu sự kiện";
+  ids.submit.textContent = "Lưu";
   document.title = ids.heading.textContent;
 }
 
@@ -157,7 +157,7 @@ ids.reset.addEventListener("click", () => {
   setValues(initialCreateValues);
   setStatus("");
 });
-document.getElementById("eventCancelButton").addEventListener("click", () => window.close());
+document.getElementById("eventCancelButton")?.addEventListener("click", () => window.close());
 if (ids.delete) {
   ids.delete.addEventListener("click", async () => {
     if (currentMode !== "edit") return;

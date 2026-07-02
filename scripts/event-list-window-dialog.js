@@ -1,9 +1,14 @@
+let eventListDialogReturnState = null;
+
 async function openEventListWindow() {
   const dialog = ensureEventListDialog();
+  const returnState = eventListDialogReturnState;
+  eventListDialogReturnState = null;
   const sortEventsForList = (events) => events.slice().sort(compareEventsByNextOccurrence);
   const renderList = (events, emptyText) => {
     dialog.querySelector(".event-list-dialog-content").innerHTML = renderEventListDialogContent(events, emptyText);
     setupEventListDialogControls(dialog);
+    restoreEventListDialogState(dialog, returnState);
   };
 
   renderList([], "Dang tai danh sach su kien...");
@@ -28,8 +33,8 @@ function ensureEventListDialog() {
   dialog.className = "event-list-dialog";
   dialog.style.cssText = [
     "width:min(calc(100% - 28px), 980px)",
-    "height:min(88vh, 820px)",
-    "max-height:min(88vh, 820px)",
+    "height:min(94vh, 900px)",
+    "max-height:min(94vh, 900px)",
     "padding:0",
     "overflow:hidden",
     "border:1px solid #b8c7d8",
@@ -55,6 +60,7 @@ function setupEventListDialogControls(dialog) {
   if (closeButton) closeButton.addEventListener("click", () => dialog.close());
   if (addButton) {
     addButton.addEventListener("click", () => {
+      rememberEventListDialogState(dialog, null);
       dialog.dataset.keepBodyLocked = "true";
       dialog.close();
       resetEventForm(getSelectedEventCalendarDate());
@@ -64,8 +70,58 @@ function setupEventListDialogControls(dialog) {
   }
 
   initializeEventListWindowFilters(window, async (eventId) => {
+    rememberEventListDialogState(dialog, eventId);
+    await loadEventIntoForm(eventId, null, { openDialog: false });
     dialog.dataset.keepBodyLocked = "true";
     dialog.close();
-    await loadEventIntoForm(eventId);
+    openEventDialog();
   });
+}
+
+function rememberEventListDialogState(dialog, selectedEventId) {
+  const list = dialog.querySelector("#eventList");
+  eventListDialogReturnState = {
+    selectedEventId,
+    scrollTop: list ? list.scrollTop : 0,
+    month: dialog.querySelector("#eventMonthFilter")?.value || "",
+    name: dialog.querySelector("#eventNameFilter")?.value || "",
+    types: Array.from(dialog.querySelectorAll("input[name='eventType']"))
+      .filter((input) => input.checked)
+      .map((input) => input.value)
+  };
+}
+
+function restoreEventListDialogState(dialog, state) {
+  if (!state) return;
+
+  const monthInput = dialog.querySelector("#eventMonthFilter");
+  const nameInput = dialog.querySelector("#eventNameFilter");
+  if (monthInput) monthInput.value = state.month || "";
+  if (nameInput) nameInput.value = state.name || "";
+  const selectedTypes = new Set(state.types || []);
+  dialog.querySelectorAll("input[name='eventType']").forEach((input) => {
+    input.checked = selectedTypes.size === 0 ? true : selectedTypes.has(input.value);
+  });
+  monthInput?.dispatchEvent(new Event("change", { bubbles: true }));
+
+  requestAnimationFrame(() => {
+    const list = dialog.querySelector("#eventList");
+    const selectedCard = state.selectedEventId
+      ? Array.from(dialog.querySelectorAll(".event-card"))
+        .find((card) => card.dataset.eventId === state.selectedEventId)
+      : null;
+
+    if (selectedCard) {
+      selectedCard.scrollIntoView({ block: "center" });
+      selectedCard.focus({ preventScroll: true });
+      return;
+    }
+
+    if (list) list.scrollTop = state.scrollTop || 0;
+  });
+}
+
+function returnToEventListDialogIfNeeded() {
+  if (!eventListDialogReturnState) return;
+  openEventListWindow();
 }

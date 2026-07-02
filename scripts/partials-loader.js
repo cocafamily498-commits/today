@@ -1,6 +1,6 @@
 async function loadAppPartials() {
   const root = document.getElementById("appRoot");
-  const partialVersion = "2026-07-01-reminder-topbar";
+  const partialVersion = "2026-07-03-journal-actions";
   const partials = [
     "tabs",
     "today-tab",

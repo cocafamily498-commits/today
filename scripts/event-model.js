@@ -30,9 +30,10 @@ window.EventEditorBridge = {
   openEvent: (eventId) => loadEventIntoForm(eventId)
 };
 
-async function loadEventIntoForm(eventId, renderedEvent = null) {
+async function loadEventIntoForm(eventId, renderedEvent = null, options = {}) {
   const event = await window.LichVietData.getEvent(eventId);
   if (!event) return;
+  const shouldOpenDialog = options.openDialog !== false;
   const originalDate = renderedEvent && renderedEvent.date ? renderedEvent.date : event.date;
 
   editingEventId = event.id;
@@ -50,7 +51,7 @@ async function loadEventIntoForm(eventId, renderedEvent = null) {
   document.getElementById("eventNote").value = event.note || "";
   setEventFormMode("edit");
   setEventFormStatus("Đang sửa sự kiện.");
-  openEventDialog();
+  if (shouldOpenDialog) openEventDialog();
 }
 
 async function deleteEditingEvent() {

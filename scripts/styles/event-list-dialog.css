@@ -1,7 +1,7 @@
 .event-list-dialog {
   width: min(calc(100% - 28px), 980px);
-  height: min(88vh, 820px);
-  max-height: min(88vh, 820px);
+  height: min(94vh, 900px);
+  max-height: min(94vh, 900px);
   padding: 0;
   color: #111;
   font: inherit;
@@ -28,7 +28,7 @@
   height: 100%;
   max-height: 100%;
   min-height: 0;
-  gap: 16px;
+  gap: 12px;
   padding: 0 18px 18px;
   overflow: hidden !important;
   scrollbar-width: none;
@@ -88,9 +88,9 @@
 
 .event-list-dialog .event-filter-form {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   margin: 0;
-  padding: 14px;
+  padding: 12px 14px;
   border: 1px solid #d7e0ea;
   border-radius: 8px;
   background: #fff;
@@ -105,7 +105,7 @@
 
 .event-list-dialog .event-filter-label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #33475e;
   font-size: .74rem;
   font-weight: 800;
@@ -113,10 +113,83 @@
   text-transform: uppercase;
 }
 
+.event-list-dialog .event-name-filter-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.event-list-dialog .event-name-filter-heading .event-filter-label {
+  margin: 0;
+}
+
+.event-list-dialog .event-list-add-button {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font: inherit;
+  border: 0;
+  border-radius: 5px;
+  background: var(--red-dark);
+  box-shadow: 0 2px 6px rgba(18, 52, 90, .16);
+  cursor: pointer;
+}
+
+.event-list-dialog .event-list-add-button::before,
+.event-list-dialog .event-list-add-button::after {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.event-list-dialog .event-list-add-button::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.event-list-dialog .event-list-add-button:hover,
+.event-list-dialog .event-list-add-button:focus-visible {
+  background: #1e4a78;
+  outline: none;
+}
+
+.event-list-dialog .event-filter-label.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+}
+
 .event-list-dialog .event-type-filters {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+}
+
+.event-list-dialog .event-filter-row {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr) !important;
+  gap: 10px;
+  align-items: end;
 }
 
 .event-list-dialog .event-type-filter {
@@ -152,6 +225,10 @@
   white-space: nowrap;
 }
 
+.event-list-dialog .event-type-label-short {
+  display: none !important;
+}
+
 .event-list-dialog .month-event-icon {
   flex: 0 0 auto;
 }
@@ -159,8 +236,8 @@
 .event-list-dialog .event-month-filter,
 .event-list-dialog .event-name-filter {
   width: 100%;
-  min-height: 44px;
-  padding: 9px 10px;
+  min-height: 40px;
+  padding: 8px 10px;
   color: #111;
   font: inherit;
   font-size: .95rem;
@@ -169,6 +246,37 @@
   border-radius: 5px;
   background: #fff;
   outline: none;
+}
+
+@media (min-width: 561px) {
+  .event-list-dialog .event-month-filter-group .event-filter-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+  }
+
+  .event-list-dialog .event-name-filter-group {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+  }
+
+  .event-list-dialog .event-name-filter-heading {
+    margin-bottom: 0;
+    white-space: nowrap;
+  }
+
+  .event-list-dialog .event-name-filter {
+    min-width: 0;
+  }
 }
 
 .event-list-window-list {
@@ -187,7 +295,7 @@
 .event-list-dialog .event-card,
 .event-list-dialog .empty-state {
   margin: 0;
-  padding: 14px;
+  padding: 12px 14px;
   border: 1px solid #d7e0ea;
   border-radius: 8px;
   background: #fff;
@@ -209,7 +317,7 @@
 }
 
 .event-list-dialog .event-card h2 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: #12345a;
   font-size: 1rem;
 }
@@ -221,6 +329,19 @@
   line-height: 1.45;
 }
 
+.event-list-dialog .event-card-date-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: baseline;
+}
+
+.event-list-dialog .event-card-date-line .event-countdown {
+  margin: 0;
+  color: #33475e;
+  font-weight: 800;
+}
+
 .event-list-dialog .event-card[hidden],
 .event-list-dialog .empty-state[hidden] {
   display: none;
@@ -228,7 +349,7 @@
 
 @media (max-width: 560px) {
   .event-list-dialog {
-    height: min(92vh, 820px);
+    height: min(95vh, 900px);
   }
 
   .event-list-dialog-content {
@@ -240,6 +361,42 @@
   }
 
   .event-list-dialog .event-type-filters {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .event-list-dialog .event-type-filter {
+    min-height: 38px;
+    gap: 5px;
+    padding: 7px 6px;
+    font-size: .78rem;
+  }
+
+  .event-list-dialog .event-type-label-long {
+    display: none !important;
+  }
+
+  .event-list-dialog .event-type-label-short {
+    display: inline !important;
+  }
+
+  .event-list-dialog .event-filter-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .event-list-dialog .event-month-filter-group {
+    display: grid;
+    grid-template-columns: auto 118px;
+    gap: 8px;
+    align-items: center;
+    justify-content: start;
+  }
+
+  .event-list-dialog .event-month-filter-group .event-filter-label {
+    margin: 0;
+  }
+
+  .event-list-dialog .event-month-filter-group .event-month-filter {
+    min-width: 0;
   }
 }

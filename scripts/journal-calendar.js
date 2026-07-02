@@ -63,7 +63,7 @@ function setupJournalForm() {
     validateJournalDateAvailability();
   });
   resetButton.addEventListener("click", () => resetJournalForm(getSelectedJournalCalendarDate()));
-  cancelButton.addEventListener("click", closeJournalDialog);
+  if (cancelButton) cancelButton.addEventListener("click", closeJournalDialog);
   closeButton.addEventListener("click", closeJournalDialog);
   deleteButton.addEventListener("click", deleteEditingJournal);
   dialog.addEventListener("close", () => document.body.classList.remove("event-dialog-open"));

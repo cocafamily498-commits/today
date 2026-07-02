@@ -164,10 +164,11 @@ function resetJournalForm(date = null) {
 function setJournalFormMode(mode) {
   const isEdit = mode === "edit";
   document.getElementById("journalDialogHeading").textContent = isEdit ? "Sửa nhật ký/ghi chú" : "Tạo nhật ký/ghi chú";
-  document.getElementById("journalCancelButton").hidden = false;
+  const cancelButton = document.getElementById("journalCancelButton");
+  if (cancelButton) cancelButton.hidden = true;
   document.getElementById("journalDeleteButton").hidden = !isEdit;
-  document.getElementById("journalResetButton").textContent = "Thêm mới";
-  document.querySelector("#journalForm .event-submit").textContent = isEdit ? "Lưu thay đổi" : "Lưu nhật ký";
+  document.getElementById("journalResetButton").textContent = "Mới";
+  document.querySelector("#journalForm .event-submit").textContent = "Lưu";
 }
 
 function setJournalFormStatus(message, isError = false) {

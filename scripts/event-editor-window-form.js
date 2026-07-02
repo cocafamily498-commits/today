@@ -69,10 +69,9 @@ function renderEventEditorWindowForm(state, title) {
   </div>
   <p id="eventFormStatus" class="event-form-status" aria-live="polite"></p>
   <div class="event-form-actions">
-    <button id="eventResetButton" class="event-secondary-button" type="button">Thêm mới</button>
-    <button id="eventCancelButton" class="event-secondary-button" type="button">Hủy</button>
-    <button id="eventDeleteButton" class="event-danger-button" type="button" hidden>Xóa sự kiện</button>
-    <button id="eventSubmitButton" class="event-submit" type="submit">Lưu sự kiện</button>
+    <button id="eventResetButton" class="event-secondary-button" type="button">Mới</button>
+    <button id="eventDeleteButton" class="event-danger-button" type="button" hidden>Xóa</button>
+    <button id="eventSubmitButton" class="event-submit" type="submit">Lưu</button>
   </div>
 </form>`;
 }

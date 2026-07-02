@@ -156,12 +156,18 @@ input:focus, select:focus, textarea:focus {
 }
 button {
   min-height: 44px;
-  padding: 9px 14px;
+  padding: 9px 12px;
   font: inherit;
   font-size: .84rem;
   font-weight: 800;
   border-radius: 5px;
   cursor: pointer;
+}
+.event-form-actions button {
+  width: 72px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .event-submit {
   color: #fff;

@@ -102,6 +102,33 @@
   display: none;
 }
 
+@media (min-width: 521px) {
+  #appInfoTabButton.app-tab[aria-selected="true"],
+  .app-reminder-button,
+  .app-reminder-button.is-enabled,
+  .app-reminder-button.is-warning,
+  .app-install-button {
+    color: var(--muted);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  #appInfoTabButton.app-tab[aria-selected="true"]:hover,
+  #appInfoTabButton.app-tab[aria-selected="true"]:focus-visible,
+  .app-reminder-button:hover,
+  .app-reminder-button:focus-visible,
+  .app-reminder-button.is-enabled:hover,
+  .app-reminder-button.is-enabled:focus-visible,
+  .app-reminder-button.is-warning:hover,
+  .app-reminder-button.is-warning:focus-visible,
+  .app-install-button:hover,
+  .app-install-button:focus-visible {
+    color: var(--red-dark);
+    background: #f4f6f8;
+    outline: none;
+  }
+}
+
 .app-install-dialog {
   width: min(calc(100% - 32px), 420px);
   padding: 0;

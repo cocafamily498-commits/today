@@ -51,7 +51,7 @@ function setupEventForm() {
   resetButton.addEventListener("click", () => {
     resetEventForm(getSelectedEventCalendarDate());
   });
-  cancelButton.addEventListener("click", closeEventDialog);
+  if (cancelButton) cancelButton.addEventListener("click", closeEventDialog);
   deleteButton.addEventListener("click", deleteEditingEvent);
   listWindowButton.addEventListener("click", openEventListWindow);
   closeButton.addEventListener("click", closeEventDialog);
@@ -59,6 +59,9 @@ function setupEventForm() {
   setupEventSystemReminderControls();
   dialog.addEventListener("close", () => {
     document.body.classList.remove("event-dialog-open");
+    if (typeof returnToEventListDialogIfNeeded === "function") {
+      returnToEventListDialogIfNeeded();
+    }
   });
 
   form.addEventListener("submit", async (event) => {
@@ -150,10 +153,11 @@ function setEventFormMode(mode) {
   const form = document.getElementById("eventForm");
   if (form) form.dataset.mode = isEdit ? "edit" : "create";
   document.getElementById("eventDialogHeading").textContent = isEdit ? "Sửa sự kiện" : "Tạo sự kiện";
-  document.getElementById("eventCancelButton").hidden = false;
+  const cancelButton = document.getElementById("eventCancelButton");
+  if (cancelButton) cancelButton.hidden = true;
   document.getElementById("eventDeleteButton").hidden = !isEdit;
-  document.getElementById("eventResetButton").textContent = "Thêm mới";
-  document.querySelector("#eventForm .event-submit").textContent = isEdit ? "Lưu thay đổi" : "Lưu sự kiện";
+  document.getElementById("eventResetButton").textContent = "Mới";
+  document.querySelector("#eventForm .event-submit").textContent = "Lưu";
 }
 
 function getEventFormValues() {
