@@ -1,7 +1,6 @@
 const EVENT_SYSTEM_REMINDER_CHECK_INTERVAL = 60 * 1000;
-const EVENT_SYSTEM_REMINDER_STORAGE_KEY = "lichviet.systemReminderNotifications";
 const EVENT_PUSH_REMINDER_DAYS_AHEAD = 370;
-let eventSystemReminderTimer = null;
+let eventSystemReminderListenersReady = false;
 
 function setupEventSystemReminderControls() {
   const buttons = Array.from(document.querySelectorAll(".event-system-reminder-trigger"));
@@ -17,29 +16,26 @@ function setupEventSystemReminderControls() {
     const permission = await requestEventSystemNotificationPermission();
     updateEventSystemReminderButtons(buttons);
     if (permission === "granted") {
-      await showEventSystemTestNotification();
       const synced = await syncEventWebPushReminders();
-      await showDueEventSystemNotifications();
       updateEventSystemReminderButtons(buttons, synced);
     }
   }));
 
-  if (!eventSystemReminderTimer) {
-    eventSystemReminderTimer = window.setInterval(showDueEventSystemNotifications, EVENT_SYSTEM_REMINDER_CHECK_INTERVAL);
+  if (!eventSystemReminderListenersReady) {
+    eventSystemReminderListenersReady = true;
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
         refreshEventSystemReminderControls();
-        showDueEventSystemNotifications();
+        syncEventWebPushReminders().then((synced) => refreshEventSystemReminderControls(synced));
       }
     });
     window.addEventListener("focus", () => {
       refreshEventSystemReminderControls();
-      showDueEventSystemNotifications();
+      syncEventWebPushReminders().then((synced) => refreshEventSystemReminderControls(synced));
     });
   }
 
-  showDueEventSystemNotifications();
-  syncEventWebPushReminders();
+  syncEventWebPushReminders().then((synced) => refreshEventSystemReminderControls(synced));
 }
 
 function getEventSystemReminderButtons() {
@@ -94,7 +90,9 @@ function openNotificationBlockedDialog() {
   const dialog = document.createElement("dialog");
   dialog.id = "notificationBlockedDialog";
   dialog.className = "app-install-dialog";
-  const secureText = window.isSecureContext ? "Kết nối bảo mật: đạt." : "Kết nối chưa bảo mật, trình duyệt có thể chặn thông báo.";
+  const secureText = window.isSecureContext
+    ? "Kết nối bảo mật: đạt."
+    : "Kết nối chưa bảo mật, trình duyệt có thể chặn thông báo.";
   dialog.innerHTML = `
     <div class="app-install-dialog-content">
       <h2>Thông báo đang bị chặn</h2>
@@ -115,115 +113,12 @@ function openNotificationBlockedDialog() {
   dialog.querySelector("[data-action='recheck']").addEventListener("click", async () => {
     refreshEventSystemReminderControls();
     if (Notification.permission === "granted") {
-      await showEventSystemTestNotification();
       const synced = await syncEventWebPushReminders();
       refreshEventSystemReminderControls(synced);
       dialog.close();
     }
   });
   dialog.showModal();
-}
-
-async function showDueEventSystemNotifications() {
-  if (!("Notification" in window) || Notification.permission !== "granted" || !window.LichVietData) return;
-
-  try {
-    const reminders = await getTodayEventReminderItems();
-    for (const item of reminders) {
-      const key = getEventSystemReminderKey(item);
-      if (hasEventSystemReminderNotification(key)) continue;
-      await showEventSystemNotification(item);
-      markEventSystemReminderNotification(key);
-    }
-  } catch (error) {
-    console.error("system event reminders failed", error);
-  }
-}
-
-function getEventSystemReminderKey({ event, reminder, occurrenceDate }) {
-  const reminderId = reminder && reminder.id ? reminder.id : "default";
-  return `${event.id}:${reminderId}:${occurrenceDate}`;
-}
-
-function getEventSystemReminderNotificationMap() {
-  try {
-    return JSON.parse(localStorage.getItem(EVENT_SYSTEM_REMINDER_STORAGE_KEY) || "{}") || {};
-  } catch (error) {
-    return {};
-  }
-}
-
-function hasEventSystemReminderNotification(key) {
-  return Boolean(getEventSystemReminderNotificationMap()[key]);
-}
-
-function markEventSystemReminderNotification(key) {
-  try {
-    const map = getEventSystemReminderNotificationMap();
-    map[key] = new Date().toISOString();
-    localStorage.setItem(EVENT_SYSTEM_REMINDER_STORAGE_KEY, JSON.stringify(pruneEventSystemReminderNotificationMap(map)));
-  } catch (error) {
-    // Notification delivery should not depend on localStorage availability.
-  }
-}
-
-function pruneEventSystemReminderNotificationMap(map) {
-  const entries = Object.entries(map)
-    .sort((left, right) => String(right[1]).localeCompare(String(left[1])))
-    .slice(0, 200);
-  return Object.fromEntries(entries);
-}
-
-async function showEventSystemNotification({ event, occurrenceDate }) {
-  const title = event && event.title ? `Nhắc sự kiện: ${event.title}` : "Nhắc sự kiện";
-  const body = [
-    getEventReminderLeadText(event, occurrenceDate),
-    getEventDateSummary(event, occurrenceDate)
-  ].filter(Boolean).join("\n");
-  const options = {
-    body,
-    tag: `lichviet-event-${event.id}-${occurrenceDate}`,
-    renotify: true,
-    icon: "/icons/app-icon-lichviet-calendar-192.png",
-    badge: "/icons/app-icon-lichviet-calendar-192.png",
-    data: {
-      url: `${window.location.origin}${window.location.pathname}#eventsTab`,
-      eventId: event.id,
-      occurrenceDate
-    }
-  };
-
-  const registration = await getReadyServiceWorkerRegistration();
-  if (registration && registration.showNotification) {
-    await registration.showNotification(title, options);
-    return;
-  }
-
-  new Notification(title, options);
-}
-
-async function showEventSystemTestNotification() {
-  const options = {
-    body: "Thông báo hệ thống đã bật. Các nhắc sự kiện sẽ hiện ở đây khi đến giờ.",
-    tag: "lichviet-event-reminder-test",
-    renotify: true,
-    icon: "/icons/app-icon-lichviet-calendar-192.png",
-    badge: "/icons/app-icon-lichviet-calendar-192.png",
-    data: {
-      url: `${window.location.origin}${window.location.pathname}#eventsTab`
-    }
-  };
-
-  try {
-    const registration = await getReadyServiceWorkerRegistration();
-    if (registration && registration.showNotification) {
-      await registration.showNotification("Sổ tay lịch Việt", options);
-      return;
-    }
-    new Notification("Sổ tay lịch Việt", options);
-  } catch (error) {
-    console.error("test notification failed", error);
-  }
 }
 
 async function getReadyServiceWorkerRegistration(timeoutMs = 3000) {
@@ -254,6 +149,42 @@ async function syncEventWebPushReminders() {
   } catch (error) {
     console.error("web push reminder sync failed", error);
     return false;
+  }
+}
+
+async function sendEventWebPushTestNotification() {
+  if (!("Notification" in window)) {
+    return { ok: false, error: "Notification is not supported." };
+  }
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    return { ok: false, error: "Web Push is not supported." };
+  }
+
+  const permission = await requestEventSystemNotificationPermission();
+  if (permission !== "granted") {
+    return { ok: false, error: `Notification permission is ${permission}.` };
+  }
+
+  try {
+    const publicKey = await getWebPushPublicKey();
+    if (!publicKey) return { ok: false, error: "Missing VAPID public key." };
+
+    const registration = await getReadyServiceWorkerRegistration();
+    if (!registration || !registration.pushManager) {
+      return { ok: false, error: "Service worker is not ready." };
+    }
+
+    const subscription = await getOrCreateWebPushSubscription(registration, publicKey);
+    const response = await fetch(getApiUrl("/api/send-test-push"), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ subscription })
+    });
+    const data = await response.json().catch(() => ({}));
+    return { ok: response.ok && data.ok === true, httpStatus: response.status, ...data };
+  } catch (error) {
+    console.error("test web push failed", error);
+    return { ok: false, error: error.message || "Could not send test push." };
   }
 }
 

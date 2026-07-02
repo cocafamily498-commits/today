@@ -44,3 +44,8 @@
   from = "/api/push-subscription"
   to = "/.netlify/functions/push-subscription"
   status = 200
+
+[[redirects]]
+  from = "/api/send-test-push"
+  to = "/.netlify/functions/send-test-push"
+  status = 200
