@@ -72,6 +72,17 @@ function configureWebPush() {
 }
 
 function getPushStore() {
+  const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID || "";
+  const token = process.env.NETLIFY_AUTH_TOKEN || process.env.NETLIFY_TOKEN || "";
+
+  if (siteID && token) {
+    return getStore({
+      name: PUSH_STORE_NAME,
+      siteID,
+      token
+    });
+  }
+
   return getStore(PUSH_STORE_NAME);
 }
 
