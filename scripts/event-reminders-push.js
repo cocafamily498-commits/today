@@ -9,24 +9,21 @@ async function buildEventPushReminderPayloads() {
       const eventReminders = Array.isArray(event.reminders) ? event.reminders : [];
       for (const reminder of eventReminders) {
         if (!reminder || reminder.enabled === false) continue;
+
         const reminderAt = getEventPushReminderDateTime(event, occurrenceDate, reminder);
         if (!reminderAt || reminderAt.getTime() < now - EVENT_SYSTEM_REMINDER_CHECK_INTERVAL) continue;
+
         const reminderId = reminder.id || "default";
-        const id = `${event.id}:${reminderId}:${occurrenceDate}`;
-        reminders.push({
-          id,
-          reminderAt: reminderAt.toISOString(),
-          title: event && event.title ? `Nhắc sự kiện: ${event.title}` : "Nhắc sự kiện",
-          body: [
-            getEventReminderLeadText(event, occurrenceDate),
-            getEventDateSummary(event, occurrenceDate)
-          ].filter(Boolean).join("\n"),
-          tag: `lichviet-event-${event.id}-${occurrenceDate}`,
-          url: `${window.location.origin}${window.location.pathname}#eventsTab`,
-          icon: "/icons/app-icon-lichviet-calendar-192.png",
-          badge: "/icons/app-icon-lichviet-calendar-192.png",
-          eventId: event.id,
-          occurrenceDate
+        const dismissed = await window.LichVietData.isReminderOccurrenceDismissed(event.id, reminderId, occurrenceDate);
+        if (dismissed) continue;
+
+        const occurrenceAt = getEventOccurrenceDateTimeInVietnamTimeZone(event, occurrenceDate);
+        const baseId = `${event.id}:${reminderId}:${occurrenceDate}`;
+        const reminderTimes = getEventPushReminderTimes(reminderAt, occurrenceAt);
+
+        reminderTimes.forEach((time, index) => {
+          const id = index === 0 ? baseId : `${baseId}:auto:${time.getTime()}`;
+          reminders.push(buildEventPushReminderPayload(event, occurrenceDate, time, id));
         });
       }
     }
@@ -35,6 +32,65 @@ async function buildEventPushReminderPayloads() {
   return reminders
     .sort((left, right) => Date.parse(left.reminderAt) - Date.parse(right.reminderAt))
     .slice(0, 200);
+}
+
+function buildEventPushReminderPayload(event, occurrenceDate, reminderAt, id) {
+  const occurrenceAt = getEventOccurrenceDateTimeInVietnamTimeZone(event, occurrenceDate);
+  return {
+    id,
+    reminderAt: reminderAt.toISOString(),
+    title: event && event.title ? `Sắp đến: ${event.title}` : "Sắp đến sự kiện",
+    body: getEventPushReminderBody(occurrenceAt, reminderAt),
+    tag: `lichviet-event-${event.id}-${occurrenceDate}`,
+    url: `${window.location.origin}${window.location.pathname}#eventsTab`,
+    icon: "/icons/app-icon-lichviet-calendar-192.png",
+    badge: "/icons/app-icon-lichviet-calendar-192.png",
+    eventId: event.id,
+    occurrenceDate
+  };
+}
+
+function getEventPushReminderBody(occurrenceAt, reminderAt) {
+  const timeText = formatEventReminderTimeText(occurrenceAt);
+  const dateText = toDateInputValue(reminderAt) === toDateInputValue(occurrenceAt)
+    ? "hôm nay"
+    : `ngày ${formatEventDate(toDateInputValue(occurrenceAt))}`;
+  const remainingMs = occurrenceAt.getTime() - reminderAt.getTime();
+  const oneHour = 60 * 60 * 1000;
+  const actionText = remainingMs > oneHour
+    ? "Chạm để xử lý nhắc lại."
+    : "Chạm để mở nhắc sự kiện.";
+  return `Diễn ra lúc ${timeText} ${dateText}. ${actionText}`;
+}
+
+function getEventPushReminderTimes(firstReminderAt, occurrenceAt) {
+  const times = [firstReminderAt];
+  if (!firstReminderAt || !occurrenceAt) return times;
+
+  let next = getNextEventAutoReminderTime(firstReminderAt, occurrenceAt);
+  while (next) {
+    if (times.some((time) => time.getTime() === next.getTime())) break;
+    times.push(next);
+    next = getNextEventAutoReminderTime(next, occurrenceAt);
+  }
+
+  return times;
+}
+
+function getNextEventAutoReminderTime(now, occurrenceAt) {
+  const remainingMs = occurrenceAt.getTime() - now.getTime();
+  const oneHour = 60 * 60 * 1000;
+  const twoHours = 2 * oneHour;
+  const oneDay = 24 * oneHour;
+  const twoDays = 2 * oneDay;
+
+  if (remainingMs <= oneHour) return null;
+  if (remainingMs <= twoHours) return new Date(occurrenceAt.getTime() - oneHour);
+  if (remainingMs <= oneDay) {
+    return new Date(Math.min(now.getTime() + twoHours, occurrenceAt.getTime() - oneHour));
+  }
+  if (remainingMs <= twoDays) return new Date(occurrenceAt.getTime() - oneDay);
+  return new Date(now.getTime() + oneDay);
 }
 
 function getUpcomingEventOccurrenceDates(event, daysAhead) {
@@ -80,16 +136,30 @@ function isEventOccurrenceOnDate(event, dateValue) {
 }
 
 function getEventPushReminderDateTime(event, occurrenceDate, reminder) {
-  const [hour, minute] = getEventTimeParts(event && event.time);
-  const occurrence = getDateTimeInVietnamTimeZone(occurrenceDate, hour, minute);
+  const occurrence = getEventOccurrenceDateTimeInVietnamTimeZone(event, occurrenceDate);
   if (!occurrence) return null;
   occurrence.setDate(occurrence.getDate() - (Number(reminder.beforeDays) || 0));
   occurrence.setHours(occurrence.getHours() - (Number(reminder.beforeHours) || 0));
   return occurrence;
 }
 
+function getEventOccurrenceDateTimeInVietnamTimeZone(event, occurrenceDate) {
+  const [hour, minute] = getPushEventTimeParts(event && event.time);
+  return getDateTimeInVietnamTimeZone(occurrenceDate, hour, minute);
+}
+
 function getDateTimeInVietnamTimeZone(dateValue, hour, minute) {
   const date = parseDateValue(dateValue);
   if (!date) return null;
   return new Date(Date.UTC(date.year, date.month - 1, date.day, hour - TIME_ZONE, minute, 0, 0));
+}
+
+function getPushEventTimeParts(timeValue) {
+  const match = /^(\d{2}):(\d{2})$/.exec(timeValue || "");
+  if (!match) return [0, 0];
+  return [Number(match[1]), Number(match[2])];
+}
+
+function formatEventReminderTimeText(date) {
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }

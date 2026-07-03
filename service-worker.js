@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v47";
+const CACHE_NAME = "homnay-pwa-v49";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -84,8 +84,12 @@ const APP_SHELL = [
   "/scripts/event-list-dialog-render.js?v=13",
   "/scripts/event-reminders-system.js?v=3",
   "/scripts/event-reminders-push.js",
+  "/scripts/event-reminders-push.js?v=2",
+  "/scripts/event-reminders-push.js?v=3",
   "/scripts/event-backup.js",
   "/scripts/event-today-reminders.js?v=2",
+  "/scripts/event-today-reminders.js?v=3",
+  "/scripts/event-today-reminders.js?v=4",
   "/scripts/event-list-window-dialog.js",
   "/scripts/event-list-window-dialog.js?v=3",
   "/scripts/event-list-window-dialog.js?v=4",
@@ -198,11 +202,31 @@ self.addEventListener("notificationclick", (event) => {
       for (const client of clientList) {
         const clientUrl = new URL(client.url);
         if (clientUrl.origin === target.origin && clientUrl.pathname === target.pathname) {
-          return client.focus().then(() => client.navigate(target.href));
+          return client.navigate(target.href)
+            .then((navigatedClient) => (navigatedClient || client).focus())
+            .then((focusedClient) => {
+              focusedClient.postMessage({
+                type: "lichviet-event-reminder-open",
+                eventId: event.notification.data && event.notification.data.eventId || "",
+                occurrenceDate: event.notification.data && event.notification.data.occurrenceDate || ""
+              });
+              return focusedClient;
+            });
         }
       }
 
-      if (clients.openWindow) return clients.openWindow(target.href);
+      if (clients.openWindow) {
+        return clients.openWindow(target.href).then((openedClient) => {
+          if (openedClient) {
+            openedClient.postMessage({
+              type: "lichviet-event-reminder-open",
+              eventId: event.notification.data && event.notification.data.eventId || "",
+              occurrenceDate: event.notification.data && event.notification.data.occurrenceDate || ""
+            });
+          }
+          return openedClient;
+        });
+      }
       return null;
     })
   );
