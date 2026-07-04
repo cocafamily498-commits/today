@@ -130,8 +130,49 @@ async function getReadyServiceWorkerRegistration(timeoutMs = 3000) {
 }
 
 async function syncEventWebPushReminders() {
-  if (!("Notification" in window) || Notification.permission !== "granted" || !window.LichVietData) return false;
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
+  return syncEventWebPushReminderPayloads();
+}
+
+async function syncEventWebPushRemindersForEvent(event) {
+  if (!event || !event.id) return false;
+  if (!canUseEventWebPushReminderSync()) return false;
+  const reminders = await buildEventPushReminderPayloadsForEvents([event]);
+  return syncEventWebPushReminderPayloads({
+    reminders,
+    replaceEventIds: [event.id]
+  });
+}
+
+async function removeEventWebPushReminders(eventId) {
+  if (!eventId) return false;
+  if (!canUseEventWebPushReminderSync()) return false;
+  return syncEventWebPushReminderPayloads({
+    reminders: [],
+    replaceEventIds: [eventId]
+  });
+}
+
+function queueEventWebPushReminderSync(promiseFactory) {
+  window.setTimeout(() => {
+    promiseFactory()
+      .then((synced) => refreshEventSystemReminderControls(synced))
+      .catch((error) => {
+        console.error("queued web push reminder sync failed", error);
+        refreshEventSystemReminderControls(false);
+      });
+  }, 0);
+}
+
+function queueEventWebPushReminderSyncForEvent(event) {
+  queueEventWebPushReminderSync(() => syncEventWebPushRemindersForEvent(event));
+}
+
+function queueRemoveEventWebPushReminders(eventId) {
+  queueEventWebPushReminderSync(() => removeEventWebPushReminders(eventId));
+}
+
+async function syncEventWebPushReminderPayloads(options = {}) {
+  if (!canUseEventWebPushReminderSync()) return false;
 
   try {
     const publicKey = await getWebPushPublicKey();
@@ -139,17 +180,31 @@ async function syncEventWebPushReminders() {
     const registration = await getReadyServiceWorkerRegistration();
     if (!registration || !registration.pushManager) return false;
     const subscription = await getOrCreateWebPushSubscription(registration, publicKey);
-    const reminders = await buildEventPushReminderPayloads();
+    const reminders = Array.isArray(options.reminders)
+      ? options.reminders
+      : await buildEventPushReminderPayloads();
+    const payload = { subscription, reminders };
+    if (Array.isArray(options.replaceEventIds)) {
+      payload.replaceEventIds = options.replaceEventIds;
+    }
     const response = await fetch(getApiUrl("/api/push-subscription"), {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ subscription, reminders })
+      body: JSON.stringify(payload)
     });
     return response.ok;
   } catch (error) {
     console.error("web push reminder sync failed", error);
     return false;
   }
+}
+
+function canUseEventWebPushReminderSync() {
+  return ("Notification" in window)
+    && Notification.permission === "granted"
+    && Boolean(window.LichVietData)
+    && ("serviceWorker" in navigator)
+    && ("PushManager" in window);
 }
 
 async function sendEventWebPushTestNotification() {

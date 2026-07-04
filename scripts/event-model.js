@@ -7,19 +7,21 @@ async function saveEventEditorValues(values, mode = null) {
   editingEventId = null;
   clearEventChoiceList();
   resetEventForm(savedEvent.date);
-  await loadEventCalendarOccurrences();
-  await syncEventWebPushReminders();
+  updateEventCalendarOccurrence(savedEvent);
+  queueEventWebPushReminderSyncForEvent(savedEvent);
   setEventFormStatus("");
   return savedEvent;
 }
 
 async function deleteCurrentEditingEvent() {
   if (!editingEventId) return;
+  const deletedEventId = editingEventId;
   await window.LichVietData.deleteEvent(editingEventId);
   resetEventForm(getSelectedEventCalendarDate());
   clearEventChoiceList();
-  await loadEventCalendarOccurrences();
-  await syncEventWebPushReminders();
+  removeEventCalendarOccurrence(deletedEventId);
+  renderEventCalendar();
+  queueRemoveEventWebPushReminders(deletedEventId);
   setEventFormStatus("");
 }
 
@@ -58,11 +60,13 @@ async function deleteEditingEvent() {
   if (!editingEventId) return;
   if (!await confirmEventDelete()) return;
 
+  const deletedEventId = editingEventId;
   await window.LichVietData.deleteEvent(editingEventId);
   resetEventForm(`${eventCalendarYear}-${String(eventCalendarMonth).padStart(2, "0")}-${String(eventCalendarSelectedDay).padStart(2, "0")}`);
   clearEventChoiceList();
-  await loadEventCalendarOccurrences();
-  await syncEventWebPushReminders();
+  removeEventCalendarOccurrence(deletedEventId);
+  renderEventCalendar();
+  queueRemoveEventWebPushReminders(deletedEventId);
   setEventFormStatus("Đã xóa sự kiện.");
   closeEventDialog();
 }

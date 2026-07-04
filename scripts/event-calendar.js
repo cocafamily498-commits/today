@@ -42,6 +42,32 @@ async function loadEventCalendarOccurrences() {
   }
 }
 
+function updateEventCalendarOccurrence(event) {
+  if (!event || !event.id) return;
+  removeEventCalendarOccurrence(event.id);
+
+  const occurrenceDate = getEventOccurrenceDateForMonth(event, eventCalendarYear, eventCalendarMonth);
+  if (!occurrenceDate) {
+    renderEventCalendar();
+    return;
+  }
+
+  const day = Number(occurrenceDate.slice(8, 10));
+  if (!eventCalendarOccurrences[day]) eventCalendarOccurrences[day] = [];
+  eventCalendarOccurrences[day].push({ ...event, occurrenceDate });
+  eventCalendarOccurrences[day].sort(compareEventsByNextOccurrence);
+  renderEventCalendar();
+}
+
+function removeEventCalendarOccurrence(eventId) {
+  if (!eventId) return;
+  Object.keys(eventCalendarOccurrences).forEach((day) => {
+    eventCalendarOccurrences[day] = (eventCalendarOccurrences[day] || [])
+      .filter((event) => event.id !== eventId);
+    if (eventCalendarOccurrences[day].length === 0) delete eventCalendarOccurrences[day];
+  });
+}
+
 function buildEventCalendarOccurrences(events, year, month) {
   const occurrences = {};
   events.forEach((event) => {

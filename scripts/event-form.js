@@ -82,8 +82,8 @@ function setupEventForm() {
       applyTypeDefaults();
       setEventFormMode("create");
       clearEventChoiceList();
-      await loadEventCalendarOccurrences();
-      await syncEventWebPushReminders();
+      updateEventCalendarOccurrence(savedEvent);
+      queueEventWebPushReminderSyncForEvent(savedEvent);
       closeEventDialog();
     } catch (error) {
       setEventFormStatus("Chưa lưu được sự kiện. Vui lòng kiểm tra lại thông tin.", true);

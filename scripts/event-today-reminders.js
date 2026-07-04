@@ -192,21 +192,23 @@ function openTodayEventReminderDialog(items, hasMoreReminders = false) {
 
   dialog.querySelector("#eventReminderLaterButton")?.addEventListener("click", async () => {
     items.forEach((item) => setEventReminderSnoozedUntil(item, item.nextReminderAt));
-    await syncEventWebPushReminders();
     reminderActionHandled = true;
     dialog.close();
+    queueEventReminderItemsWebPushSync(items);
   });
 
   dialog.querySelector("#eventReminderDismissButton")?.addEventListener("click", async () => {
     await dismissEventReminderItems(items);
     reminderActionHandled = true;
     dialog.close();
+    queueEventReminderItemsWebPushSync(items);
   });
 
   dialog.querySelector("#eventReminderSeenButton")?.addEventListener("click", async () => {
     await dismissEventReminderItems(items);
     reminderActionHandled = true;
     dialog.close();
+    queueEventReminderItemsWebPushSync(items);
   });
 
   dialog.showModal();
@@ -262,7 +264,14 @@ async function dismissEventReminderItems(items) {
     reminderId: reminder.id || "default",
     occurrenceDate
   })));
-  await syncEventWebPushReminders();
+}
+
+function queueEventReminderItemsWebPushSync(items) {
+  const eventsById = new Map();
+  items.forEach((item) => {
+    if (item && item.event && item.event.id) eventsById.set(item.event.id, item.event);
+  });
+  eventsById.forEach((event) => queueEventWebPushReminderSyncForEvent(event));
 }
 
 function getEventReminderSnoozeKey(eventId, reminderId, occurrenceDate) {

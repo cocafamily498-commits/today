@@ -1,5 +1,9 @@
 async function buildEventPushReminderPayloads() {
   const events = await window.LichVietData.getAllEvents();
+  return buildEventPushReminderPayloadsForEvents(events);
+}
+
+async function buildEventPushReminderPayloadsForEvents(events) {
   const now = Date.now();
   const reminders = [];
 
