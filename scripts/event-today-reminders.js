@@ -17,7 +17,8 @@ async function showTodayEventRemindersIfNeeded() {
   try {
     const reminders = await getTodayEventReminderItems();
     if (reminders.length === 0) return;
-    openTodayEventReminderDialog(reminders);
+    const dialogItems = getEventReminderDialogItems(reminders);
+    openTodayEventReminderDialog(dialogItems, reminders.length > dialogItems.length);
   } catch (error) {
     console.error("today event reminders failed", error);
   }
@@ -142,7 +143,17 @@ function formatOriginalLunarEventDate(dateValue) {
   return `${lunar.day}/${lunarMonth}/${lunar.year}`;
 }
 
-function openTodayEventReminderDialog(items) {
+function getEventReminderDialogItems(items) {
+  if (items.length <= 1) return items;
+  const firstKey = getEventReminderDialogGroupKey(items[0]);
+  return items.filter((item) => getEventReminderDialogGroupKey(item) === firstKey);
+}
+
+function getEventReminderDialogGroupKey(item) {
+  return item.nextReminderAt ? `snooze:${item.nextReminderAt.getTime()}` : "final";
+}
+
+function openTodayEventReminderDialog(items, hasMoreReminders = false) {
   const existingDialog = document.getElementById("todayEventReminderDialog");
   if (existingDialog) existingDialog.remove();
 
@@ -169,23 +180,32 @@ function openTodayEventReminderDialog(items) {
 
   document.body.append(dialog);
   document.body.classList.add("event-dialog-open");
+  let reminderActionHandled = false;
   dialog.addEventListener("close", () => {
     document.body.classList.remove("event-dialog-open");
     dialog.remove();
+    if (reminderActionHandled && hasMoreReminders) {
+      eventReminderDialogShownThisSession = false;
+      requestAnimationFrame(() => showTodayEventRemindersIfNeeded());
+    }
   });
 
-  dialog.querySelector("#eventReminderLaterButton")?.addEventListener("click", () => {
+  dialog.querySelector("#eventReminderLaterButton")?.addEventListener("click", async () => {
     items.forEach((item) => setEventReminderSnoozedUntil(item, item.nextReminderAt));
+    await syncEventWebPushReminders();
+    reminderActionHandled = true;
     dialog.close();
   });
 
   dialog.querySelector("#eventReminderDismissButton")?.addEventListener("click", async () => {
     await dismissEventReminderItems(items);
+    reminderActionHandled = true;
     dialog.close();
   });
 
   dialog.querySelector("#eventReminderSeenButton")?.addEventListener("click", async () => {
     await dismissEventReminderItems(items);
+    reminderActionHandled = true;
     dialog.close();
   });
 

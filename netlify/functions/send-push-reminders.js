@@ -7,7 +7,6 @@ const {
 } = require("./push-shared");
 
 const MAX_SENDS_PER_RUN = 100;
-const SENT_RETENTION_MS = 45 * 24 * 60 * 60 * 1000;
 
 async function sendPushReminders() {
   try {
@@ -28,13 +27,18 @@ async function sendPushReminders() {
     const record = await store.get(item.key, { type: "json" }).catch(() => null);
     if (!record || !record.subscription) continue;
 
-    record.sent = pruneSentMap(record.sent || {}, now);
     let changed = false;
+    const activeReminders = [];
 
     for (const reminder of record.reminders || []) {
-      if (sentCount >= MAX_SENDS_PER_RUN) break;
-      if (record.sent[reminder.id]) continue;
-      if (Date.parse(reminder.reminderAt) > now) continue;
+      if (sentCount >= MAX_SENDS_PER_RUN) {
+        activeReminders.push(reminder);
+        continue;
+      }
+      if (Date.parse(reminder.reminderAt) > now) {
+        activeReminders.push(reminder);
+        continue;
+      }
 
       try {
         await webPush.sendNotification(record.subscription, JSON.stringify({
@@ -47,9 +51,17 @@ async function sendPushReminders() {
           eventId: reminder.eventId,
           occurrenceDate: reminder.occurrenceDate
         }));
-        record.sent[reminder.id] = new Date(now).toISOString();
         sentCount += 1;
         changed = true;
+
+        const nextReminderAt = getNextEventReminderTime(new Date(now), reminder.occurrenceAt);
+        if (nextReminderAt) {
+          activeReminders.push({
+            ...reminder,
+            reminderAt: nextReminderAt.toISOString(),
+            lastSentAt: new Date(now).toISOString()
+          });
+        }
       } catch (error) {
         failedCount += 1;
         if (error.statusCode === 404 || error.statusCode === 410) {
@@ -57,10 +69,14 @@ async function sendPushReminders() {
           changed = false;
           break;
         }
+        activeReminders.push(reminder);
       }
     }
 
     if (changed) {
+      record.reminders = activeReminders
+        .filter((reminder) => Date.parse(reminder.reminderAt) > now)
+        .sort((left, right) => Date.parse(left.reminderAt) - Date.parse(right.reminderAt));
       record.updatedAt = new Date(now).toISOString();
       await store.setJSON(item.key, record);
     }
@@ -71,9 +87,22 @@ async function sendPushReminders() {
 
 exports.handler = schedule("* * * * *", sendPushReminders);
 
-function pruneSentMap(sent, now) {
-  return Object.fromEntries(Object.entries(sent).filter((entry) => {
-    const sentAt = Date.parse(entry[1]);
-    return Number.isFinite(sentAt) && now - sentAt < SENT_RETENTION_MS;
-  }));
+function getNextEventReminderTime(now, occurrenceAtValue) {
+  const occurrenceMs = Date.parse(occurrenceAtValue || "");
+  if (!Number.isFinite(occurrenceMs)) return null;
+
+  const occurrenceAt = new Date(occurrenceMs);
+  const remainingMs = occurrenceAt.getTime() - now.getTime();
+  const oneHour = 60 * 60 * 1000;
+  const twoHours = 2 * oneHour;
+  const oneDay = 24 * oneHour;
+  const twoDays = 2 * oneDay;
+
+  if (remainingMs <= oneHour) return null;
+  if (remainingMs <= twoHours) return new Date(occurrenceAt.getTime() - oneHour);
+  if (remainingMs <= oneDay) {
+    return new Date(Math.min(now.getTime() + twoHours, occurrenceAt.getTime() - oneHour));
+  }
+  if (remainingMs <= twoDays) return new Date(occurrenceAt.getTime() - oneDay);
+  return new Date(now.getTime() + oneDay);
 }

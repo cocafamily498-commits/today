@@ -11,20 +11,18 @@ async function buildEventPushReminderPayloads() {
         if (!reminder || reminder.enabled === false) continue;
 
         const reminderAt = getEventPushReminderDateTime(event, occurrenceDate, reminder);
-        if (!reminderAt || reminderAt.getTime() < now - EVENT_SYSTEM_REMINDER_CHECK_INTERVAL) continue;
+        if (!reminderAt) continue;
 
         const reminderId = reminder.id || "default";
         const dismissed = await window.LichVietData.isReminderOccurrenceDismissed(event.id, reminderId, occurrenceDate);
         if (dismissed) continue;
 
         const occurrenceAt = getEventOccurrenceDateTimeInVietnamTimeZone(event, occurrenceDate);
-        const baseId = `${event.id}:${reminderId}:${occurrenceDate}`;
-        const reminderTimes = getEventPushReminderTimes(reminderAt, occurrenceAt);
+        const activeReminderAt = getActiveEventPushReminderTime(event.id, reminderId, occurrenceDate, reminderAt, occurrenceAt, now);
+        if (!activeReminderAt || activeReminderAt.getTime() < now - EVENT_SYSTEM_REMINDER_CHECK_INTERVAL) continue;
 
-        reminderTimes.forEach((time, index) => {
-          const id = index === 0 ? baseId : `${baseId}:auto:${time.getTime()}`;
-          reminders.push(buildEventPushReminderPayload(event, occurrenceDate, time, id));
-        });
+        const id = `${event.id}:${reminderId}:${occurrenceDate}`;
+        reminders.push(buildEventPushReminderPayload(event, occurrenceDate, activeReminderAt, id));
       }
     }
   }
@@ -46,7 +44,8 @@ function buildEventPushReminderPayload(event, occurrenceDate, reminderAt, id) {
     icon: "/icons/app-icon-lichviet-calendar-192.png",
     badge: "/icons/app-icon-lichviet-calendar-192.png",
     eventId: event.id,
-    occurrenceDate
+    occurrenceDate,
+    occurrenceAt: occurrenceAt.toISOString()
   };
 }
 
@@ -63,18 +62,13 @@ function getEventPushReminderBody(occurrenceAt, reminderAt) {
   return `Diễn ra lúc ${timeText} ${dateText}. ${actionText}`;
 }
 
-function getEventPushReminderTimes(firstReminderAt, occurrenceAt) {
-  const times = [firstReminderAt];
-  if (!firstReminderAt || !occurrenceAt) return times;
-
-  let next = getNextEventAutoReminderTime(firstReminderAt, occurrenceAt);
-  while (next) {
-    if (times.some((time) => time.getTime() === next.getTime())) break;
-    times.push(next);
-    next = getNextEventAutoReminderTime(next, occurrenceAt);
-  }
-
-  return times;
+function getActiveEventPushReminderTime(eventId, reminderId, occurrenceDate, configuredReminderAt, occurrenceAt, nowMs = Date.now()) {
+  const snoozedUntil = typeof getEventReminderSnoozedUntil === "function"
+    ? getEventReminderSnoozedUntil(eventId, reminderId, occurrenceDate)
+    : null;
+  if (snoozedUntil && snoozedUntil.getTime() > nowMs) return snoozedUntil;
+  if (configuredReminderAt.getTime() >= nowMs - EVENT_SYSTEM_REMINDER_CHECK_INTERVAL) return configuredReminderAt;
+  return getNextEventAutoReminderTime(new Date(nowMs), occurrenceAt);
 }
 
 function getNextEventAutoReminderTime(now, occurrenceAt) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v49";
+const CACHE_NAME = "homnay-pwa-v52";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -8,6 +8,7 @@ const APP_SHELL = [
   "/styles.css?v=17",
   "/styles.css?v=18",
   "/styles.css?v=19",
+  "/styles.css?v=20",
   "/scripts/styles/part-01.css",
   "/scripts/styles/part-02.css",
   "/scripts/styles/part-02.css?v=2",
@@ -19,6 +20,7 @@ const APP_SHELL = [
   "/scripts/styles/part-08.css",
   "/scripts/styles/part-08.css?v=2",
   "/scripts/styles/part-09.css",
+  "/scripts/styles/part-09.css?v=2",
   "/scripts/styles/part-10.css",
   "/scripts/styles/part-11.css",
   "/scripts/styles/part-12.css",
@@ -86,10 +88,13 @@ const APP_SHELL = [
   "/scripts/event-reminders-push.js",
   "/scripts/event-reminders-push.js?v=2",
   "/scripts/event-reminders-push.js?v=3",
+  "/scripts/event-reminders-push.js?v=4",
   "/scripts/event-backup.js",
   "/scripts/event-today-reminders.js?v=2",
   "/scripts/event-today-reminders.js?v=3",
   "/scripts/event-today-reminders.js?v=4",
+  "/scripts/event-today-reminders.js?v=5",
+  "/scripts/event-today-reminders.js?v=6",
   "/scripts/event-list-window-dialog.js",
   "/scripts/event-list-window-dialog.js?v=3",
   "/scripts/event-list-window-dialog.js?v=4",

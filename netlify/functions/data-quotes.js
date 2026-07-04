@@ -1,4 +1,4 @@
-const { getJson, getText } = require("./data-http");
+const { postJson, getJson, getText } = require("./data-http");
 
 const VCB_EXCHANGE_URL = "https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx?b=68";
 const GOLD_PRICE_URL = "https://giavang.org/";
@@ -133,21 +133,29 @@ async function getEurQuote() {
 
 async function getQuotes() {
   const [gold, silver, usd, eur, worldGoldSpot, worldSilverSpot] = await Promise.all([
-    getGoldQuote(),
-    getSilverQuote().catch(() => null),
-    getUsdQuote(),
-    getEurQuote(),
-    getWorldGoldSpot(),
-    getWorldSilverSpot().catch(() => null)
+    getOptionalQuote(getGoldQuote),
+    getOptionalQuote(getSilverQuote),
+    getOptionalQuote(getUsdQuote),
+    getOptionalQuote(getEurQuote),
+    getOptionalQuote(getWorldGoldSpot),
+    getOptionalQuote(getWorldSilverSpot)
   ]);
   return {
     gold,
     silver,
     usd,
     eur,
-    worldGold: buildWorldGoldQuote(worldGoldSpot, usd),
-    worldSilver: worldSilverSpot ? buildWorldGoldQuote(worldSilverSpot, usd) : null
+    worldGold: worldGoldSpot && usd ? buildWorldGoldQuote(worldGoldSpot, usd) : null,
+    worldSilver: worldSilverSpot && usd ? buildWorldGoldQuote(worldSilverSpot, usd) : null
   };
+}
+
+async function getOptionalQuote(loader) {
+  try {
+    return await loader();
+  } catch (error) {
+    return null;
+  }
 }
 
 function buildWorldGoldQuote(spot, usd) {

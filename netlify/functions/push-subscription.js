@@ -17,12 +17,10 @@ exports.handler = async (event) => {
     const reminders = sanitizeReminders(input.reminders);
     const key = getSubscriptionKey(subscription);
     const store = getPushStore();
-    const existing = await store.get(key, { type: "json" }).catch(() => null);
     const record = {
       key,
       subscription,
       reminders,
-      sent: existing && existing.sent ? existing.sent : {},
       updatedAt: new Date().toISOString(),
       userAgent: event.headers["user-agent"] || ""
     };

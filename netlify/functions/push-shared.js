@@ -97,6 +97,7 @@ function sanitizeReminder(reminder) {
   if (!source.id || !source.reminderAt || !source.title) return null;
   const reminderAtMs = Date.parse(source.reminderAt);
   if (!Number.isFinite(reminderAtMs)) return null;
+  const occurrenceAtMs = Date.parse(source.occurrenceAt || "");
 
   return {
     id: String(source.id).slice(0, 240),
@@ -108,7 +109,8 @@ function sanitizeReminder(reminder) {
     icon: String(source.icon || "/icons/app-icon-lichviet-calendar-192.png").slice(0, 200),
     badge: String(source.badge || "/icons/app-icon-lichviet-calendar-192.png").slice(0, 200),
     eventId: source.eventId ? String(source.eventId).slice(0, 120) : "",
-    occurrenceDate: source.occurrenceDate ? String(source.occurrenceDate).slice(0, 20) : ""
+    occurrenceDate: source.occurrenceDate ? String(source.occurrenceDate).slice(0, 20) : "",
+    occurrenceAt: Number.isFinite(occurrenceAtMs) ? new Date(occurrenceAtMs).toISOString() : ""
   };
 }
 

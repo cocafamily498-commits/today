@@ -177,6 +177,23 @@
   margin-top: 16px;
 }
 
+.event-reminder-actions .event-submit,
+.event-reminder-actions .event-secondary-button {
+  display: inline-flex;
+  width: 260px;
+  min-height: 58px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .event-reminder-actions .event-submit,
+  .event-reminder-actions .event-secondary-button {
+    width: 100%;
+  }
+}
+
 .event-form-status {
   min-height: 20px;
   margin: 0;
