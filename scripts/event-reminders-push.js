@@ -119,6 +119,9 @@ function isEventOccurrenceOnDate(event, dateValue) {
   if (repeat.frequency === "daily") return getDaysFromDateValue(base, dateValue) % interval === 0;
   if (repeat.frequency === "weekly") return getDaysFromDateValue(base, dateValue) % (7 * interval) === 0;
   if (repeat.frequency === "monthly") {
+    if (repeat.calendar === "lunar") {
+      return getEventOccurrenceDatesForMonth(event, target.year, target.month).includes(dateValue);
+    }
     const months = (target.year - base.year) * 12 + target.month - base.month;
     return months >= 0 && months % interval === 0 && target.day === Math.min(base.day, getDaysInMonth(target.year, target.month));
   }

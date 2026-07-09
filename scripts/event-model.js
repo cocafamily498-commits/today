@@ -5,9 +5,9 @@ async function saveEventEditorValues(values, mode = null) {
     ? await window.LichVietData.updateEvent(editingEventId, eventData)
     : await window.LichVietData.createEvent(eventData);
   editingEventId = null;
-  clearEventChoiceList();
   resetEventForm(savedEvent.date);
   updateEventCalendarOccurrence(savedEvent);
+  refreshEventChoiceListForSelectedDay();
   queueEventWebPushReminderSyncForEvent(savedEvent);
   setEventFormStatus("");
   return savedEvent;

@@ -46,16 +46,18 @@ function updateEventCalendarOccurrence(event) {
   if (!event || !event.id) return;
   removeEventCalendarOccurrence(event.id);
 
-  const occurrenceDate = getEventOccurrenceDateForMonth(event, eventCalendarYear, eventCalendarMonth);
-  if (!occurrenceDate) {
+  const occurrenceDates = getEventOccurrenceDatesForMonth(event, eventCalendarYear, eventCalendarMonth);
+  if (occurrenceDates.length === 0) {
     renderEventCalendar();
     return;
   }
 
-  const day = Number(occurrenceDate.slice(8, 10));
-  if (!eventCalendarOccurrences[day]) eventCalendarOccurrences[day] = [];
-  eventCalendarOccurrences[day].push({ ...event, occurrenceDate });
-  eventCalendarOccurrences[day].sort(compareEventsByNextOccurrence);
+  occurrenceDates.forEach((occurrenceDate) => {
+    const day = Number(occurrenceDate.slice(8, 10));
+    if (!eventCalendarOccurrences[day]) eventCalendarOccurrences[day] = [];
+    eventCalendarOccurrences[day].push({ ...event, occurrenceDate });
+    eventCalendarOccurrences[day].sort(compareCalendarDayEvents);
+  });
   renderEventCalendar();
 }
 
@@ -71,32 +73,142 @@ function removeEventCalendarOccurrence(eventId) {
 function buildEventCalendarOccurrences(events, year, month) {
   const occurrences = {};
   events.forEach((event) => {
-    const occurrenceDate = getEventOccurrenceDateForMonth(event, year, month);
-    if (!occurrenceDate) return;
-    const day = Number(occurrenceDate.slice(8, 10));
-    if (!occurrences[day]) occurrences[day] = [];
-    occurrences[day].push({ ...event, occurrenceDate });
+    getEventOccurrenceDatesForMonth(event, year, month).forEach((occurrenceDate) => {
+      const day = Number(occurrenceDate.slice(8, 10));
+      if (!occurrences[day]) occurrences[day] = [];
+      occurrences[day].push({ ...event, occurrenceDate });
+    });
+  });
+  Object.keys(occurrences).forEach((day) => {
+    occurrences[day].sort(compareCalendarDayEvents);
   });
   return occurrences;
 }
 
+function compareCalendarDayEvents(left, right) {
+  const timeCompare = getSortableEventStartTime(left).localeCompare(getSortableEventStartTime(right));
+  if (timeCompare !== 0) return timeCompare;
+
+  const createdCompare = String(left && left.createdAt || "").localeCompare(String(right && right.createdAt || ""));
+  if (createdCompare !== 0) return createdCompare;
+
+  const titleCompare = String(left && left.title || "").localeCompare(String(right && right.title || ""), "vi");
+  if (titleCompare !== 0) return titleCompare;
+
+  return String(left && left.id || "").localeCompare(String(right && right.id || ""));
+}
+
+function getSortableEventStartTime(event) {
+  const time = event && /^\d{2}:\d{2}$/.test(event.time || "") ? event.time : "";
+  return time || "99:99";
+}
+
+function getEventOccurrenceDatesForMonth(event, year, month) {
+  const base = parseDateValue(event && event.date);
+  if (!base) return [];
+
+  const repeat = event.repeat || { frequency: "none", calendar: event.calendarLabel || "solar", interval: 1 };
+  const interval = Math.max(1, Number.parseInt(repeat.interval, 10) || 1);
+  const daysInMonth = getDaysInMonth(year, month);
+
+  if (repeat.frequency === "none") {
+    return base.year === year && base.month === month ? [event.date] : [];
+  }
+
+  if (repeat.frequency === "daily") {
+    return getDailyEventOccurrenceDatesForMonth(base, year, month, daysInMonth, interval);
+  }
+
+  if (repeat.frequency === "weekly") {
+    return getWeeklyEventOccurrenceDatesForMonth(base, year, month, daysInMonth, interval);
+  }
+
+  if (repeat.frequency === "monthly" && repeat.calendar === "lunar") {
+    return getMonthlyLunarEventOccurrenceDatesForMonth(event, base, year, month, interval);
+  }
+
+  const occurrenceDate = getEventOccurrenceDateForMonth(event, year, month);
+  return occurrenceDate ? [occurrenceDate] : [];
+}
+
+function getDailyEventOccurrenceDatesForMonth(base, year, month, daysInMonth, interval) {
+  const dates = [];
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const dateValue = formatDateValue(year, month, day);
+    const daysFromBase = getDaysFromDateValue(base, dateValue);
+    if (daysFromBase >= 0 && daysFromBase % interval === 0) dates.push(dateValue);
+  }
+  return dates;
+}
+
+function getWeeklyEventOccurrenceDatesForMonth(base, year, month, daysInMonth, interval) {
+  const dates = [];
+  const repeatDays = 7 * interval;
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const dateValue = formatDateValue(year, month, day);
+    const daysFromBase = getDaysFromDateValue(base, dateValue);
+    if (daysFromBase >= 0 && daysFromBase % repeatDays === 0) dates.push(dateValue);
+  }
+  return dates;
+}
+
+function getClampedMonthlyEventDate(baseDay, year, month) {
+  return `${year}-${String(month).padStart(2, "0")}-${String(Math.min(baseDay, getDaysInMonth(year, month))).padStart(2, "0")}`;
+}
+
+function getMonthlyLunarEventOccurrenceDatesForMonth(event, base, year, month, interval = 1) {
+  const target = getEventLunarTarget(event);
+  if (!target) return [];
+
+  const baseLunar = convertSolarToLunar(base.day, base.month, base.year, TIME_ZONE);
+  const dates = [];
+  const daysInMonth = getDaysInMonth(year, month);
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const dateValue = formatDateValue(year, month, day);
+    if (getDaysFromDateValue(base, dateValue) < 0) continue;
+
+    const lunar = convertSolarToLunar(day, month, year, TIME_ZONE);
+    const monthsFromBase = (lunar.year - baseLunar.year) * 12 + lunar.month - baseLunar.month;
+    if (monthsFromBase < 0 || monthsFromBase % interval !== 0) continue;
+    if (lunar.leap !== target.leap) continue;
+    if (isMonthlyLunarEventTargetDay(lunar, target, day, month, year)) dates.push(dateValue);
+  }
+
+  return dates;
+}
+
+function isMonthlyLunarEventTargetDay(lunar, target, solarDay, solarMonth, solarYear) {
+  if (lunar.day === target.day) return true;
+  return target.day === 30 && lunar.day === 29 && isLastDayOfLunarMonth(solarDay, solarMonth, solarYear, lunar);
+}
+
 function getEventOccurrenceDateForMonth(event, year, month) {
-  const [baseYear, baseMonth, baseDay] = event.date.split("-").map(Number);
+  const base = parseDateValue(event && event.date);
+  if (!base) return null;
+  const { year: baseYear, month: baseMonth, day: baseDay } = base;
   const repeat = event.repeat || { frequency: "none", calendar: event.calendarLabel || "solar" };
 
   if (repeat.frequency === "yearly") {
+    if (year < baseYear || (year === baseYear && month < baseMonth)) return null;
     if (baseYear === year && baseMonth === month) return event.date;
     if (repeat.calendar === "lunar" && event.lunar) {
-      return getLunarEventOccurrenceDateForMonth(event, year, month);
+      const occurrenceDate = getLunarEventOccurrenceDateForMonth(event, year, month);
+      return occurrenceDate && getDaysFromDateValue(base, occurrenceDate) >= 0 ? occurrenceDate : null;
     }
     if (baseMonth !== month) return null;
-    const day = Math.min(baseDay, getDaysInMonth(year, month));
-    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return getClampedMonthlyEventDate(baseDay, year, month);
   }
 
   if (repeat.frequency === "monthly") {
-    const day = Math.min(baseDay, getDaysInMonth(year, month));
-    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const interval = Math.max(1, Number.parseInt(repeat.interval, 10) || 1);
+    if (repeat.calendar === "lunar") {
+      const occurrenceDates = getMonthlyLunarEventOccurrenceDatesForMonth(event, base, year, month, interval);
+      return occurrenceDates[0] || null;
+    }
+    const months = (year - baseYear) * 12 + month - baseMonth;
+    if (months < 0 || months % interval !== 0) return null;
+    return getClampedMonthlyEventDate(baseDay, year, month);
   }
 
   if (repeat.frequency === "none") {
@@ -167,7 +279,7 @@ async function handleEventCalendarDayClick(day) {
   eventCalendarSelectedDay = day;
   renderEventCalendar();
   const date = `${eventCalendarYear}-${String(eventCalendarMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-  const dayEvents = eventCalendarOccurrences[day] || [];
+  const dayEvents = getSelectedEventCalendarDayEvents();
   setEventDateInputValue(date);
 
   if (dayEvents.length === 0) {
@@ -192,9 +304,10 @@ function renderEventChoiceList(date, events) {
   const list = document.getElementById("eventChoiceList");
   const status = document.getElementById("eventChoiceListStatus");
   if (!panel || !list) return;
+  const sortedEvents = events.slice().sort(compareCalendarDayEvents);
   panel.hidden = false;
   if (status) status.textContent = "Chọn sự kiện để sửa";
-  list.innerHTML = events.map((item) => `
+  list.innerHTML = sortedEvents.map((item) => `
     <button class="event-list-item" type="button" data-event-id="${item.id}">
       <strong>${getEventTypeIconMarkup(item.eventType)}${escapeHtml(item.title)}</strong>
       <span>${getEventDateSummary(item)}</span>
@@ -205,7 +318,7 @@ function renderEventChoiceList(date, events) {
 
   const eventButtons = [...list.querySelectorAll("[data-event-id]")];
   eventButtons.forEach((button) => {
-    const event = events.find((item) => item.id === button.dataset.eventId);
+    const event = sortedEvents.find((item) => item.id === button.dataset.eventId);
     button.addEventListener("click", () => loadEventIntoForm(button.dataset.eventId, event));
   });
   if (eventButtons[0]) {
@@ -214,6 +327,21 @@ function renderEventChoiceList(date, events) {
       eventButtons[0].scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
     });
   }
+}
+
+function refreshEventChoiceListForSelectedDay() {
+  const date = getSelectedEventCalendarDate();
+  const dayEvents = getSelectedEventCalendarDayEvents();
+  if (date && dayEvents.length > 1) {
+    renderEventChoiceList(date, dayEvents);
+    return;
+  }
+  clearEventChoiceList();
+}
+
+function getSelectedEventCalendarDayEvents() {
+  const events = eventCalendarOccurrences[eventCalendarSelectedDay] || [];
+  return events.slice().sort(compareCalendarDayEvents);
 }
 
 function clearEventChoiceList() {

@@ -81,10 +81,10 @@ function setupEventForm() {
       document.getElementById("eventTime").value = DEFAULT_EVENT_TIME;
       applyTypeDefaults();
       setEventFormMode("create");
-      clearEventChoiceList();
       updateEventCalendarOccurrence(savedEvent);
       queueEventWebPushReminderSyncForEvent(savedEvent);
       closeEventDialog();
+      refreshEventChoiceListForSelectedDay();
     } catch (error) {
       setEventFormStatus("Chưa lưu được sự kiện. Vui lòng kiểm tra lại thông tin.", true);
     }

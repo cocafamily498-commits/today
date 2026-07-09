@@ -46,6 +46,17 @@ input, select, textarea {
   outline: none;
 }
 input, select { height: 44px; }
+.event-time-field input[type="time"] {
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 42px;
+}
+.event-time-field input[type="time"]::-webkit-date-and-time-value,
+.event-time-field input[type="time"]::-webkit-datetime-edit {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
 textarea { min-height: 92px; resize: vertical; line-height: 1.45; }
 input:focus, select:focus, textarea:focus {
   border-color: #1e3a5f;
@@ -55,8 +66,25 @@ input:focus, select:focus, textarea:focus {
   position: relative;
   display: block;
 }
+.event-type-select-wrap::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #111;
+  border-bottom: 2px solid #111;
+  pointer-events: none;
+  transform: translateY(-65%) rotate(45deg);
+}
 .event-type-select-wrap select {
+  -webkit-appearance: none;
+  appearance: none;
   padding-left: 43px;
+  padding-right: 38px;
+  padding-inline-start: 43px;
+  padding-inline-end: 38px;
 }
 .event-type-selected-icon {
   position: absolute;

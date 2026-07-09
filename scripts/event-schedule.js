@@ -14,7 +14,11 @@ function getNextEventOccurrenceDate(event) {
   if (repeat.calendar !== "lunar" && isDateBefore(from, base)) return event.date;
   if (repeat.frequency === "daily") return formatDateValue(from.year, from.month, from.day);
   if (repeat.frequency === "weekly") return getNextWeeklyEventDate(base, from);
-  if (repeat.frequency === "monthly") return getNextMonthlyEventDate(base, from);
+  if (repeat.frequency === "monthly") {
+    return repeat.calendar === "lunar"
+      ? getNextLunarMonthlyEventDate(event, base, from)
+      : getNextMonthlyEventDate(base, from);
+  }
   if (repeat.frequency === "yearly") {
     return repeat.calendar === "lunar"
       ? getNextLunarYearlyEventDate(event, from)
@@ -44,6 +48,27 @@ function getNextMonthlyEventDate(base, from) {
     year += 1;
   }
   return formatDateValue(year, month, Math.min(base.day, getDaysInMonth(year, month)));
+}
+
+function getNextLunarMonthlyEventDate(event, base, from) {
+  const repeat = event.repeat || {};
+  const interval = Math.max(1, Number.parseInt(repeat.interval, 10) || 1);
+  let year = from.year;
+  let month = from.month;
+
+  for (let offset = 0; offset < 240; offset += 1) {
+    const candidates = getMonthlyLunarEventOccurrenceDatesForMonth(event, base, year, month, interval);
+    const next = candidates.find((candidate) => getDaysFromDateValue(from, candidate) >= 0);
+    if (next) return next;
+
+    month += 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+  }
+
+  return "";
 }
 
 function getNextSolarYearlyEventDate(base, from) {

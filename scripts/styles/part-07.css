@@ -57,6 +57,19 @@
   height: 44px;
 }
 
+.event-time-field input[type="time"] {
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 42px;
+}
+
+.event-time-field input[type="time"]::-webkit-date-and-time-value,
+.event-time-field input[type="time"]::-webkit-datetime-edit {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
+
 .event-field textarea {
   height: 44px;
   min-height: 44px;
