@@ -18,9 +18,8 @@ async function deleteCurrentEditingEvent() {
   const deletedEventId = editingEventId;
   await window.LichVietData.deleteEvent(editingEventId);
   resetEventForm(getSelectedEventCalendarDate());
-  clearEventChoiceList();
-  removeEventCalendarOccurrence(deletedEventId);
-  renderEventCalendar();
+  await loadEventCalendarOccurrences();
+  refreshEventChoiceListForSelectedDay();
   queueRemoveEventWebPushReminders(deletedEventId);
   setEventFormStatus("");
 }
@@ -63,9 +62,8 @@ async function deleteEditingEvent() {
   const deletedEventId = editingEventId;
   await window.LichVietData.deleteEvent(editingEventId);
   resetEventForm(`${eventCalendarYear}-${String(eventCalendarMonth).padStart(2, "0")}-${String(eventCalendarSelectedDay).padStart(2, "0")}`);
-  clearEventChoiceList();
-  removeEventCalendarOccurrence(deletedEventId);
-  renderEventCalendar();
+  await loadEventCalendarOccurrences();
+  refreshEventChoiceListForSelectedDay();
   queueRemoveEventWebPushReminders(deletedEventId);
   setEventFormStatus("Đã xóa sự kiện.");
   closeEventDialog();

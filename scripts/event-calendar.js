@@ -332,7 +332,7 @@ function renderEventChoiceList(date, events) {
 function refreshEventChoiceListForSelectedDay() {
   const date = getSelectedEventCalendarDate();
   const dayEvents = getSelectedEventCalendarDayEvents();
-  if (date && dayEvents.length > 1) {
+  if (date && dayEvents.length > 0) {
     renderEventChoiceList(date, dayEvents);
     return;
   }

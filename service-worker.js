@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v60";
+const CACHE_NAME = "homnay-pwa-v61";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -128,6 +128,7 @@ const APP_SHELL = [
   "/scripts/event-model.js?v=2",
   "/scripts/event-model.js?v=3",
   "/scripts/event-model.js?v=4",
+  "/scripts/event-model.js?v=5",
   "/scripts/event-schedule.js",
   "/scripts/event-schedule.js?v=2",
   "/scripts/calendar-controls.js",
@@ -137,6 +138,7 @@ const APP_SHELL = [
   "/scripts/event-calendar.js?v=6",
   "/scripts/event-calendar.js?v=7",
   "/scripts/event-calendar.js?v=8",
+  "/scripts/event-calendar.js?v=9",
   "/scripts/journal-calendar.js",
   "/scripts/journal-form.js",
   "/scripts/journal-calendar.js?v=2",

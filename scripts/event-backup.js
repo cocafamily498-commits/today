@@ -41,7 +41,7 @@ async function backupEventData() {
     const link = document.createElement("a");
     const today = toDateInputValue(getVietnamToday());
     link.href = URL.createObjectURL(blob);
-    link.download = `Sotay-${today}.Lichviet`;
+    link.download = `Sotaylichviet-${today}.Json`;
     document.body.append(link);
     link.click();
     link.remove();
