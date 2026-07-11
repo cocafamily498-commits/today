@@ -58,6 +58,8 @@ input, select { height: 44px; }
   align-items: center;
 }
 textarea { min-height: 92px; resize: vertical; line-height: 1.45; }
+.event-editor-group-row { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; }
+.event-editor-group-row button { width: 44px; padding: 0; font-size: 1.25rem; }
 input:focus, select:focus, textarea:focus {
   border-color: #1e3a5f;
   box-shadow: 0 0 0 3px rgba(30, 58, 95, .12);

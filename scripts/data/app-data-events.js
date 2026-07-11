@@ -73,6 +73,7 @@
     assertDate(source.date);
   
     const eventType = normalizeEventType(source.eventType);
+    const eventTypeId = String(source.eventTypeId || "general");
     const defaultCalendarLabel = eventType === "birthday"
       ? "solar"
       : eventType === "deathAnniversary"
@@ -98,6 +99,7 @@
       title: String(source.title || "").trim(),
       note: String(source.note || ""),
       eventType,
+      eventTypeId,
       calendarLabel,
       lunar,
       time: source.time || null,

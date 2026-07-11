@@ -66,9 +66,16 @@
                 </div>
               </div>
             </div>
-            <div class="event-field full">
-              <label for="eventNote">Ghi chú</label>
-              <textarea id="eventNote" name="note" maxlength="500"></textarea>
+            <div class="event-field full event-group-field">
+              <label for="eventGroupPickerButton">Nhóm sự kiện</label>
+              <div class="event-group-control-row">
+                <div class="event-group-picker">
+                  <input id="eventTypeId" name="eventTypeId" type="hidden" value="general">
+                  <button id="eventGroupPickerButton" class="event-group-picker-button" type="button" aria-haspopup="listbox" aria-expanded="false">Nhóm chung</button>
+                  <div id="eventGroupPickerList" class="event-group-picker-list" role="listbox" hidden></div>
+                </div>
+                <button id="eventGroupManageButton" class="event-group-manage-button" type="button" aria-label="Thêm hoặc quản lý nhóm sự kiện" title="Thêm hoặc quản lý nhóm sự kiện">+</button>
+              </div>
             </div>
           </div>
           <p id="eventFormStatus" class="event-form-status" aria-live="polite"></p>

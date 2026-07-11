@@ -28,6 +28,9 @@ window.EventEditorBridge = {
   getLunarDateValue: getEventLunarDateValue,
   saveValues: saveEventEditorValues,
   deleteCurrentEvent: deleteCurrentEditingEvent,
+  openGroupManager: () => {
+    if (typeof openEventGroupManagerDialog === "function") openEventGroupManagerDialog();
+  },
   openEvent: (eventId) => loadEventIntoForm(eventId)
 };
 
@@ -39,6 +42,16 @@ async function loadEventIntoForm(eventId, renderedEvent = null, options = {}) {
 
   editingEventId = event.id;
   document.getElementById("eventType").value = event.eventType;
+  try {
+    if (typeof updateEventGroupPicker === "function") {
+      const fallbackGroupId = typeof getDefaultEventGroupId === "function"
+        ? getDefaultEventGroupId(event.eventType)
+        : "general";
+      updateEventGroupPicker(event.eventTypeId || fallbackGroupId);
+    }
+  } catch (error) {
+    console.error("event group picker update failed", error);
+  }
   setEventDateInputValue(originalDate);
   document.getElementById("eventType").dispatchEvent(new Event("change", { bubbles: true }));
   updateEventDateHint();
@@ -49,7 +62,6 @@ async function loadEventIntoForm(eventId, renderedEvent = null, options = {}) {
   document.getElementById("eventBeforeDays").value = reminder.beforeDays || 0;
   document.getElementById("eventBeforeHours").value = reminder.beforeHours || 0;
   document.getElementById("eventTime").value = event.time || DEFAULT_EVENT_TIME;
-  document.getElementById("eventNote").value = event.note || "";
   setEventFormMode("edit");
   setEventFormStatus("Đang sửa sự kiện.");
   if (shouldOpenDialog) openEventDialog();
@@ -103,14 +115,14 @@ function buildEventFromForm(form) {
   const formData = new FormData(form);
   return buildEventFromValues({
     eventType: formData.get("eventType"),
+    eventTypeId: formData.get("eventTypeId"),
     date: parseEventDateInputValue(formData.get("date")),
     title: formData.get("title"),
     calendarLabel: formData.get("calendarLabel"),
     repeatFrequency: formData.get("repeatFrequency"),
     beforeDays: formData.get("beforeDays"),
     beforeHours: formData.get("beforeHours"),
-    eventTime: formData.get("eventTime"),
-    note: formData.get("note")
+    eventTime: formData.get("eventTime")
   });
 }
 
@@ -139,6 +151,7 @@ function buildEventFromValues(values) {
     title,
     note: values.note || "",
     eventType,
+    eventTypeId: values.eventTypeId || (typeof getDefaultEventGroupId === "function" ? getDefaultEventGroupId(eventType) : "general"),
     calendarLabel,
     lunar,
     time: eventTime,

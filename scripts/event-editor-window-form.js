@@ -63,8 +63,13 @@ function renderEventEditorWindowForm(state, title) {
       </div>
     </div>
     <div class="event-field full">
-      <label for="eventNote">Ghi chú</label>
-      <textarea id="eventNote" name="note" maxlength="500"></textarea>
+      <label for="eventTypeId">Nhóm sự kiện</label>
+      <div class="event-editor-group-row">
+        <select id="eventTypeId" name="eventTypeId">
+          ${(state.groups || []).map((group) => `<option value="${escapeHtml(group.id)}">● ${escapeHtml(group.name)}</option>`).join("")}
+        </select>
+        <button id="eventGroupManageButton" class="event-secondary-button" type="button" aria-label="Thêm hoặc quản lý nhóm">+</button>
+      </div>
     </div>
   </div>
   <p id="eventFormStatus" class="event-form-status" aria-live="polite"></p>

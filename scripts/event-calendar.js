@@ -254,7 +254,10 @@ function getEventTypeIcon(type) {
   return "★";
 }
 
-function getEventTypeIconMarkup(type, className = "month-event-icon") {
+function getEventTypeIconMarkup(type, className = "month-event-icon", eventTypeId = null) {
+  if (eventTypeId && typeof getEventGroup === "function") {
+    return renderEventGroupIcon(getEventGroup(eventTypeId), `${className} event-group-icon`);
+  }
   const eventType = ["birthday", "deathAnniversary", "other"].includes(type) ? type : "other";
   return `<span class="${className} ${eventType}" aria-hidden="true">${getEventTypeIcon(eventType)}</span>`;
 }
@@ -309,7 +312,7 @@ function renderEventChoiceList(date, events) {
   if (status) status.textContent = "Chọn sự kiện để sửa";
   list.innerHTML = sortedEvents.map((item) => `
     <button class="event-list-item" type="button" data-event-id="${item.id}">
-      <strong>${getEventTypeIconMarkup(item.eventType)}${escapeHtml(item.title)}</strong>
+      <strong>${getEventTypeIconMarkup(item.eventType, "month-event-icon", item.eventTypeId)}${escapeHtml(item.title)}</strong>
       <span>${getEventDateSummary(item)}</span>
       <span class="event-countdown">${getEventCountdownText(item)}</span>
       ${getEventNextSolarDateText(item) ? `<span class="event-next-solar">${getEventNextSolarDateText(item)}</span>` : ""}

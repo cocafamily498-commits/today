@@ -1,4 +1,15 @@
 function renderEventListDialogContent(events, emptyText = "Chưa có sự kiện nào.") {
+  const eventTypeOptions = `
+    <option value="">Tất cả</option>
+    <option value="birthday">Sinh nhật</option>
+    <option value="deathAnniversary">Đám giỗ</option>
+    <option value="other">Sự kiện khác</option>`;
+  const eventGroupOptions = [
+    `<option value="">Tất cả</option>`,
+    ...(typeof getEventGroups === "function" ? getEventGroups() : []).map((group) =>
+      `<option value="${escapeHtml(group.id)}" data-icon-id="${escapeHtml(group.iconId)}" data-icon-color="${escapeHtml(group.color)}">${escapeHtml(group.name)}</option>`
+    )
+  ].join("");
   const eventMonthOptions = [
     `<option value="">Tất cả</option>`,
     ...Array.from({ length: 12 }, (_, index) => {
@@ -13,8 +24,9 @@ function renderEventListDialogContent(events, emptyText = "Chưa có sự kiện
       const countdownText = getEventCountdownText(item);
       const eventMonth = String(item.date || "").slice(5, 7);
       return `
-        <button class="event-card" type="button" data-event-id="${escapeHtml(item.id)}" data-event-type="${escapeHtml(item.eventType)}" data-event-month="${escapeHtml(eventMonth)}" data-event-title="${escapeHtml(item.title).toLowerCase()}">
-          <h2>${getEventTypeIconMarkup(item.eventType)} ${escapeHtml(item.title)}</h2>
+        <button class="event-card" type="button" data-event-id="${escapeHtml(item.id)}" data-event-type="${escapeHtml(item.eventType)}" data-event-group="${escapeHtml(item.eventTypeId || "general")}" data-event-month="${escapeHtml(eventMonth)}" data-event-title="${escapeHtml(item.title).toLowerCase()}">
+          ${getEventTypeIconMarkup(item.eventType, "event-card-type-icon")}
+          <h2>${getEventTypeIconMarkup(item.eventType, "month-event-icon", item.eventTypeId)} ${escapeHtml(item.title)}</h2>
           <p class="event-card-date-line">
             <span>${escapeHtml(dateSummary)}</span>
             <span class="event-countdown">${escapeHtml(countdownText)}</span>
@@ -33,14 +45,34 @@ function renderEventListDialogContent(events, emptyText = "Chưa có sự kiện
       </div>
     </header>
     <form id="eventFilterForm" class="event-filter-form" autocomplete="off">
-      <fieldset class="event-filter-group">
-        <legend class="event-filter-label sr-only">Loại sự kiện</legend>
-        <div class="event-type-filters">
-          <label class="event-type-filter"><input type="checkbox" name="eventType" value="birthday" checked> <span>${getEventTypeIconMarkup("birthday")} <span class="event-type-label-long">Sinh nhật</span><span class="event-type-label-short" aria-hidden="true">SN</span></span></label>
-          <label class="event-type-filter"><input type="checkbox" name="eventType" value="deathAnniversary" checked> <span>${getEventTypeIconMarkup("deathAnniversary")} <span class="event-type-label-long">Đám giỗ</span><span class="event-type-label-short" aria-hidden="true">ĐG</span></span></label>
-          <label class="event-type-filter"><input type="checkbox" name="eventType" value="other" checked> <span>${getEventTypeIconMarkup("other")} <span class="event-type-label-long">Sự kiện khác</span><span class="event-type-label-short" aria-hidden="true">KH</span></span></label>
+      <div class="event-classification-filter-row">
+        <div class="event-filter-group">
+          <span class="event-filter-label">Loại sự kiện</span>
+          <span class="event-filter-combobox" data-filter-combobox="type">
+            <select id="eventTypeFilter" hidden>${eventTypeOptions}</select>
+            <button class="event-filter-combobox-button" type="button" aria-haspopup="listbox" aria-expanded="false"></button>
+            <span class="event-filter-combobox-list" role="listbox" hidden>
+              <button type="button" role="option" data-value=""><span class="event-filter-neutral-icon">◆</span><span>Tất cả</span></button>
+              <button type="button" role="option" data-value="birthday">${getEventTypeIconMarkup("birthday")}<span>Sinh nhật</span></button>
+              <button type="button" role="option" data-value="deathAnniversary">${getEventTypeIconMarkup("deathAnniversary")}<span>Đám giỗ</span></button>
+              <button type="button" role="option" data-value="other">${getEventTypeIconMarkup("other")}<span>Sự kiện khác</span></button>
+            </span>
+          </span>
         </div>
-      </fieldset>
+        <div class="event-filter-group">
+          <span class="event-filter-label">Nhóm sự kiện</span>
+          <span class="event-filter-combobox" data-filter-combobox="group">
+            <select id="eventGroupFilter" hidden>${eventGroupOptions}</select>
+            <button class="event-filter-combobox-button" type="button" aria-haspopup="listbox" aria-expanded="false"></button>
+            <span class="event-filter-combobox-list" role="listbox" hidden>
+              <button type="button" role="option" data-value=""><span class="event-filter-neutral-icon">◆</span><span>Tất cả</span></button>
+              ${(typeof getEventGroups === "function" ? getEventGroups() : []).map((group) => `
+                <button type="button" role="option" data-value="${escapeHtml(group.id)}">${renderEventGroupIcon(group)}<span>${escapeHtml(group.name)}</span></button>
+              `).join("")}
+            </span>
+          </span>
+        </div>
+      </div>
       <div class="event-filter-row">
         <label class="event-filter-group event-month-filter-group">
           <span class="event-filter-label">Tháng</span>

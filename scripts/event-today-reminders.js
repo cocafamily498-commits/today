@@ -237,7 +237,7 @@ function renderEventReminderItem({ event, occurrenceDate, occurrenceAt, nextRemi
   const remainingMs = occurrenceAt.getTime() - getVietnamToday().getTime();
   return `
     <article class="event-reminder-item">
-      <h3 class="event-reminder-item-title">${getEventTypeIconMarkup(event.eventType)}${escapeHtml(event.title)}</h3>
+      <h3 class="event-reminder-item-title">${getEventTypeIconMarkup(event.eventType, "month-event-icon", event.eventTypeId)}${escapeHtml(event.title)}</h3>
       <p class="event-reminder-lead">${escapeHtml(getEventReminderLeadText(event, occurrenceDate))}</p>
       <p>Diễn ra lúc ${escapeHtml(formatEventReminderClock(occurrenceAt))} ngày ${escapeHtml(formatEventDate(occurrenceDate))}</p>
       <p>Ngày dương lịch gốc: ${escapeHtml(formatEventDate(event.date))}</p>

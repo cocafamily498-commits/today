@@ -1,5 +1,6 @@
 function renderEventEditorWindowDocument(state) {
-  const stateJson = JSON.stringify(state).replace(/</g, "\\u003c");
+  const editorState = { ...state, groups: typeof getEventGroups === "function" ? getEventGroups() : [] };
+  const stateJson = JSON.stringify(editorState).replace(/</g, "\\u003c");
   const title = state.mode === "edit" ? "Sửa sự kiện" : "Tạo sự kiện";
 
   return `<!doctype html>
@@ -14,7 +15,7 @@ ${renderEventEditorWindowStyles()}
 </head>
 <body>
   <main>
-${renderEventEditorWindowForm(state, title)}
+${renderEventEditorWindowForm(editorState, title)}
   </main>
   <script>
 ${renderEventEditorWindowScript(stateJson)}

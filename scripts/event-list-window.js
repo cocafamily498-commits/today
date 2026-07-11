@@ -1,4 +1,15 @@
 function renderEventListWindowDocument(events, emptyText = "Chưa có sự kiện nào.", eventDialogHtml = "") {
+  const eventTypeOptions = `
+    <option value="">Tất cả</option>
+    <option value="birthday">Sinh nhật</option>
+    <option value="deathAnniversary">Đám giỗ</option>
+    <option value="other">Sự kiện khác</option>`;
+  const eventGroupOptions = [
+    `<option value="">Tất cả</option>`,
+    ...(typeof getEventGroups === "function" ? getEventGroups() : []).map((group) =>
+      `<option value="${escapeHtml(group.id)}" data-icon-id="${escapeHtml(group.iconId)}" data-icon-color="${escapeHtml(group.color)}">${escapeHtml(group.name)}</option>`
+    )
+  ].join("");
   const eventMonthOptions = [
     `<option value="">Tất cả</option>`,
     ...Array.from({ length: 12 }, (_, index) => {
@@ -15,8 +26,9 @@ function renderEventListWindowDocument(events, emptyText = "Chưa có sự kiệ
       const dateSummary = getEventListDateSummary(item);
       const eventType = escapeHtml(item.eventType);
       return `
-        <button class="event-card" type="button" data-event-id="${escapeHtml(item.id)}" data-event-type="${eventType}" data-event-month="${escapeHtml(eventMonth)}" data-event-title="${escapeHtml(item.title).toLowerCase()}">
-          <h2>${getEventTypeIconMarkup(item.eventType, "event-type-icon")} ${escapeHtml(item.title)}</h2>
+        <button class="event-card" type="button" data-event-id="${escapeHtml(item.id)}" data-event-type="${eventType}" data-event-group="${escapeHtml(item.eventTypeId || "general")}" data-event-month="${escapeHtml(eventMonth)}" data-event-title="${escapeHtml(item.title).toLowerCase()}">
+          ${getEventTypeIconMarkup(item.eventType, "event-card-type-icon")}
+          <h2>${getEventTypeIconMarkup(item.eventType, "event-type-icon", item.eventTypeId)} ${escapeHtml(item.title)}</h2>
           <p>${dateSummary}</p>
           <p class="event-countdown">${countdownText}</p>
           ${nextSolarLine}
@@ -109,6 +121,24 @@ h1 {
   padding: 0;
   border: 0;
 }
+.event-classification-filter-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.event-filter-select-wrap { position: relative; display: block; min-width: 0; }
+.event-filter-leading-icon {
+  position: absolute; z-index: 2; top: 50%; left: 12px; display: grid; width: 22px; height: 22px;
+  place-items: center; color: #64748b; font-size: .9rem; font-weight: 900; line-height: 1;
+  pointer-events: none; transform: translateY(-50%);
+}
+.event-filter-leading-icon svg { display: block; width: 21px; height: 21px; fill: none; }
+.event-type-filter-leading-icon[data-event-type="birthday"] { color: #b45309; }
+.event-type-filter-leading-icon[data-event-type="deathAnniversary"] { color: #9a6700; }
+.event-type-filter-leading-icon[data-event-type="other"] { color: #00796b; }
+.event-filter-select-wrap select {
+  padding-left: 44px; padding-inline-start: 44px; padding-right: 34px; padding-inline-end: 34px;
+}
 .event-filter-label {
   display: block;
   margin-bottom: 8px;
@@ -169,6 +199,8 @@ h1 {
   background: #dff7ec;
 }
 .event-month-filter,
+.event-type-filter-select,
+.event-group-filter-select,
 .event-name-filter {
   width: 100%;
   min-height: 44px;
@@ -200,12 +232,22 @@ h1 {
   background: #ffffff;
 }
 .event-card {
+  position: relative;
   width: 100%;
+  padding-right: 52px;
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
+.event-card-type-icon {
+  position: absolute; top: 12px; right: 14px; display: inline-flex; width: 28px; height: 28px;
+  align-items: center; justify-content: center; border-radius: 999px; font-size: .95rem;
+  font-weight: 900; line-height: 1; pointer-events: none;
+}
+.event-card-type-icon.birthday { color: #b45309; background: #fff7cf; }
+.event-card-type-icon.deathAnniversary { color: #9a6700; background: #fff7cf; }
+.event-card-type-icon.other { color: #00796b; background: #dff7ec; }
 .event-card:hover,
 .event-card:focus-visible {
   border-color: #8fa3b9;
@@ -249,14 +291,22 @@ h1 {
       <button id="eventAddButton" class="event-add-button" type="button" aria-label="Thêm sự kiện mới"></button>
     </header>
     <form id="eventFilterForm" class="event-filter-form" autocomplete="off">
-      <fieldset class="event-filter-group">
-        <legend class="event-filter-label">Loại sự kiện</legend>
-        <div class="event-type-filters">
-          <label class="event-type-filter"><input type="checkbox" name="eventType" value="birthday" checked> <span>${getEventTypeIconMarkup("birthday", "event-type-icon")} Sinh nhật</span></label>
-          <label class="event-type-filter"><input type="checkbox" name="eventType" value="deathAnniversary" checked> <span>${getEventTypeIconMarkup("deathAnniversary", "event-type-icon")} Đám giỗ</span></label>
-          <label class="event-type-filter"><input type="checkbox" name="eventType" value="other" checked> <span>${getEventTypeIconMarkup("other", "event-type-icon")} Sự kiện khác</span></label>
-        </div>
-      </fieldset>
+      <div class="event-classification-filter-row">
+        <label class="event-filter-group">
+          <span class="event-filter-label">Loại sự kiện</span>
+          <span class="event-filter-select-wrap">
+            <span id="eventTypeFilterIcon" class="event-filter-leading-icon event-type-filter-leading-icon" aria-hidden="true">◆</span>
+            <select id="eventTypeFilter" class="event-type-filter-select">${eventTypeOptions}</select>
+          </span>
+        </label>
+        <label class="event-filter-group">
+          <span class="event-filter-label">Nhóm sự kiện</span>
+          <span class="event-filter-select-wrap">
+            <span id="eventGroupFilterIcon" class="event-filter-leading-icon" aria-hidden="true">◆</span>
+            <select id="eventGroupFilter" class="event-group-filter-select">${eventGroupOptions}</select>
+          </span>
+        </label>
+      </div>
       <label class="event-filter-group">
         <span class="event-filter-label">Tháng sự kiện</span>
         <select id="eventMonthFilter" class="event-month-filter">
@@ -278,7 +328,10 @@ h1 {
 const form = document.getElementById("eventFilterForm");
 const monthInput = document.getElementById("eventMonthFilter");
 const nameInput = document.getElementById("eventNameFilter");
-const typeInputs = [...document.querySelectorAll("input[name='eventType']")];
+const typeInput = document.getElementById("eventTypeFilter");
+const groupInput = document.getElementById("eventGroupFilter");
+const typeIcon = document.getElementById("eventTypeFilterIcon");
+const groupIcon = document.getElementById("eventGroupFilterIcon");
 const cards = [...document.querySelectorAll(".event-card")];
 const emptyState = document.getElementById("eventFilterEmptyState");
 
@@ -287,16 +340,27 @@ function normalizeFilterText(value) {
 }
 
 function applyEventFilters() {
-  const selectedTypes = new Set(typeInputs.filter((input) => input.checked).map((input) => input.value));
+  const typeIcons = { birthday: "☀", deathAnniversary: "☾", other: "★" };
+  typeIcon.textContent = typeIcons[typeInput.value] || "◆";
+  typeIcon.dataset.eventType = typeInput.value || "all";
+  const groupOption = groupInput.selectedOptions && groupInput.selectedOptions[0];
+  const groupIconId = groupOption && groupOption.dataset.iconId;
+  const groupIconColor = groupOption && groupOption.dataset.iconColor;
+  groupIcon.innerHTML = groupIconId
+    ? '<svg viewBox="0 0 24 24" style="color:' + (groupIconColor || "#64748b") + '" aria-hidden="true"><use href="icons/event-group-icons-sprite.svg#' + groupIconId + '"></use></svg>'
+    : "◆";
+  const selectedType = typeInput.value;
+  const selectedGroup = groupInput.value;
   const selectedMonth = monthInput.value;
   const query = normalizeFilterText(nameInput.value);
   let visibleCount = 0;
 
   cards.forEach((card) => {
-    const matchesType = selectedTypes.has(card.dataset.eventType);
+    const matchesType = selectedType === "" || card.dataset.eventType === selectedType;
+    const matchesGroup = selectedGroup === "" || card.dataset.eventGroup === selectedGroup;
     const matchesMonth = selectedMonth === "" || card.dataset.eventMonth === selectedMonth;
     const matchesName = query === "" || normalizeFilterText(card.dataset.eventTitle).includes(query);
-    const visible = matchesType && matchesMonth && matchesName;
+    const visible = matchesType && matchesGroup && matchesMonth && matchesName;
     card.hidden = !visible;
     card.style.display = visible ? "" : "none";
     if (visible) visibleCount += 1;
@@ -305,10 +369,8 @@ function applyEventFilters() {
   if (emptyState) emptyState.hidden = visibleCount > 0 || cards.length === 0;
 }
 
-typeInputs.forEach((input) => {
-  input.addEventListener("change", applyEventFilters);
-  input.addEventListener("click", applyEventFilters);
-});
+typeInput.addEventListener("change", applyEventFilters);
+groupInput.addEventListener("change", applyEventFilters);
 monthInput.addEventListener("change", applyEventFilters);
 nameInput.addEventListener("input", applyEventFilters);
 form.addEventListener("reset", () => setTimeout(applyEventFilters, 0));

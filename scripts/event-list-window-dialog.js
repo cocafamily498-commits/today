@@ -16,6 +16,7 @@ async function openEventListWindow() {
   if (!dialog.open) dialog.showModal();
 
   try {
+    if (typeof initializeEventGroups === "function") await initializeEventGroups();
     const events = await window.LichVietData.getAllEvents();
     renderList(sortEventsForList(events));
   } catch (error) {
@@ -85,9 +86,8 @@ function rememberEventListDialogState(dialog, selectedEventId) {
     scrollTop: list ? list.scrollTop : 0,
     month: dialog.querySelector("#eventMonthFilter")?.value || "",
     name: dialog.querySelector("#eventNameFilter")?.value || "",
-    types: Array.from(dialog.querySelectorAll("input[name='eventType']"))
-      .filter((input) => input.checked)
-      .map((input) => input.value)
+    type: dialog.querySelector("#eventTypeFilter")?.value || "",
+    group: dialog.querySelector("#eventGroupFilter")?.value || ""
   };
 }
 
@@ -98,10 +98,10 @@ function restoreEventListDialogState(dialog, state) {
   const nameInput = dialog.querySelector("#eventNameFilter");
   if (monthInput) monthInput.value = state.month || "";
   if (nameInput) nameInput.value = state.name || "";
-  const selectedTypes = new Set(state.types || []);
-  dialog.querySelectorAll("input[name='eventType']").forEach((input) => {
-    input.checked = selectedTypes.size === 0 ? true : selectedTypes.has(input.value);
-  });
+  const typeInput = dialog.querySelector("#eventTypeFilter");
+  const groupInput = dialog.querySelector("#eventGroupFilter");
+  if (typeInput) typeInput.value = state.type || "";
+  if (groupInput) groupInput.value = state.group || "";
   monthInput?.dispatchEvent(new Event("change", { bubbles: true }));
 
   requestAnimationFrame(() => {

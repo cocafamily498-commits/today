@@ -1,6 +1,6 @@
 async function loadAppPartials() {
   const root = document.getElementById("appRoot");
-  const partialVersion = "2026-07-03-journal-actions";
+  const partialVersion = "2026-07-10-event-group-icon-list";
   const partials = [
     "tabs",
     "today-tab",
@@ -13,7 +13,7 @@ async function loadAppPartials() {
     "app-info-dialog"
   ];
   const html = await Promise.all(partials.map(async (name) => {
-    const response = await fetch(`partials/${name}.html?v=${partialVersion}`, { cache: "no-store" });
+    const response = await fetch(`partials/${name}.html?v=${partialVersion}`);
     if (!response.ok) throw new Error(`Cannot load partial: ${name}`);
     return response.text();
   }));

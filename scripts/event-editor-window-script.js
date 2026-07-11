@@ -17,32 +17,18 @@ const ids = {
   days: document.getElementById("eventBeforeDays"),
   hours: document.getElementById("eventBeforeHours"),
   time: document.getElementById("eventTime"),
-  note: document.getElementById("eventNote"),
+  group: document.getElementById("eventTypeId"),
+  manageGroup: document.getElementById("eventGroupManageButton"),
   status: document.getElementById("eventFormStatus"),
   reset: document.getElementById("eventResetButton"),
   delete: document.getElementById("eventDeleteButton"),
   submit: document.getElementById("eventSubmitButton")
 };
 let currentMode = initialState.mode;
-const initialCreateValues = initialState.mode === "create" ? initialState.values : getCreateValues();
 
 function setStatus(message, isError = false) {
   ids.status.textContent = message || "";
   ids.status.classList.toggle("error", isError);
-}
-
-function getCreateValues() {
-  return {
-    eventType: "birthday",
-    date: "",
-    title: "",
-    calendarLabel: "solar",
-    repeatFrequency: "yearly",
-    beforeDays: 0,
-    beforeHours: 0,
-    eventTime: "${DEFAULT_EVENT_TIME}",
-    note: ""
-  };
 }
 
 function setMode(mode) {
@@ -98,7 +84,7 @@ function setValues(values) {
   ids.days.value = values.beforeDays || 0;
   ids.hours.value = values.beforeHours || 0;
   ids.time.value = values.eventTime || "${DEFAULT_EVENT_TIME}";
-  ids.note.value = values.note || "";
+  ids.group.value = values.eventTypeId || "general";
   applyTypeDefaults();
   if (values.calendarLabel) ids.calendar.value = values.calendarLabel;
   if (values.repeatFrequency) ids.repeat.value = values.repeatFrequency;
@@ -115,7 +101,7 @@ function getValues() {
     beforeDays: ids.days.value,
     beforeHours: ids.hours.value,
     eventTime: ids.time.value,
-    note: ids.note.value
+    eventTypeId: ids.group.value
   };
 }
 
@@ -154,9 +140,11 @@ ids.date.addEventListener("input", updateLunarDate);
 ids.date.addEventListener("change", updateLunarDate);
 ids.reset.addEventListener("click", () => {
   setMode("create");
-  setValues(initialCreateValues);
+  ids.title.value = "";
   setStatus("");
+  ids.title.focus();
 });
+ids.manageGroup?.addEventListener("click", () => bridge?.openGroupManager());
 document.getElementById("eventCancelButton")?.addEventListener("click", () => window.close());
 if (ids.delete) {
   ids.delete.addEventListener("click", async () => {

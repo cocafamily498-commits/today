@@ -1,4 +1,4 @@
-function setupEventForm() {
+async function setupEventForm() {
   const form = document.getElementById("eventForm");
   const typeInput = document.getElementById("eventType");
   const dateInput = document.getElementById("eventDate");
@@ -12,6 +12,16 @@ function setupEventForm() {
   const closeButton = document.getElementById("eventDialogCloseButton");
 
   if (!form || !window.LichVietData) return;
+
+  if (typeof setupEventGroupPicker === "function") setupEventGroupPicker();
+  try {
+    if (typeof initializeEventGroups === "function") {
+      initializeEventGroups()
+        .catch((error) => console.error("event groups initialization failed", error));
+    }
+  } catch (error) {
+    console.error("event groups initialization failed", error);
+  }
 
   setEventDateInputValue(toDateInputValue(getVietnamToday()));
 
@@ -49,7 +59,11 @@ function setupEventForm() {
     updateEventDateHint();
   });
   resetButton.addEventListener("click", () => {
-    resetEventForm(getSelectedEventCalendarDate());
+    editingEventId = null;
+    document.getElementById("eventTitle").value = "";
+    setEventFormMode("create");
+    setEventFormStatus("");
+    document.getElementById("eventTitle").focus();
   });
   if (cancelButton) cancelButton.addEventListener("click", closeEventDialog);
   deleteButton.addEventListener("click", deleteEditingEvent);
@@ -77,6 +91,9 @@ function setupEventForm() {
       setEventFormStatus(shouldUpdate ? "Đã lưu thay đổi." : "Đã lưu sự kiện.");
       editingEventId = null;
       form.reset();
+      if (typeof updateEventGroupPicker === "function") {
+        updateEventGroupPicker(getDefaultEventGroupId(savedEvent.eventType));
+      }
       setEventDateInputValue(savedEvent.date);
       document.getElementById("eventTime").value = DEFAULT_EVENT_TIME;
       applyTypeDefaults();
@@ -136,6 +153,7 @@ function resetEventForm(date = null) {
   const form = document.getElementById("eventForm");
   form.reset();
   editingEventId = null;
+  if (typeof updateEventGroupPicker === "function") updateEventGroupPicker("general");
   setEventDateInputValue(date || toDateInputValue(getVietnamToday()));
   document.getElementById("eventTime").value = DEFAULT_EVENT_TIME;
   document.getElementById("eventType").dispatchEvent(new Event("change", { bubbles: true }));
@@ -163,14 +181,14 @@ function setEventFormMode(mode) {
 function getEventFormValues() {
   return {
     eventType: document.getElementById("eventType").value,
+    eventTypeId: document.getElementById("eventTypeId").value,
     date: getEventDateInputValue(),
     title: document.getElementById("eventTitle").value,
     calendarLabel: document.getElementById("eventCalendar").value,
     repeatFrequency: document.getElementById("eventRepeat").value,
     beforeDays: document.getElementById("eventBeforeDays").value,
     beforeHours: document.getElementById("eventBeforeHours").value,
-    eventTime: document.getElementById("eventTime").value,
-    note: document.getElementById("eventNote").value
+    eventTime: document.getElementById("eventTime").value
   };
 }
 
