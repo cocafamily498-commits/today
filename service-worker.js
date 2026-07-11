@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v81";
+const CACHE_NAME = "homnay-pwa-v82";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -20,6 +20,7 @@ const APP_SHELL = [
   "/styles.css?v=29",
   "/styles.css?v=30",
   "/styles.css?v=31",
+  "/styles.css?v=32",
   "/scripts/styles/part-01.css",
   "/scripts/styles/part-02.css",
   "/scripts/styles/part-02.css?v=2",
@@ -45,6 +46,7 @@ const APP_SHELL = [
   "/scripts/styles/part-18.css?v=1",
   "/scripts/styles/part-18.css?v=2",
   "/scripts/styles/part-18.css?v=3",
+  "/scripts/styles/part-18.css?v=4",
   "/scripts/styles/event-list-dialog.css",
   "/scripts/styles/event-list-dialog.css?v=3",
   "/scripts/styles/event-list-dialog.css?v=4",
@@ -84,6 +86,7 @@ const APP_SHELL = [
   "/icons/event-group-icons-sprite.svg",
   "/data/event-groups.json?v=1",
   "/data/event-groups.json?v=2",
+  "/data/event-groups.json?v=3",
   "/partials/tabs.html",
   "/partials/today-tab.html",
   "/partials/converter-tab.html",
@@ -199,6 +202,7 @@ const APP_SHELL = [
   "/scripts/event-groups.js?v=7",
   "/scripts/event-groups.js?v=8",
   "/scripts/event-groups.js?v=9",
+  "/scripts/event-groups.js?v=10",
   "/scripts/event-form.js?v=2",
   "/scripts/event-form.js?v=3",
   "/scripts/event-form.js?v=4",

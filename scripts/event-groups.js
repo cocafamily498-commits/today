@@ -1,5 +1,6 @@
 const EVENT_GROUPS_SETTING_KEY = "eventGroups";
 const EVENT_GROUPS_LEGACY_GENERAL_MIGRATION_KEY = "eventGroupsLegacyGeneralV1";
+const EVENT_GROUPS_VERSION = 3;
 const GENERAL_EVENT_GROUP = {
   id: "general",
   name: "Nhóm chung",
@@ -13,6 +14,37 @@ const EVENT_GROUP_ICON_IDS = [
   "group-travel", "group-car", "group-home", "group-pet", "group-baby", "group-faith", "group-photo",
   "group-music", "group-phone", "group-school", "group-hotel", "group-fitness"
 ];
+const EVENT_GROUP_TEMPLATES = [
+  { name: "Gia đình", iconId: "group-family", color: "#d97706" },
+  { name: "Sinh nhật / tiệc", iconId: "group-birthday", color: "#e11d48" },
+  { name: "Tưởng niệm / đám giỗ", iconId: "group-memorial", color: "#7c3aed" },
+  { name: "Công việc", iconId: "group-work", color: "#2563eb" },
+  { name: "Họp / lịch hẹn", iconId: "group-meeting", color: "#0891b2" },
+  { name: "Học tập", iconId: "group-study", color: "#4f46e5" },
+  { name: "Đọc sách / khóa học", iconId: "group-book", color: "#0284c7" },
+  { name: "Sức khỏe", iconId: "group-health", color: "#dc2626" },
+  { name: "Thuốc men", iconId: "group-medicine", color: "#db2777" },
+  { name: "Tài chính", iconId: "group-finance", color: "#059669" },
+  { name: "Mua sắm", iconId: "group-shopping", color: "#c026d3" },
+  { name: "Ăn uống", iconId: "group-food", color: "#ea580c" },
+  { name: "Du lịch", iconId: "group-travel", color: "#0d9488" },
+  { name: "Di chuyển", iconId: "group-car", color: "#475569" },
+  { name: "Nhà cửa", iconId: "group-home", color: "#b45309" },
+  { name: "Thú cưng", iconId: "group-pet", color: "#9333ea" },
+  { name: "Em bé", iconId: "group-baby", color: "#f97316" },
+  { name: "Tâm linh", iconId: "group-faith", color: "#6366f1" },
+  { name: "Chụp ảnh", iconId: "group-photo", color: "#334155" },
+  { name: "Âm nhạc", iconId: "group-music", color: "#be123c" },
+  { name: "Điện thoại", iconId: "group-phone", color: "#0369a1" },
+  { name: "Trường học", iconId: "group-school", color: "#1d4ed8" },
+  { name: "Lưu trú", iconId: "group-hotel", color: "#7e22ce" },
+  { name: "Thể thao", iconId: "group-fitness", color: "#16a34a" }
+];
+const LEGACY_TEMPLATE_GROUP_IDS = new Set([
+  "family", "birthday", "memorial", "work", "meeting", "study", "book", "health",
+  "medicine", "finance", "shopping", "food", "travel", "car", "home", "pet", "baby",
+  "faith", "photo", "music", "phone", "school", "hotel", "fitness"
+]);
 
 let eventGroups = [];
 let eventGroupsInitializationPromise = null;
@@ -25,7 +57,7 @@ async function initializeEventGroups() {
     const saved = await window.LichVietData.getSetting(EVENT_GROUPS_SETTING_KEY);
     let defaults = [];
     try {
-      const response = await fetch("data/event-groups.json?v=2");
+      const response = await fetch("data/event-groups.json?v=3");
       if (!response.ok) throw new Error("Không tải được danh mục nhóm sự kiện.");
       defaults = await response.json();
     } catch (error) {
@@ -39,6 +71,9 @@ async function initializeEventGroups() {
         ? saved
         : defaults;
     eventGroups = normalizeEventGroups(savedGroups, defaults);
+    if (saved && (Array.isArray(saved) || Number(saved.version || 0) < EVENT_GROUPS_VERSION)) {
+      await migrateLegacyTemplateGroups();
+    }
     document.dispatchEvent(new CustomEvent("eventgroupschange"));
     migrateLegacyEventGroupIds().catch((error) => {
       console.error("legacy event group migration failed", error);
@@ -80,12 +115,31 @@ async function saveEventGroups() {
     ...eventGroups.filter((group) => group.id !== "general")
   ];
   await window.LichVietData.setSetting(EVENT_GROUPS_SETTING_KEY, {
-    version: 2,
+    version: EVENT_GROUPS_VERSION,
     groups: eventGroups
   });
   document.dispatchEvent(new CustomEvent("eventgroupschange"));
   if (typeof renderEventCalendar === "function") renderEventCalendar();
   if (typeof renderMonthlyCalendar === "function") renderMonthlyCalendar();
+}
+
+async function migrateLegacyTemplateGroups() {
+  const removedIds = new Set(eventGroups
+    .filter((group) => LEGACY_TEMPLATE_GROUP_IDS.has(group.id))
+    .map((group) => group.id));
+  eventGroups = eventGroups.filter((group) => !removedIds.has(group.id));
+
+  if (removedIds.size) {
+    const events = await window.LichVietData.getAllEvents();
+    await Promise.all(events
+      .filter((event) => removedIds.has(event.eventTypeId))
+      .map((event) => window.LichVietData.updateEvent(event.id, { eventTypeId: "general" })));
+  }
+
+  await window.LichVietData.setSetting(EVENT_GROUPS_SETTING_KEY, {
+    version: EVENT_GROUPS_VERSION,
+    groups: eventGroups
+  });
 }
 
 function getEventGroups() {
@@ -191,7 +245,7 @@ function openEventGroupManagerDialog() {
   dialog.className = "event-group-dialog";
   dialog.innerHTML = `
     <div class="event-group-dialog-content">
-      <header><h2>Nhóm sự kiện</h2><button type="button" data-close aria-label="Đóng">×</button></header>
+      <header><h2>Danh mục nhóm sự kiện</h2><button type="button" data-close aria-label="Đóng">×</button></header>
       <div class="event-group-manager-list">
         ${eventGroups.map((group) => `
           <button type="button" data-edit-group="${escapeHtml(group.id)}">
@@ -205,7 +259,7 @@ function openEventGroupManagerDialog() {
       </div>
     </div>`;
   dialog.addEventListener("click", (event) => {
-    if (event.target === dialog || event.target.closest("[data-close]")) dialog.close();
+    if (event.target.closest("[data-close]")) dialog.close();
     const groupButton = event.target.closest("[data-edit-group]");
     if (groupButton) {
       const groupId = groupButton.dataset.editGroup;
@@ -214,7 +268,7 @@ function openEventGroupManagerDialog() {
     }
     if (event.target.closest("[data-add-group]")) {
       dialog.close();
-      openEventGroupEditorDialog(null);
+      openEventGroupTemplateDialog();
     }
   });
   dialog.addEventListener("close", () => dialog.remove(), { once: true });
@@ -222,20 +276,58 @@ function openEventGroupManagerDialog() {
   dialog.showModal();
 }
 
-function openEventGroupEditorDialog(groupId) {
+function openEventGroupTemplateDialog(existingGroupId = null) {
+  const dialog = document.createElement("dialog");
+  dialog.className = "event-group-dialog event-group-template-dialog";
+  dialog.innerHTML = `
+    <div class="event-group-dialog-content">
+      <header><h2>Chọn mẫu nhóm sự kiện</h2><button type="button" data-close aria-label="Đóng">×</button></header>
+      <p class="event-group-template-hint">Chọn một mẫu để điền sẵn tên, icon và màu. Bạn có thể chỉnh lại trước khi lưu.</p>
+      <div class="event-group-template-list">
+        ${EVENT_GROUP_TEMPLATES.map((template, index) => `
+          <button type="button" data-template-index="${index}">
+            ${renderEventGroupIcon(template)}<span>${escapeHtml(template.name)}</span>
+          </button>
+        `).join("")}
+      </div>
+      <div class="event-group-dialog-actions"><button class="event-secondary-button" type="button" data-close>Đóng</button></div>
+    </div>`;
+  dialog.addEventListener("click", (event) => {
+    if (event.target.closest("[data-close]")) dialog.close();
+    const button = event.target.closest("[data-template-index]");
+    if (!button) return;
+    const template = EVENT_GROUP_TEMPLATES[Number(button.dataset.templateIndex)];
+    dialog.close();
+    openEventGroupEditorDialog(existingGroupId, template);
+  });
+  dialog.addEventListener("close", () => dialog.remove(), { once: true });
+  document.body.append(dialog);
+  dialog.showModal();
+}
+
+function openEventGroupEditorDialog(groupId, selectedTemplate = null) {
   const existing = groupId ? getEventGroup(groupId) : null;
   const readonly = existing && existing.readonly;
+  const draft = selectedTemplate || existing || EVENT_GROUP_TEMPLATES[0];
   const dialog = document.createElement("dialog");
   dialog.className = "event-group-dialog";
   dialog.innerHTML = `
     <form class="event-group-dialog-content" data-event-group-form>
       <header><h2>${existing ? "Chi tiết nhóm sự kiện" : "Thêm nhóm sự kiện"}</h2><button type="button" data-close aria-label="Đóng">×</button></header>
       ${readonly ? "<p class=\"event-group-readonly-note\">Nhóm chung là nhóm hệ thống, không thể sửa hoặc xóa.</p>" : ""}
-      <label class="event-group-name-field">Tên nhóm<input name="name" maxlength="60" required value="${escapeHtml(existing ? existing.name : "")}" ${readonly ? "disabled" : ""}></label>
-      <label class="event-group-color-field">Màu icon<input name="color" type="color" value="${existing ? existing.color : "#2563eb"}" ${readonly ? "disabled" : ""}></label>
-      <fieldset ${readonly ? "disabled" : ""}><legend>Chọn icon</legend><div class="event-group-icon-grid">
-        ${EVENT_GROUP_ICON_IDS.map((iconId) => `<label><input type="radio" name="iconId" value="${iconId}" ${(existing ? existing.iconId : EVENT_GROUP_ICON_IDS[0]) === iconId ? "checked" : ""}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="icons/event-group-icons-sprite.svg#${iconId}"></use></svg></label>`).join("")}
-      </div></fieldset>
+      ${!readonly ? "<button class=\"event-group-template-picker\" type=\"button\" data-choose-template>Chọn mẫu gợi ý khác</button>" : ""}
+      <div class="event-group-fields-row">
+        <label class="event-group-name-field">Tên nhóm<input name="name" maxlength="60" required value="${escapeHtml(draft.name)}" ${readonly ? "disabled" : ""}></label>
+        <label class="event-group-color-field">Màu icon<input name="color" type="color" value="${draft.color}" ${readonly ? "disabled" : ""}></label>
+      </div>
+      ${readonly ? "" : `<input type="hidden" name="iconId" value="${draft.iconId}">`}
+      ${readonly ? "" : `
+        <section class="event-group-preview" aria-label="Xem trước nhóm sự kiện">
+          <div class="event-group-preview-card" data-group-preview>
+            ${renderEventGroupIcon(draft, "event-group-preview-icon")}
+            <span data-group-preview-name>${escapeHtml(draft.name)}</span>
+          </div>
+        </section>`}
       <div class="event-group-dialog-actions">
         ${existing && !readonly ? "<button class=\"event-danger-button\" type=\"button\" data-delete-group>Xóa</button>" : ""}
         <button class="event-secondary-button" type="button" data-close>${readonly ? "Đóng" : "Hủy"}</button>
@@ -243,13 +335,28 @@ function openEventGroupEditorDialog(groupId) {
       </div>
     </form>`;
   dialog.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => dialog.close()));
+  dialog.querySelector("[data-choose-template]")?.addEventListener("click", () => {
+    dialog.close();
+    openEventGroupTemplateDialog(existing ? existing.id : null);
+  });
+  const nameInput = dialog.querySelector("input[name='name']");
+  const colorInput = dialog.querySelector("input[name='color']");
+  const previewName = dialog.querySelector("[data-group-preview-name]");
+  const previewIcon = dialog.querySelector(".event-group-preview-icon");
+  const updatePreview = () => {
+    if (previewName) previewName.textContent = nameInput.value.trim() || "Tên nhóm sự kiện";
+    if (previewIcon) previewIcon.style.color = colorInput.value;
+  };
+  nameInput?.addEventListener("input", updatePreview);
+  colorInput?.addEventListener("input", updatePreview);
   dialog.querySelector("[data-delete-group]")?.addEventListener("click", async () => {
-    if (!window.confirm("Xóa nhóm này? Các sự kiện thuộc nhóm sẽ chuyển về Nhóm chung.")) return;
+    if (!await confirmEventGroupDelete(existing.name)) return;
     await reassignDeletedEventGroup(existing.id);
     eventGroups = eventGroups.filter((group) => group.id !== existing.id);
     await saveEventGroups();
     updateEventGroupPicker("general");
     dialog.close();
+    openEventGroupManagerDialog();
   });
   dialog.querySelector("form").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -267,10 +374,38 @@ function openEventGroupEditorDialog(groupId) {
     await saveEventGroups();
     updateEventGroupPicker(group.id);
     dialog.close();
+    openEventGroupManagerDialog();
   });
   dialog.addEventListener("close", () => dialog.remove(), { once: true });
   document.body.append(dialog);
   dialog.showModal();
+}
+
+function confirmEventGroupDelete(groupName) {
+  return new Promise((resolve) => {
+    const dialog = document.createElement("dialog");
+    dialog.className = "event-confirm-dialog";
+    dialog.innerHTML = `
+      <form method="dialog" class="event-confirm-content">
+        <h2>Xóa nhóm sự kiện?</h2>
+        <p>Nhóm “${escapeHtml(groupName)}” sẽ bị xóa. Các sự kiện thuộc nhóm này sẽ được chuyển về Nhóm chung. Bạn không thể hoàn tác thao tác này.</p>
+        <div class="event-confirm-actions">
+          <button class="event-secondary-button" value="cancel" type="submit">Hủy</button>
+          <button class="event-danger-button" value="delete" type="submit">Xóa nhóm</button>
+        </div>
+      </form>`;
+
+    dialog.addEventListener("close", () => {
+      resolve(dialog.returnValue === "delete");
+      dialog.remove();
+    }, { once: true });
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close("cancel");
+    });
+    document.body.append(dialog);
+    dialog.showModal();
+    dialog.querySelector(".event-secondary-button").focus();
+  });
 }
 
 async function reassignDeletedEventGroup(groupId) {
