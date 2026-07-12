@@ -27,6 +27,7 @@ fs.copyFileSync(path.join(__dirname, "favicon-lichviet.ico"), path.join(outputDi
 fs.copyFileSync(path.join(__dirname, "manifest.webmanifest"), path.join(outputDirectory, "manifest.webmanifest"));
 fs.copyFileSync(path.join(__dirname, "service-worker.js"), path.join(outputDirectory, "service-worker.js"));
 copyDirectory(path.join(__dirname, "icons"), path.join(outputDirectory, "icons"));
+copyDirectory(path.join(__dirname, "assets"), path.join(outputDirectory, "assets"));
 copyDirectory(path.join(__dirname, "data"), path.join(outputDirectory, "data"));
 copyDirectory(path.join(__dirname, "partials"), path.join(outputDirectory, "partials"));
 copyDirectory(path.join(__dirname, "scripts"), path.join(outputDirectory, "scripts"));

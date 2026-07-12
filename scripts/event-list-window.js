@@ -44,14 +44,14 @@ function renderEventListWindowDocument(events, emptyText = "Chưa có sự kiệ
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Danh sách sự kiện</title>
   <base href="${escapeHtml(document.baseURI)}">
-  <link rel="stylesheet" href="styles.css?v=16">
+  <link rel="stylesheet" href="styles.css?v=45">
   <style>
 * { box-sizing: border-box; }
 body {
   margin: 0;
   padding: 24px;
   color: #111111;
-  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #f6f8fb;
 }
 main {

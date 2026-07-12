@@ -150,10 +150,12 @@ function setupCalendarPickerMenu(picker, input, formatOption) {
     list.append(option);
   });
   picker.after(button, list);
+  const containingCard = picker.closest(".converter-card");
 
   const close = () => {
     list.hidden = true;
     button.setAttribute("aria-expanded", "false");
+    containingCard?.classList.remove("has-open-picker");
   };
   button.addEventListener("click", () => {
     const opening = list.hidden;
@@ -162,6 +164,7 @@ function setupCalendarPickerMenu(picker, input, formatOption) {
     list.hidden = !opening;
     button.setAttribute("aria-expanded", String(opening));
     if (opening) {
+      containingCard?.classList.add("has-open-picker");
       list.querySelectorAll("[data-value]").forEach((option) => {
         option.setAttribute("aria-selected", String(option.dataset.value === picker.value));
       });

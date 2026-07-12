@@ -1,10 +1,12 @@
 function renderEventEditorWindowStyles() {
-  return `* { box-sizing: border-box; }
+  return `@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("assets/fonts/inter-vietnamese.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap; src: url("assets/fonts/inter-latin.woff2") format("woff2"); }
+* { box-sizing: border-box; }
 body {
   margin: 0;
   padding: 18px;
   color: #111;
-  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
 }
 h1 {
