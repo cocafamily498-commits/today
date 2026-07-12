@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v106";
+const CACHE_NAME = "homnay-pwa-v107";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -283,6 +283,7 @@ const APP_SHELL = [
   "/scripts/event-schedule.js?v=2",
   "/scripts/calendar-controls.js",
   "/scripts/calendar-controls.js?v=2",
+  "/scripts/calendar-controls.js?v=3",
   "/scripts/event-calendar.js?v=3",
   "/scripts/event-calendar.js?v=4",
   "/scripts/event-calendar.js?v=5",

@@ -166,8 +166,11 @@ function setupCalendarPickerMenu(picker, input, formatOption) {
         option.setAttribute("aria-selected", String(option.dataset.value === picker.value));
       });
       const selected = list.querySelector(`[data-value="${picker.value}"]`);
-      selected?.scrollIntoView({ block: "center" });
-      selected?.focus({ preventScroll: true });
+      if (selected) {
+        // Keep the selected option visible without scrolling the whole page on mobile.
+        list.scrollTop = selected.offsetTop - (list.clientHeight - selected.offsetHeight) / 2;
+        selected.focus({ preventScroll: true });
+      }
     }
   });
   list.addEventListener("click", (event) => {
@@ -187,7 +190,7 @@ function setupCalendarPickerMenu(picker, input, formatOption) {
     options[(index + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length].focus();
   });
   document.addEventListener("click", (event) => {
-    if (!event.target.closest(".calendar-number-control")) close();
+    if (!event.target.closest(".calendar-number-control, .number-entry-control")) close();
   });
 }
 
