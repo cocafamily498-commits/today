@@ -1,6 +1,6 @@
 async function loadAppPartials() {
   const root = document.getElementById("appRoot");
-  const partialVersion = "2026-07-11-system-settings-v2";
+  const partialVersion = "2026-07-12-remove-event-backup-actions";
   const partials = [
     "tabs",
     "today-tab",

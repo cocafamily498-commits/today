@@ -75,6 +75,7 @@ async function startApplication() {
     [setupApplicationInfo, "setupApplicationInfo"],
     [setupMonthlyCalendar, "setupMonthlyCalendar"],
     [setupCollapsiblePanels, "setupCollapsiblePanels"],
+    [setupEventSystemReminderControls, "setupEventSystemReminderControls"],
     [setupTodayEventReminderPrompt, "setupTodayEventReminderPrompt"],
     [setupLazyTabInitialization, "setupLazyTabInitialization"]
   ].forEach(([task, label]) => runStartupTask(task, label));

@@ -8,7 +8,7 @@ function render() {
   const weekday = titleCaseWords(WEEKDAYS[today.getDay()]);
   const lunarMonth = lunar.leap ? `${lunar.month} nhuận` : lunar.month;
   const fullDate = `${weekday}, ngày ${dd} tháng ${mm} năm ${yy}.`;
-  const lunarFullDate = `Ngày ${canChiDay(lunar.jd)}: Ngày ${lunar.day} tháng ${lunarMonth} năm ${canChiYear(lunar.year)}.`;
+  const lunarFullDate = `Ngày ${canChiDay(lunar.jd)},${lunar.day} tháng ${lunarMonth} năm ${canChiYear(lunar.year)}.`;
 
   document.getElementById("solarFullDate").textContent = fullDate;
   document.getElementById("solarMonth").textContent = `${monthName} năm ${yy}`;

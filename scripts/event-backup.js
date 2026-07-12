@@ -412,9 +412,3 @@ async function refreshJournalDataAfterRestore() {
     await loadJournalCalendarEntries();
   }
 }
-
-document.addEventListener("click", (event) => {
-  if (!event.target.closest("#eventRestoreButton")) return;
-  const input = document.getElementById("eventRestoreInput");
-  if (input) input.accept = ".zip,application/zip,application/x-zip-compressed";
-}, true);

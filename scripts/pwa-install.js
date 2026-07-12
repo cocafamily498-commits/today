@@ -115,6 +115,21 @@ function setupPwaInstall() {
 
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
+  const isLocalDevelopment = ["localhost", "127.0.0.1", "::1"].includes(location.hostname);
+  if (isLocalDevelopment) {
+    navigator.serviceWorker.getRegistrations()
+      .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+      .then(() => ("caches" in window ? caches.keys() : []))
+      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+      .then(() => {
+        if (navigator.serviceWorker.controller && !sessionStorage.getItem("homnay.localCacheCleared")) {
+          sessionStorage.setItem("homnay.localCacheCleared", "true");
+          location.reload();
+        }
+      })
+      .catch((error) => console.error("local service worker cleanup failed", error));
+    return;
+  }
   const register = () => {
     const hadController = Boolean(navigator.serviceWorker.controller);
     let updateDialogHandled = false;

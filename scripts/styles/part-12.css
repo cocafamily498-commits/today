@@ -3,18 +3,77 @@
   position: absolute;
   z-index: 2;
   top: 0;
-  right: 0;
-  width: 34px;
+  right: 28px;
+  width: calc(100% - 28px);
   height: 38px;
   border: 0;
   opacity: 0;
   cursor: pointer;
+  clip-path: inset(0 0 0 calc(100% - 34px));
+}
+
+.calendar-picker-select[hidden],
+.calendar-picker-list[hidden] {
+  display: none !important;
+}
+
+.calendar-picker-button {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.calendar-picker-button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -3px;
+  border-radius: 5px;
+}
+
+.calendar-picker-list {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 2px);
+  left: 0;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #7b8794;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(18, 52, 90, .18);
+}
+
+.calendar-picker-list > button {
+  display: block;
+  width: 100%;
+  min-height: 30px;
+  padding: 4px 8px;
+  color: #172b42;
+  font: inherit;
+  font-size: .8rem;
+  text-align: left;
+  border: 0;
+  background: #fff;
+}
+
+.calendar-picker-list > button:hover,
+.calendar-picker-list > button:focus,
+.calendar-picker-list > button[aria-selected="true"] {
+  color: #fff;
+  background: #246bce;
+  outline: none;
 }
 
 .calendar-number-control::after {
   position: absolute;
   top: 50%;
-  right: 10px;
+  right: 13px;
   width: 7px;
   height: 7px;
   border-right: 2px solid #33475e;

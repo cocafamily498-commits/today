@@ -121,7 +121,74 @@ function setupNumberEntryControl(inputId, pickerId, minimum, maximum, formatOpti
     input.value = picker.value;
     input.dispatchEvent(new Event("input", { bubbles: true }));
   });
+  setupCalendarPickerMenu(picker, input, formatOption);
   syncPicker();
+}
+
+function setupCalendarPickerMenu(picker, input, formatOption) {
+  if (picker.dataset.customPickerReady) return;
+  picker.dataset.customPickerReady = "true";
+  picker.hidden = true;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "calendar-picker-button";
+  button.setAttribute("aria-label", picker.getAttribute("aria-label") || "Mở danh sách");
+  button.setAttribute("aria-haspopup", "listbox");
+  button.setAttribute("aria-expanded", "false");
+
+  const list = document.createElement("div");
+  list.className = "calendar-picker-list";
+  list.role = "listbox";
+  list.hidden = true;
+  [...picker.options].forEach((sourceOption) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.role = "option";
+    option.dataset.value = sourceOption.value;
+    option.textContent = sourceOption.textContent;
+    list.append(option);
+  });
+  picker.after(button, list);
+
+  const close = () => {
+    list.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+  };
+  button.addEventListener("click", () => {
+    const opening = list.hidden;
+    document.querySelectorAll(".calendar-picker-list:not([hidden])").forEach((menu) => { menu.hidden = true; });
+    document.querySelectorAll(".calendar-picker-button[aria-expanded='true']").forEach((control) => control.setAttribute("aria-expanded", "false"));
+    list.hidden = !opening;
+    button.setAttribute("aria-expanded", String(opening));
+    if (opening) {
+      list.querySelectorAll("[data-value]").forEach((option) => {
+        option.setAttribute("aria-selected", String(option.dataset.value === picker.value));
+      });
+      const selected = list.querySelector(`[data-value="${picker.value}"]`);
+      selected?.scrollIntoView({ block: "center" });
+      selected?.focus({ preventScroll: true });
+    }
+  });
+  list.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-value]");
+    if (!option) return;
+    picker.value = option.dataset.value;
+    picker.dispatchEvent(new Event("change", { bubbles: true }));
+    close();
+    button.focus();
+  });
+  list.addEventListener("keydown", (event) => {
+    const options = [...list.querySelectorAll("[data-value]")];
+    const index = options.indexOf(document.activeElement);
+    if (event.key === "Escape") { close(); button.focus(); return; }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    options[(index + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length].focus();
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".calendar-number-control")) close();
+  });
 }
 
 function setupCalendarNavigation(options) {

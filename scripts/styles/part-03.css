@@ -40,6 +40,7 @@
 }
 
 .lunar-main {
+  container-type: inline-size;
   padding: 18px 18px 16px;
   text-align: center;
   border: 2px solid rgba(246, 196, 0, .95);
@@ -63,6 +64,13 @@
   font-weight: 800;
   line-height: 1.35;
   letter-spacing: 0;
+}
+
+@media (min-width: 521px) {
+  .lunar-date {
+    font-size: clamp(.85rem, 3cqi, 2rem);
+    white-space: nowrap;
+  }
 }
 
 .converter-card {

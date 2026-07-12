@@ -241,3 +241,10 @@
   line-height: 1.25;
   letter-spacing: 0;
 }
+
+@media (min-width: 521px) {
+  .solar-full-date {
+    max-width: none;
+    white-space: nowrap;
+  }
+}

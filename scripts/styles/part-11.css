@@ -180,7 +180,7 @@
   width: 100%;
   min-width: 0;
   height: 38px;
-  padding: 6px 30px 6px 8px;
+  padding: 6px 42px 6px 8px;
   color: var(--red-dark);
   font: inherit;
   font-size: .8rem;
@@ -189,4 +189,22 @@
   border-radius: 5px;
   background: #fff;
   outline: none;
+}
+
+.month-calendar-selectors .calendar-number-control:first-child input {
+  text-align: right;
+}
+
+@media (min-width: 521px) {
+  .month-calendar-selectors {
+    justify-content: center;
+  }
+
+  .month-calendar-selectors .calendar-number-control:first-child {
+    width: clamp(120px, 16vw, 190px);
+  }
+
+  .month-calendar-selectors .calendar-number-control:last-child {
+    width: clamp(120px, 16vw, 190px);
+  }
 }

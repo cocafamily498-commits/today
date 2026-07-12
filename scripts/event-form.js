@@ -70,8 +70,6 @@ async function setupEventForm() {
   deleteButton.addEventListener("click", deleteEditingEvent);
   listWindowButton.addEventListener("click", openEventListWindow);
   closeButton.addEventListener("click", closeEventDialog);
-  setupEventBackupControls();
-  setupEventSystemReminderControls();
   dialog.addEventListener("close", () => {
     document.body.classList.remove("event-dialog-open");
     if (typeof returnToEventListDialogIfNeeded === "function") {
@@ -174,24 +172,6 @@ function compareEventsByNextOccurrence(left, right) {
   if (titleCompare !== 0) return titleCompare;
   return String(left.id || "").localeCompare(String(right.id || ""));
 }
-
-function setupEventBackupControls() {
-  const backupButton = document.getElementById("eventBackupButton");
-  const restoreButton = document.getElementById("eventRestoreButton");
-  const restoreInput = document.getElementById("eventRestoreInput");
-  if (!backupButton || !restoreButton || !restoreInput || !window.LichVietData) return;
-
-  backupButton.addEventListener("click", openBackupExplanationDialog);
-  restoreButton.addEventListener("click", () => restoreInput.click());
-  restoreInput.addEventListener("change", async () => {
-    const file = restoreInput.files && restoreInput.files[0];
-    restoreInput.value = "";
-    if (!file) return;
-    await importEventBackupFile(file);
-    await syncEventWebPushReminders();
-  });
-}
-
 
 function resetEventForm(date = null) {
   const form = document.getElementById("eventForm");

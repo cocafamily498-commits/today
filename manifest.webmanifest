@@ -1,6 +1,7 @@
 {
   "name": "Sổ tay lịch Việt",
   "short_name": "Lịch Việt",
+  "id": "/",
   "description": "Sổ tay lịch Việt với lịch âm dương, sự kiện và nhật ký cá nhân.",
   "lang": "vi",
   "start_url": "/",
@@ -17,7 +18,12 @@
       "files": [
         {
           "name": "backup",
-          "accept": ["application/zip", "application/x-zip-compressed", ".zip"]
+          "accept": [
+            "application/zip",
+            "application/x-zip-compressed",
+            "application/octet-stream",
+            ".zip"
+          ]
         }
       ]
     }
