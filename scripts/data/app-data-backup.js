@@ -2,7 +2,8 @@
   "use strict";
 
   const parts = window.LichVietDataParts;
-  const { getAllFromStore, replaceStoreData, blobToDataUrl, dataUrlToBlob, nowIso, setAppMeta } = parts;
+  const { getAllFromStore, replaceStoreData, blobToDataUrl, dataUrlToBlob, nowIso, setAppMeta,
+    clearEventsReadCache } = parts;
 
   async function exportBackup() {
     const [events, journals, images, reminderDismissals, settings, appMeta] = await Promise.all([
@@ -47,6 +48,7 @@
     })));
   
     await replaceStoreData("events", backup.events || []);
+    if (clearEventsReadCache) clearEventsReadCache();
     await replaceStoreData("journals", backup.journals || []);
     await replaceStoreData("images", images);
     await replaceStoreData("reminderDismissals", backup.reminderDismissals || []);

@@ -13,6 +13,7 @@
     getAllEvents: parts.getAllEvents,
     getEventsByDate: parts.getEventsByDate,
     getEventsByMonth: parts.getEventsByMonth,
+    clearEventsReadCache: parts.clearEventsReadCache,
     upsertJournalByDate: parts.upsertJournalByDate,
     getJournalByDate: parts.getJournalByDate,
     getAllJournals: parts.getAllJournals,

@@ -28,6 +28,7 @@ window.EventEditorBridge = {
   getLunarDateValue: getEventLunarDateValue,
   saveValues: saveEventEditorValues,
   deleteCurrentEvent: deleteCurrentEditingEvent,
+  confirmEventDelete: confirmEventDelete,
   openGroupManager: () => {
     if (typeof openEventGroupManagerDialog === "function") openEventGroupManagerDialog();
   },
@@ -82,32 +83,12 @@ async function deleteEditingEvent() {
 }
 
 function confirmEventDelete() {
-  return new Promise((resolve) => {
-    const dialog = document.createElement("dialog");
-    dialog.className = "event-confirm-dialog";
-    dialog.innerHTML = `
-      <form method="dialog" class="event-confirm-content">
-        <h2>Xóa sự kiện?</h2>
-        <p>Sự kiện này sẽ bị xóa khỏi lịch. Bạn không thể hoàn tác thao tác này.</p>
-        <div class="event-confirm-actions">
-          <button class="event-secondary-button" value="cancel" type="submit">Hủy</button>
-          <button class="event-danger-button" value="delete" type="submit">Xóa sự kiện</button>
-        </div>
-      </form>
-    `;
-
-    dialog.addEventListener("close", () => {
-      resolve(dialog.returnValue === "delete");
-      dialog.remove();
-    }, { once: true });
-
-    dialog.addEventListener("click", (event) => {
-      if (event.target === dialog) dialog.close("cancel");
-    });
-
-    document.body.append(dialog);
-    dialog.showModal();
-    dialog.querySelector(".event-secondary-button").focus();
+  return showConfirmDialog({
+    title: "Xóa sự kiện?",
+    message: "Sự kiện này sẽ bị xóa khỏi lịch. Bạn không thể hoàn tác thao tác này.",
+    confirmLabel: "Xóa sự kiện",
+    cancelLabel: "Hủy",
+    danger: true
   });
 }
 

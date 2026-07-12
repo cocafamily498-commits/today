@@ -1,6 +1,6 @@
 async function loadAppPartials() {
   const root = document.getElementById("appRoot");
-  const partialVersion = "2026-07-10-event-group-icon-list";
+  const partialVersion = "2026-07-11-system-settings-v2";
   const partials = [
     "tabs",
     "today-tab",

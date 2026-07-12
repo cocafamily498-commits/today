@@ -121,6 +121,7 @@
   async function createEvent(input) {
     const event = normalizeEvent(input);
     await withStore("events", "readwrite", (store) => store.put(event));
+    clearEventsReadCache();
     return event;
   }
   
@@ -130,19 +131,34 @@
   
     const event = normalizeEvent({ ...changes, id }, existingEvent);
     await withStore("events", "readwrite", (store) => store.put(event));
+    clearEventsReadCache();
     return event;
   }
   
   async function deleteEvent(id) {
     await withStore("events", "readwrite", (store) => store.delete(id));
+    clearEventsReadCache();
   }
   
   async function getEvent(id) {
     return withStore("events", "readonly", (store) => requestToPromise(store.get(id)));
   }
   
+  let eventsReadPromise = null;
+
+  function clearEventsReadCache() {
+    eventsReadPromise = null;
+  }
+
   async function getAllEvents() {
-    return withStore("events", "readonly", (store) => requestToPromise(store.getAll()));
+    if (!eventsReadPromise) {
+      eventsReadPromise = withStore("events", "readonly", (store) => requestToPromise(store.getAll()))
+        .catch((error) => {
+          eventsReadPromise = null;
+          throw error;
+        });
+    }
+    return eventsReadPromise;
   }
   
   async function getEventsByDate(date) {
@@ -159,6 +175,7 @@
   
 
   Object.assign(parts, {
-    createEvent, updateEvent, deleteEvent, getEvent, getAllEvents, getEventsByDate, getEventsByMonth
+    createEvent, updateEvent, deleteEvent, getEvent, getAllEvents, getEventsByDate, getEventsByMonth,
+    clearEventsReadCache
   });
 })();

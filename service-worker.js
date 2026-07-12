@@ -1,4 +1,5 @@
-const CACHE_NAME = "homnay-pwa-v82";
+const CACHE_NAME = "homnay-pwa-v92";
+const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -79,6 +80,7 @@ const APP_SHELL = [
   "/favicon.ico",
   "/favicon-lichviet.ico",
   "/manifest.webmanifest",
+  "/manifest.webmanifest?v=10",
   "/icons/app-icon-lichviet-transparent-192.png",
   "/icons/app-icon-lichviet-transparent-512.png",
   "/icons/app-icon-lichviet-calendar-192.png",
@@ -139,7 +141,10 @@ const APP_SHELL = [
   "/scripts/partials-loader.js?v=5",
   "/scripts/partials-loader.js?v=6",
   "/scripts/lunar-core.js",
+  "/scripts/lunar-core.js?v=2",
   "/scripts/app-shell.js",
+  "/scripts/app-shell.js?v=2",
+  "/scripts/confirm-dialog.js?v=2",
   "/scripts/event-list-window.js",
   "/scripts/event-list-window.js?v=2",
   "/scripts/event-list-window.js?v=3",
@@ -178,6 +183,7 @@ const APP_SHELL = [
   "/scripts/event-reminders-push.js?v=6",
   "/scripts/event-backup.js",
   "/scripts/event-backup.js?v=2",
+  "/scripts/event-backup.js?v=3",
   "/scripts/event-today-reminders.js?v=2",
   "/scripts/event-today-reminders.js?v=3",
   "/scripts/event-today-reminders.js?v=4",
@@ -203,6 +209,10 @@ const APP_SHELL = [
   "/scripts/event-groups.js?v=8",
   "/scripts/event-groups.js?v=9",
   "/scripts/event-groups.js?v=10",
+  "/scripts/event-groups.js?v=11",
+  "/scripts/event-groups.js?v=12",
+  "/scripts/event-groups.js?v=13",
+  "/scripts/event-groups.js?v=14",
   "/scripts/event-form.js?v=2",
   "/scripts/event-form.js?v=3",
   "/scripts/event-form.js?v=4",
@@ -261,18 +271,28 @@ const APP_SHELL = [
   "/scripts/weather-panel.js",
   "/scripts/market-panels.js",
   "/scripts/pwa-install.js?v=2",
-  "/scripts/startup.js"
+  "/scripts/startup.js",
+  "/scripts/startup.js?v=2"
 ];
 
+// APP_SHELL keeps historical entries for compatibility, but installing every
+// cache-busted version makes updates unnecessarily expensive. The last entry
+// for a pathname is the current version used by index.html/styles.css.
+const INSTALL_SHELL = Array.from(APP_SHELL.reduce((assets, asset) => {
+  const url = new URL(asset, self.location.origin);
+  assets.set(url.pathname, asset);
+  return assets;
+}, new Map()).values());
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(INSTALL_SHELL)));
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(keys
-      .filter((key) => key !== CACHE_NAME)
+      .filter((key) => key !== CACHE_NAME && key !== SHARE_TARGET_CACHE)
       .map((key) => caches.delete(key))))
   );
   self.clients.claim();
@@ -280,10 +300,43 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET") return;
-
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (request.method === "POST" && url.pathname === "/share-target") {
+    event.respondWith((async () => {
+      const formData = await request.formData();
+      const file = formData.get("backup");
+      if (!(file instanceof File) || !file.size) {
+        return Response.redirect(new URL("/?share-error=no-file", self.location.origin), 303);
+      }
+      const shareId = `${Date.now()}-${crypto.randomUUID()}`;
+      const fileUrl = new URL(`/share-target-file?id=${encodeURIComponent(shareId)}`, self.location.origin);
+      const cache = await caches.open(SHARE_TARGET_CACHE);
+      await cache.put(fileUrl, new Response(file, {
+        headers: {
+          "content-type": file.type || "application/zip",
+          "x-share-file-name": encodeURIComponent(file.name || "Sotaylichviet-backup.zip"),
+          "cache-control": "no-store"
+        }
+      }));
+      return Response.redirect(new URL(`/?share-target=${encodeURIComponent(shareId)}`, self.location.origin), 303);
+    })());
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/share-target-file") {
+    event.respondWith((async () => {
+      const cache = await caches.open(SHARE_TARGET_CACHE);
+      const response = await cache.match(request);
+      if (!response) return new Response("Shared file not found", { status: 404 });
+      await cache.delete(request);
+      return response;
+    })());
+    return;
+  }
+
+  if (request.method !== "GET") return;
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/.netlify/functions/")) return;
 
   if (request.mode === "navigate") {

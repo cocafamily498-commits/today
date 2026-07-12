@@ -271,13 +271,19 @@ function openEventGroupManagerDialog() {
       openEventGroupTemplateDialog();
     }
   });
+  dialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    dialog.close();
+  });
   dialog.addEventListener("close", () => dialog.remove(), { once: true });
   document.body.append(dialog);
   dialog.showModal();
 }
 
-function openEventGroupTemplateDialog(existingGroupId = null) {
+function openEventGroupTemplateDialog(existingGroupId = null, returnDraft = null) {
   const dialog = document.createElement("dialog");
+  let continueToEditor = false;
   dialog.className = "event-group-dialog event-group-template-dialog";
   dialog.innerHTML = `
     <div class="event-group-dialog-content">
@@ -297,10 +303,17 @@ function openEventGroupTemplateDialog(existingGroupId = null) {
     const button = event.target.closest("[data-template-index]");
     if (!button) return;
     const template = EVENT_GROUP_TEMPLATES[Number(button.dataset.templateIndex)];
+    continueToEditor = true;
     dialog.close();
     openEventGroupEditorDialog(existingGroupId, template);
   });
-  dialog.addEventListener("close", () => dialog.remove(), { once: true });
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+    if (!continueToEditor) {
+      if (returnDraft) openEventGroupEditorDialog(existingGroupId, returnDraft);
+      else openEventGroupManagerDialog();
+    }
+  }, { once: true });
   document.body.append(dialog);
   dialog.showModal();
 }
@@ -310,6 +323,7 @@ function openEventGroupEditorDialog(groupId, selectedTemplate = null) {
   const readonly = existing && existing.readonly;
   const draft = selectedTemplate || existing || EVENT_GROUP_TEMPLATES[0];
   const dialog = document.createElement("dialog");
+  let continueToAnotherDialog = false;
   dialog.className = "event-group-dialog";
   dialog.innerHTML = `
     <form class="event-group-dialog-content" data-event-group-form>
@@ -336,8 +350,14 @@ function openEventGroupEditorDialog(groupId, selectedTemplate = null) {
     </form>`;
   dialog.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => dialog.close()));
   dialog.querySelector("[data-choose-template]")?.addEventListener("click", () => {
+    const currentDraft = {
+      name: dialog.querySelector("input[name='name']")?.value.trim() || draft.name,
+      iconId: dialog.querySelector("input[name='iconId']")?.value || draft.iconId,
+      color: dialog.querySelector("input[name='color']")?.value || draft.color
+    };
+    continueToAnotherDialog = true;
     dialog.close();
-    openEventGroupTemplateDialog(existing ? existing.id : null);
+    openEventGroupTemplateDialog(existing ? existing.id : null, currentDraft);
   });
   const nameInput = dialog.querySelector("input[name='name']");
   const colorInput = dialog.querySelector("input[name='color']");
@@ -355,6 +375,7 @@ function openEventGroupEditorDialog(groupId, selectedTemplate = null) {
     eventGroups = eventGroups.filter((group) => group.id !== existing.id);
     await saveEventGroups();
     updateEventGroupPicker("general");
+    continueToAnotherDialog = true;
     dialog.close();
     openEventGroupManagerDialog();
   });
@@ -373,10 +394,19 @@ function openEventGroupEditorDialog(groupId, selectedTemplate = null) {
     else eventGroups.push(group);
     await saveEventGroups();
     updateEventGroupPicker(group.id);
+    continueToAnotherDialog = true;
     dialog.close();
     openEventGroupManagerDialog();
   });
-  dialog.addEventListener("close", () => dialog.remove(), { once: true });
+  dialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    dialog.close();
+  });
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+    if (!continueToAnotherDialog) openEventGroupManagerDialog();
+  }, { once: true });
   document.body.append(dialog);
   dialog.showModal();
 }

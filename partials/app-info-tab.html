@@ -1,24 +1,16 @@
 <section id="appInfoTab" class="tab-panel app-info-tab" role="tabpanel" aria-labelledby="appInfoTabButton" hidden>
-      <article class="app-info-page">
-        <header class="app-info-dialog-header">
-          <h1>Thông tin ứng dụng</h1>
-          <p>Phiên bản 2.0 · Phát triển bởi Ong Thua Phu</p>
-        </header>
-        <div class="app-info-dialog-body">
-          <div class="app-info-list">
-            <section class="app-info-item">
-              <h2>Nguồn dữ liệu</h2>
-              <p>Tổng hợp từ các nguồn công khai và dịch vụ bên thứ ba; dữ liệu có thể chậm hoặc thay đổi.</p>
-            </section>
-            <section class="app-info-item">
-              <h2>Miễn trừ trách nhiệm</h2>
-              <p>Thông tin chỉ mang tính tham khảo, không phải tư vấn tài chính, đầu tư hay quyết định chuyên môn.</p>
-            </section>
-            <section class="app-info-item app-info-item-wide">
-              <h2>Dữ liệu của bạn</h2>
-              <p>Sự kiện và nhật ký được lưu trên thiết bị này trong trình duyệt hiện tại, không tự động gửi lên cloud. Hãy xuất file <code>.lichviet</code> để sao lưu trước khi xóa dữ liệu trình duyệt, đổi máy hoặc đổi trình duyệt.</p>
-            </section>
-          </div>
-        </div>
-      </article>
-    </section>
+  <article class="app-info-page system-settings-page">
+    <header class="app-info-dialog-header">
+      <h1>Cài đặt/hệ thống</h1>
+    </header>
+    <div class="app-info-dialog-body">
+      <div class="system-settings-actions">
+        <button id="appInfoButton" class="system-settings-button" type="button">Thông tin ứng dụng</button>
+        <button id="systemInstallButton" class="system-settings-button" type="button">Cài đặt ứng dụng</button>
+        <button id="systemExportButton" class="system-settings-button" type="button">Export data</button>
+        <button id="systemImportButton" class="system-settings-button" type="button">Import data</button>
+        <input id="systemImportInput" type="file" accept=".zip,application/zip,application/x-zip-compressed" hidden>
+      </div>
+    </div>
+  </article>
+</section>

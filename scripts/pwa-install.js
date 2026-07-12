@@ -90,25 +90,26 @@ function setupPwaInstall() {
   checkAppVersionNotice();
 
   const installButton = document.getElementById("appInstallButton");
-  if (!installButton) return;
 
   if (isStandalonePwa()) {
-    installButton.hidden = true;
+    if (installButton) installButton.hidden = true;
     return;
   }
 
-  installButton.hidden = false;
-  installButton.addEventListener("click", handleInstallClick);
+  if (installButton) {
+    installButton.hidden = false;
+    installButton.addEventListener("click", handleInstallClick);
+  }
 
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     deferredInstallPrompt = event;
-    installButton.hidden = false;
+    if (installButton) installButton.hidden = false;
   });
 
   window.addEventListener("appinstalled", () => {
     deferredInstallPrompt = null;
-    installButton.hidden = true;
+    if (installButton) installButton.hidden = true;
   });
 }
 

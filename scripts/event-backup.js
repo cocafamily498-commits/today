@@ -316,8 +316,14 @@ async function backupEventData() {
   }
 }
 
-async function restoreEventDataFromFile(file) {
-  if (!window.confirm("Khôi phục dữ liệu sẽ thay thế dữ liệu hiện tại trên trình duyệt này. Tiếp tục?")) return;
+async function importEventBackupFile(file) {
+  if (!await showConfirmDialog({
+    title: "Khôi phục dữ liệu?",
+    message: "Khôi phục dữ liệu sẽ thay thế dữ liệu hiện tại trên trình duyệt này.",
+    confirmLabel: "Khôi phục",
+    cancelLabel: "Hủy",
+    danger: true
+  })) return;
 
   const progress = openEventBackupProgressDialog(
     "\u0110ang nh\u1eadp d\u1eef li\u1ec7u",
@@ -382,7 +388,9 @@ async function restoreEventDataFromFile(file) {
     clearEventChoiceList();
     resetEventForm(toDateInputValue(getVietnamToday()));
     progress.update(65, "\u0110ang l\u00e0m m\u1edbi l\u1ecbch v\u00e0 nh\u1eadt k\u00fd...");
-    await loadEventCalendarOccurrences();
+    if (Number.isInteger(eventCalendarYear) && Number.isInteger(eventCalendarMonth)) {
+      await loadEventCalendarOccurrences();
+    }
     await refreshJournalDataAfterRestore();
     progress.update(85, "\u0110ang \u0111\u1ed3ng b\u1ed9 nh\u1eafc nh\u1edf...");
     await syncEventWebPushReminders();
@@ -397,10 +405,10 @@ async function restoreEventDataFromFile(file) {
 }
 
 async function refreshJournalDataAfterRestore() {
-  if (typeof resetJournalForm === "function") {
+  if (Number.isInteger(journalCalendarYear) && typeof resetJournalForm === "function") {
     resetJournalForm(toDateInputValue(getVietnamToday()));
   }
-  if (typeof loadJournalCalendarEntries === "function") {
+  if (Number.isInteger(journalCalendarYear) && typeof loadJournalCalendarEntries === "function") {
     await loadJournalCalendarEntries();
   }
 }

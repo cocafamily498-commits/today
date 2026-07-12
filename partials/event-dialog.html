@@ -9,12 +9,20 @@
             <div class="event-field event-type-field">
               <label for="eventType">Loại sự kiện</label>
               <span class="event-type-select-wrap">
-                <span id="eventTypeIcon" class="event-type-selected-icon birthday" aria-hidden="true">☀</span>
-                <select id="eventType" name="eventType">
+                <select id="eventType" name="eventType" hidden>
                   <option value="birthday">Sinh nhật</option>
                   <option value="deathAnniversary">Đám giỗ</option>
                   <option value="other">Sự kiện khác</option>
                 </select>
+                <button id="eventTypePickerButton" class="event-type-picker-button" type="button" aria-haspopup="listbox" aria-expanded="false">
+                  <span id="eventTypeIcon" class="event-type-selected-icon birthday" aria-hidden="true">☀</span>
+                  <span id="eventTypePickerLabel">Sinh nhật</span>
+                </button>
+                <span id="eventTypePickerList" class="event-type-picker-list" role="listbox" hidden>
+                  <button type="button" role="option" data-value="birthday"><span class="event-type-option-icon birthday" aria-hidden="true">☀</span><span>Sinh nhật</span></button>
+                  <button type="button" role="option" data-value="deathAnniversary"><span class="event-type-option-icon deathAnniversary" aria-hidden="true">☾</span><span>Đám giỗ</span></button>
+                  <button type="button" role="option" data-value="other"><span class="event-type-option-icon other" aria-hidden="true">★</span><span>Sự kiện khác</span></button>
+                </span>
               </span>
             </div>
             <div class="event-field event-date-field">

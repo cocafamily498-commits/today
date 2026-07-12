@@ -42,6 +42,30 @@ function runStartupTask(task, label) {
   }
 }
 
+function scheduleBackgroundTask(task, label) {
+  const run = () => runStartupTask(task, label);
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(run, { timeout: 2000 });
+  } else {
+    setTimeout(run, 0);
+  }
+}
+
+function setupLazyTabInitialization() {
+  const initialized = new Set();
+  const initializeTab = (tabId) => {
+    if (!tabId || initialized.has(tabId)) return;
+    if (tabId === "eventsTab") runStartupTask(setupEventForm, "setupEventForm");
+    else if (tabId === "journalsTab") runStartupTask(setupJournalCalendar, "setupJournalCalendar");
+    else if (tabId === "converterTab") runStartupTask(setupConversionTool, "setupConversionTool");
+    else return;
+    initialized.add(tabId);
+  };
+
+  document.addEventListener("app:tab-activated", (event) => initializeTab(event.detail && event.detail.tabId));
+  initializeTab((location.hash || "#todayTab").slice(1));
+}
+
 async function startApplication() {
   await loadAppPartials();
 
@@ -49,19 +73,23 @@ async function startApplication() {
     [render, "render"],
     [setupAppTabs, "setupAppTabs"],
     [setupApplicationInfo, "setupApplicationInfo"],
-    [setupEventForm, "setupEventForm"],
-    [setupJournalCalendar, "setupJournalCalendar"],
-    [setupConversionTool, "setupConversionTool"],
     [setupMonthlyCalendar, "setupMonthlyCalendar"],
-    [setupLocationPicker, "setupLocationPicker"],
     [setupCollapsiblePanels, "setupCollapsiblePanels"],
+    [setupTodayEventReminderPrompt, "setupTodayEventReminderPrompt"],
+    [setupLazyTabInitialization, "setupLazyTabInitialization"]
+  ].forEach(([task, label]) => runStartupTask(task, label));
+
+  [
+    [setupLocationPicker, "setupLocationPicker"],
     [setupPwaInstall, "setupPwaInstall"],
     [registerServiceWorker, "registerServiceWorker"],
     [loadWeather, "loadWeather"],
     [loadMarkets, "loadMarkets"],
     [loadAssets, "loadAssets"],
     [loadQuotes, "loadQuotes"]
-  ].forEach(([task, label]) => runStartupTask(task, label));
+  ].forEach(([task, label]) => scheduleBackgroundTask(task, label));
+
+  await importSharedBackupFile();
 
   setInterval(loadWeather, 10 * 60 * 1000);
   setInterval(loadMarkets, 60 * 1000);

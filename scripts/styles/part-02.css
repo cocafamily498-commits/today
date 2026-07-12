@@ -11,9 +11,39 @@
   box-shadow: var(--shadow);
 }
 
+.system-settings-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.system-settings-button {
+  min-height: 58px;
+  padding: 13px 18px;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  border: 0;
+  border-radius: 8px;
+  background: var(--red-dark);
+  cursor: pointer;
+}
+
+.system-settings-button:hover,
+.system-settings-button:focus-visible {
+  background: #1e4c7a;
+  outline: 3px solid rgba(18, 52, 90, .18);
+}
+
+@media (max-width: 520px) {
+  .system-settings-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 .app-topbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 5px;
   margin-bottom: 10px;
   padding: 5px;

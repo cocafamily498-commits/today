@@ -140,22 +140,48 @@ function convertSolarToLunar(dd, mm, yy, timeZone) {
 }
 
 async function convertLunarToSolar(lunarDay, lunarMonth, lunarYear, lunarLeap, timeZone = TIME_ZONE) {
-  const endpoint = getApiUrl("/api/lunar-to-solar");
-  try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ lunarDay, lunarMonth, lunarYear, lunarLeap, timeZone })
-    });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || "Không thể đổi ngày âm sang dương");
-    return payload.solar;
-  } catch (error) {
-    if (error instanceof TypeError) {
-      throw new Error("Không kết nối được máy chủ đổi lịch. Hãy chạy start-background.cmd rồi thử lại.");
-    }
-    throw error;
+  lunarDay = Number(lunarDay);
+  lunarMonth = Number(lunarMonth);
+  lunarYear = Number(lunarYear);
+  timeZone = Number(timeZone);
+  lunarLeap = lunarLeap === true || lunarLeap === 1;
+
+  if (!Number.isInteger(lunarDay) || lunarDay < 1 || lunarDay > 30) throw new Error("Ngày âm phải từ 1 đến 30");
+  if (!Number.isInteger(lunarMonth) || lunarMonth < 1 || lunarMonth > 12) throw new Error("Tháng âm phải từ 1 đến 12");
+  if (!Number.isInteger(lunarYear) || lunarYear < 1000 || lunarYear > 3000) throw new Error("Năm âm không hợp lệ");
+  if (!Number.isFinite(timeZone) || timeZone < -12 || timeZone > 14) throw new Error("Múi giờ không hợp lệ");
+
+  let a11;
+  let b11;
+  if (lunarMonth < 11) {
+    a11 = getLunarMonth11(lunarYear - 1, timeZone);
+    b11 = getLunarMonth11(lunarYear, timeZone);
+  } else {
+    a11 = getLunarMonth11(lunarYear, timeZone);
+    b11 = getLunarMonth11(lunarYear + 1, timeZone);
   }
+
+  const k = Math.floor(.5 + (a11 - 2415021.076998695) / 29.530588853);
+  let offset = lunarMonth - 11;
+  if (offset < 0) offset += 12;
+
+  if (b11 - a11 > 365) {
+    const leapOffset = getLeapMonthOffset(a11, timeZone);
+    let leapMonth = leapOffset - 2;
+    if (leapMonth < 0) leapMonth += 12;
+    if (lunarLeap && lunarMonth !== leapMonth) throw new Error("Ngày âm hoặc tháng nhuận không hợp lệ");
+    if (lunarLeap || offset >= leapOffset) offset += 1;
+  } else if (lunarLeap) {
+    throw new Error("Ngày âm hoặc tháng nhuận không hợp lệ");
+  }
+
+  const monthStart = getNewMoonDay(k + offset, timeZone);
+  const nextMonthStart = getNewMoonDay(k + offset + 1, timeZone);
+  if (lunarDay > nextMonthStart - monthStart) throw new Error("Ngày âm hoặc tháng nhuận không hợp lệ");
+
+  const jd = monthStart + lunarDay - 1;
+  const [day, month, year] = jdToDate(jd);
+  return { day, month, year, jd };
 }
 
 const LOCAL_API_ORIGIN = "http://localhost:3000";

@@ -13,6 +13,7 @@ async function setupEventForm() {
 
   if (!form || !window.LichVietData) return;
 
+  setupEventTypePicker();
   if (typeof setupEventGroupPicker === "function") setupEventGroupPicker();
   try {
     if (typeof initializeEventGroups === "function") {
@@ -109,7 +110,6 @@ async function setupEventForm() {
 
   applyTypeDefaults();
   setupEventCalendar();
-  setupTodayEventReminderPrompt();
 }
 
 function updateEventTypeIcon(type) {
@@ -117,6 +117,50 @@ function updateEventTypeIcon(type) {
   if (!icon) return;
   icon.className = `event-type-selected-icon ${type}`;
   icon.textContent = getEventTypeIcon(type);
+  const labels = { birthday: "Sinh nhật", deathAnniversary: "Đám giỗ", other: "Sự kiện khác" };
+  const label = document.getElementById("eventTypePickerLabel");
+  if (label) label.textContent = labels[type] || labels.other;
+  document.querySelectorAll("#eventTypePickerList [role='option']").forEach((option) => {
+    option.setAttribute("aria-selected", String(option.dataset.value === type));
+  });
+}
+
+function setupEventTypePicker() {
+  const input = document.getElementById("eventType");
+  const button = document.getElementById("eventTypePickerButton");
+  const list = document.getElementById("eventTypePickerList");
+  if (!input || !button || !list || button.dataset.ready) return;
+  button.dataset.ready = "true";
+
+  const close = () => {
+    list.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+  };
+  button.addEventListener("click", () => {
+    const opening = list.hidden;
+    list.hidden = !opening;
+    button.setAttribute("aria-expanded", String(opening));
+    if (opening) list.querySelector(`[data-value="${input.value}"]`)?.focus();
+  });
+  list.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-value]");
+    if (!option) return;
+    input.value = option.dataset.value;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    close();
+    button.focus();
+  });
+  list.addEventListener("keydown", (event) => {
+    const options = [...list.querySelectorAll("[data-value]")];
+    const index = options.indexOf(document.activeElement);
+    if (event.key === "Escape") { close(); button.focus(); return; }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    options[(index + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length].focus();
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".event-type-select-wrap")) close();
+  });
 }
 
 function compareEventsByNextOccurrence(left, right) {
@@ -143,7 +187,7 @@ function setupEventBackupControls() {
     const file = restoreInput.files && restoreInput.files[0];
     restoreInput.value = "";
     if (!file) return;
-    await restoreEventDataFromFile(file);
+    await importEventBackupFile(file);
     await syncEventWebPushReminders();
   });
 }
