@@ -10,6 +10,8 @@ function setupConversionTool() {
   let solarCalendarTarget = null;
   let lunarCalendarTarget = null;
 
+  setupAstrologyTool();
+
   document.getElementById("solarInputDay").value = today.getDate();
   document.getElementById("solarInputMonth").value = today.getMonth() + 1;
   document.getElementById("solarInputYear").value = today.getFullYear();

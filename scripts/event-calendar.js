@@ -312,6 +312,7 @@ function renderEventChoiceList(date, events) {
   if (status) status.textContent = "Chọn sự kiện để sửa";
   list.innerHTML = sortedEvents.map((item) => `
     <button class="event-list-item" type="button" data-event-id="${item.id}">
+      ${getEventTypeIconMarkup(item.eventType, "event-card-type-icon")}
       <strong>${getEventTypeIconMarkup(item.eventType, "month-event-icon", item.eventTypeId)}${escapeHtml(item.title)}</strong>
       <span>${getEventDateSummary(item)}</span>
       <span class="event-countdown">${getEventCountdownText(item)}</span>

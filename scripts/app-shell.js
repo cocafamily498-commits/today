@@ -11,9 +11,15 @@ function setupAppTabs() {
   stage.className = "tab-panels-stage";
   panels[0].before(stage);
   panels.forEach((panel) => stage.append(panel));
+  const desktopQuery = window.matchMedia("(min-width: 521px)");
+  const HOVER_DELAY = 300;
+  const FADE_DURATION = 550;
+  let hoverTimer = 0;
+  let transitionTimer = 0;
+  let transitionVersion = 0;
 
   const syncPanels = (selectedButton) => {
-    const desktop = window.matchMedia("(min-width: 521px)").matches;
+    const desktop = desktopQuery.matches;
     buttons.forEach((item, index) => {
       const selected = item === selectedButton;
       const panel = panels[index];
@@ -25,7 +31,7 @@ function setupAppTabs() {
     });
   };
 
-  const activate = (button, updateHash) => {
+  const commitActivation = (button, updateHash) => {
     if (button.getAttribute("aria-selected") === "true") return;
     syncPanels(button);
     if (updateHash) history.replaceState(null, "", `#${button.getAttribute("aria-controls")}`);
@@ -33,21 +39,54 @@ function setupAppTabs() {
       detail: { tabId: button.getAttribute("aria-controls") }
     }));
   };
+
+  const activate = (button, updateHash) => {
+    window.clearTimeout(hoverTimer);
+    if (button.getAttribute("aria-selected") === "true") return;
+    if (!desktopQuery.matches) {
+      commitActivation(button, updateHash);
+      return;
+    }
+
+    const version = ++transitionVersion;
+    window.clearTimeout(transitionTimer);
+    // Flush the fully visible state so the browser always paints the fade-out.
+    void stage.offsetWidth;
+    stage.classList.add("is-switching");
+    transitionTimer = window.setTimeout(() => {
+      if (version !== transitionVersion) return;
+      commitActivation(button, updateHash);
+      // Keep the new panel at the dimmed opacity for one complete frame before fading in.
+      void stage.offsetWidth;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (version === transitionVersion) stage.classList.remove("is-switching");
+        });
+      });
+    }, FADE_DURATION);
+  };
+
   buttons.forEach((button) => {
     button.addEventListener("click", () => activate(button, true));
     button.addEventListener("pointerenter", (event) => {
-      if (event.pointerType !== "touch" && window.matchMedia("(min-width: 521px)").matches) {
-        activate(button, false);
+      if (event.pointerType !== "touch" && desktopQuery.matches) {
+        window.clearTimeout(hoverTimer);
+        hoverTimer = window.setTimeout(() => activate(button, false), HOVER_DELAY);
       }
     });
+    button.addEventListener("pointerleave", () => window.clearTimeout(hoverTimer));
     button.addEventListener("focus", () => {
-      if (window.matchMedia("(min-width: 521px)").matches) activate(button, false);
+      if (desktopQuery.matches) activate(button, false);
     });
   });
   const hashedButton = buttons.find((button) => location.hash === `#${button.getAttribute("aria-controls")}`);
   const initialButton = hashedButton || buttons.find((button) => button.getAttribute("aria-selected") === "true") || buttons[0];
   syncPanels(initialButton);
   window.addEventListener("resize", () => {
+    window.clearTimeout(hoverTimer);
+    window.clearTimeout(transitionTimer);
+    transitionVersion += 1;
+    stage.classList.remove("is-switching");
     const selectedButton = buttons.find((button) => button.getAttribute("aria-selected") === "true") || buttons[0];
     syncPanels(selectedButton);
   });

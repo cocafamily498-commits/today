@@ -135,6 +135,15 @@
 @media (min-width: 521px) {
   .tab-panels-stage {
     position: relative;
+    opacity: 1;
+    transition: opacity 700ms cubic-bezier(.4, 0, .2, 1);
+    will-change: opacity;
+  }
+
+  .tab-panels-stage.is-switching {
+    opacity: .4;
+    pointer-events: none;
+    transition-duration: 550ms;
   }
 
   .tab-panels-stage > .tab-panel {
@@ -142,24 +151,14 @@
     top: 0;
     left: 0;
     width: 100%;
-    opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: translateY(-8px) scale(.98);
-    transform-origin: top center;
-    transition:
-      opacity .4s cubic-bezier(.23, 1, .32, 1),
-      transform .5s cubic-bezier(.23, 1, .32, 1),
-      visibility 0s linear .4s;
   }
 
   .tab-panels-stage > .tab-panel.is-active {
     position: relative;
-    opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transform: translateY(0) scale(1);
-    transition-delay: 0s;
   }
 
   .app-tab:hover,
@@ -200,13 +199,6 @@
     outline: none;
   }
 }
-
-@media (min-width: 521px) and (prefers-reduced-motion: reduce) {
-  .tab-panels-stage > .tab-panel {
-    transition: none;
-  }
-}
-
 
 .app-install-dialog {
   width: min(calc(100% - 32px), 420px);

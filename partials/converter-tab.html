@@ -89,6 +89,70 @@
         <button class="market-restore-button" type="button" aria-controls="conversionToolContent">Bấm để mở công cụ chuyển đổi</button>
       </section>
 
+      <section id="astrologyToolPanel" class="converter-card calendar-collapsible" data-collapse-key="astrologyTool" aria-labelledby="astrologyToolHeading">
+        <header class="calendar-card-header">
+          <h2 id="astrologyToolHeading" class="calendar-card-heading">Tra cứu Cung-Mạng-Sao</h2>
+          <button class="market-collapse-button" type="button" aria-label="Thu gọn công cụ tra cứu cung mạng sao" aria-controls="astrologyToolContent">−</button>
+        </header>
+        <div id="astrologyToolContent" class="converter-body astrology-tool-body">
+          <form id="astrologyLookupForm" class="conversion-form">
+            <button id="astrologyCalendarTypeButton" class="conversion-heading astrology-calendar-toggle" type="button" aria-pressed="true">Ngày Âm lịch</button>
+            <p id="astrologyDateHelp" class="conversion-help">Nhập ngày sinh âm lịch; nếu có hai tháng cùng số, hãy xác định tháng thường hay tháng nhuận.</p>
+            <div class="date-fields">
+              <div class="date-field">
+                <label for="astrologyInputDay">Ngày</label>
+                <div class="number-entry-control">
+                  <input id="astrologyInputDay" name="day" type="number" min="1" max="30" required inputmode="numeric">
+                  <select id="astrologyDayPicker" class="number-picker-select" aria-label="Cuộn chọn ngày sinh" tabindex="-1"></select>
+                </div>
+              </div>
+              <div class="date-field">
+                <label for="astrologyInputMonth">Tháng</label>
+                <div class="number-entry-control">
+                  <input id="astrologyInputMonth" name="month" type="number" min="1" max="12" required inputmode="numeric">
+                  <select id="astrologyMonthPicker" class="number-picker-select" aria-label="Cuộn chọn tháng sinh" tabindex="-1"></select>
+                </div>
+              </div>
+              <div class="date-field">
+                <label for="astrologyInputYear">Năm sinh</label>
+                <div class="number-entry-control">
+                  <input id="astrologyInputYear" name="year" type="number" min="1900" max="2100" required inputmode="numeric">
+                  <select id="astrologyYearPicker" class="number-picker-select" aria-label="Cuộn chọn năm sinh" tabindex="-1"></select>
+                </div>
+              </div>
+            </div>
+            <label id="astrologyLeapOption" class="leap-option" for="astrologyInputLeap">
+              <input id="astrologyInputLeap" name="leap" type="checkbox">
+              <span><strong>Tháng nhuận</strong><small>Đánh dấu nếu ngày trên thuộc tháng nhuận.</small></span>
+            </label>
+            <div class="astrology-options-row">
+              <fieldset class="astrology-gender-field">
+                <legend>Giới tính</legend>
+                <div class="astrology-gender-buttons">
+                  <button type="button" data-gender="male" aria-pressed="true">Nam</button>
+                  <button type="button" data-gender="female" aria-pressed="false">Nữ</button>
+                </div>
+              </fieldset>
+              <div class="date-field astrology-lookup-year">
+                <label for="astrologyLookupYear">Năm cần tra sao hạn</label>
+                <div class="number-entry-control">
+                  <input id="astrologyLookupYear" name="lookupYear" type="number" min="1900" max="2100" required inputmode="numeric">
+                  <select id="astrologyLookupYearPicker" class="number-picker-select" aria-label="Cuộn chọn năm cần tra sao hạn" tabindex="-1"></select>
+                </div>
+              </div>
+            </div>
+            <button class="convert-submit" type="submit">Tra cứu</button>
+          </form>
+          <p id="astrologyMessage" class="conversion-message" aria-live="polite"></p>
+          <section id="astrologyResult" class="astrology-result" aria-live="polite" hidden>
+            <h3>Kết quả tra cứu</h3>
+            <dl id="astrologyResultDetails"></dl>
+            <p class="astrology-disclaimer">Thông tin cung mệnh, hướng, màu và sao hạn dựa trên quan niệm dân gian, chỉ mang tính tham khảo.</p>
+          </section>
+        </div>
+        <button class="market-restore-button" type="button" aria-controls="astrologyToolContent">Bấm để mở Tra cứu Cung-Mạng-Sao</button>
+      </section>
+
       <section id="calendarDetailsPanel" class="calendar-detail-card calendar-collapsible" data-collapse-key="calendarDetails" aria-labelledby="calendarDetailsHeading">
         <header class="calendar-card-header">
           <h2 id="calendarDetailsHeading" class="calendar-card-heading">Dương lịch / Âm lịch</h2>
