@@ -276,6 +276,7 @@ const APP_SHELL = [
   "/scripts/event-backup.js?v=8",
   "/scripts/google-drive-backup.js",
   "/scripts/google-drive-backup.js?v=1",
+  "/scripts/google-drive-backup.js?v=2",
   "/scripts/event-today-reminders.js?v=2",
   "/scripts/event-today-reminders.js?v=3",
   "/scripts/event-today-reminders.js?v=4",

@@ -3,16 +3,19 @@
 
   const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
   const BACKUP_FOLDER_NAME = "Sổ tay lịch Việt";
+  const DEFAULT_GOOGLE_CLIENT_ID = "35262227108-trgh9bv458di4o3f3nsq1dj2r2vdk8lu.apps.googleusercontent.com";
   let accessToken = "";
   let readyPromise = null;
 
   async function loadClientId() {
-    const response = await fetch("/api/google-drive-config", { cache: "no-store" });
-    if (!response.ok) throw new Error("Không đọc được cấu hình Google Drive.");
-    const config = await response.json();
-    const clientId = String(config.clientId || "").trim();
-    if (!clientId) throw new Error("Ứng dụng chưa cấu hình Google OAuth Client ID.");
-    return clientId;
+    try {
+      const response = await fetch("/api/google-drive-config", { cache: "no-store" });
+      if (!response.ok) return DEFAULT_GOOGLE_CLIENT_ID;
+      const config = await response.json();
+      return String(config.clientId || "").trim() || DEFAULT_GOOGLE_CLIENT_ID;
+    } catch (error) {
+      return DEFAULT_GOOGLE_CLIENT_ID;
+    }
   }
 
   function loadGoogleIdentityServices() {
