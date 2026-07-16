@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v119";
+const CACHE_NAME = "homnay-pwa-v120";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -272,6 +272,10 @@ const APP_SHELL = [
   "/scripts/event-backup.js?v=2",
   "/scripts/event-backup.js?v=3",
   "/scripts/event-backup.js?v=4",
+  "/scripts/event-backup.js?v=7",
+  "/scripts/event-backup.js?v=8",
+  "/scripts/google-drive-backup.js",
+  "/scripts/google-drive-backup.js?v=1",
   "/scripts/event-today-reminders.js?v=2",
   "/scripts/event-today-reminders.js?v=3",
   "/scripts/event-today-reminders.js?v=4",
@@ -372,6 +376,7 @@ const APP_SHELL = [
   "/scripts/astrology-tool.js?v=3",
   "/scripts/today-panel.js",
   "/scripts/today-panel.js?v=2",
+  "/scripts/today-panel.js?v=3",
   "/scripts/weather-panel.js",
   "/scripts/market-panels.js",
   "/scripts/pwa-install.js?v=2",

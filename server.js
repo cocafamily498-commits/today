@@ -176,6 +176,14 @@ async function handleLocalApiRequest(request, response, requestUrl) {
     return true;
   }
 
+  if (requestUrl.pathname === "/api/google-drive-config") {
+    send(response, 200, "application/json; charset=utf-8", JSON.stringify({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      configured: Boolean(process.env.GOOGLE_CLIENT_ID)
+    }), API_CORS_HEADERS);
+    return true;
+  }
+
   if (requestUrl.pathname === "/api/push-subscription") {
     if (request.method !== "POST") {
       send(response, 405, "application/json; charset=utf-8", JSON.stringify({ error: "Chi ho tro phuong thuc POST" }), API_CORS_HEADERS);

@@ -16,6 +16,19 @@ function render() {
   document.getElementById("lunarDate").textContent = lunarFullDate;
 }
 
+function scheduleTodayDateRefresh() {
+  const now = getVietnamToday();
+  const nextDay = new Date(now);
+  nextDay.setHours(24, 0, 0, 0);
+
+  setTimeout(() => {
+    render();
+    scheduleTodayDateRefresh();
+  }, nextDay.getTime() - now.getTime());
+}
+
+scheduleTodayDateRefresh();
+
 function titleCaseWords(text) {
   return text.replace(/\S+/g, (word) => word.charAt(0).toUpperCase() + word.slice(1));
 }
