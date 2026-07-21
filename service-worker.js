@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v135";
+const CACHE_NAME = "homnay-pwa-v137";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -480,7 +480,9 @@ const APP_SHELL = [
   "/partials/app-info-tab.html?v=2026-07-21-settings-icons",
   "/partials/event-dialog.html?v=2026-07-21-settings-icons",
   "/partials/journal-dialog.html?v=2026-07-21-settings-icons",
-  "/partials/app-info-dialog.html?v=2026-07-21-settings-icons"
+  "/partials/app-info-dialog.html?v=2026-07-21-settings-icons",
+  "/scripts/event-backup.js?v=9",
+  "/scripts/event-backup.js?v=10"
 ];
 
 // APP_SHELL keeps historical entries for compatibility, but installing every

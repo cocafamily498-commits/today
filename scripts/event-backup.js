@@ -16,7 +16,7 @@ function openBackupExplanationDialog() {
       <div class="event-backup-dialog-actions">
         <button id="eventBackupCancelButton" class="event-secondary-button" type="button">Hủy</button>
         <button id="eventBackupDriveButton" class="event-secondary-button" type="button">Lưu lên Google Drive</button>
-        <button id="eventBackupDownloadButton" class="event-submit" type="button">Tải file về</button>
+        <button id="eventBackupDownloadButton" class="event-submit" type="button">Copy file về</button>
       </div>
     </div>
   `;
@@ -274,7 +274,7 @@ function parseEventBackupJson(files, name) {
   return JSON.parse(eventBackupTextDecoder.decode(bytes));
 }
 
-function openEventBackupMessageDialog(title, message) {
+function openEventBackupMessageDialog(title, message, buttonLabel = "Đóng") {
   const dialog = document.createElement("dialog");
   dialog.className = "event-backup-dialog";
   dialog.innerHTML = `
@@ -282,11 +282,12 @@ function openEventBackupMessageDialog(title, message) {
       <h2></h2>
       <p role="alert"></p>
       <div class="event-backup-dialog-actions">
-        <button class="event-submit" type="button">Đóng</button>
+        <button class="event-submit" type="button"></button>
       </div>
     </div>`;
   dialog.querySelector("h2").textContent = title;
   dialog.querySelector("p").textContent = message;
+  dialog.querySelector("button").textContent = buttonLabel;
   dialog.querySelector("button").addEventListener("click", () => dialog.close());
   dialog.addEventListener("close", () => dialog.remove(), { once: true });
   document.body.append(dialog);
@@ -453,6 +454,7 @@ async function backupEventData() {
     "\u0110ang xu\u1ea5t d\u1eef li\u1ec7u",
     "\u0110ang chu\u1ea9n b\u1ecb d\u1eef li\u1ec7u sao l\u01b0u..."
   );
+  let completed = false;
 
   try {
     await waitForEventBackupProgressPaint();
@@ -467,10 +469,14 @@ async function backupEventData() {
     progress.update(100, "Ho\u00e0n t\u1ea5t. File sao l\u01b0u \u0111\u00e3 \u0111\u01b0\u1ee3c t\u1ea1o.");
     await new Promise((resolve) => setTimeout(resolve, 400));
     setEventFormStatus("Đã tạo file sao lưu dữ liệu.");
+    completed = true;
   } catch (error) {
     setEventFormStatus("Chưa sao lưu được dữ liệu.", true);
   } finally {
     progress.close();
+  }
+  if (completed) {
+    openEventBackupMessageDialog("Sao lưu hoàn tất", "Đã hoàn tất sao lưu dữ liệu và tạo file ZIP.", "OK");
   }
 }
 
@@ -479,6 +485,7 @@ async function backupEventDataToGoogleDrive() {
     "Đang sao lưu lên Google Drive",
     "Đang chuẩn bị dữ liệu sao lưu..."
   );
+  let completed = false;
 
   try {
     await waitForEventBackupProgressPaint();
@@ -488,11 +495,15 @@ async function backupEventDataToGoogleDrive() {
     progress.update(100, `Đã lưu ${fileName} vào Google Drive.`);
     await new Promise((resolve) => setTimeout(resolve, 500));
     setEventFormStatus("Đã sao lưu dữ liệu lên Google Drive.");
+    completed = true;
   } catch (error) {
     console.error("Google Drive backup failed", error);
     openEventBackupMessageDialog("Chưa sao lưu được", error.message || "Không tải được file lên Google Drive.");
   } finally {
     progress.close();
+  }
+  if (completed) {
+    openEventBackupMessageDialog("Sao lưu hoàn tất", "Đã hoàn tất sao lưu dữ liệu lên Google Drive.", "OK");
   }
 }
 
@@ -509,6 +520,7 @@ async function importEventBackupFile(file) {
     "\u0110ang nh\u1eadp d\u1eef li\u1ec7u",
     "\u0110ang \u0111\u1ecdc file sao l\u01b0u..."
   );
+  let completed = false;
 
   try {
     await waitForEventBackupProgressPaint();
@@ -577,10 +589,14 @@ async function importEventBackupFile(file) {
     progress.update(100, "Ho\u00e0n t\u1ea5t. D\u1eef li\u1ec7u \u0111\u00e3 \u0111\u01b0\u1ee3c kh\u00f4i ph\u1ee5c.");
     await new Promise((resolve) => setTimeout(resolve, 400));
     setEventFormStatus("Đã khôi phục dữ liệu sao lưu.");
+    completed = true;
   } catch (error) {
     setEventFormStatus("Chưa khôi phục được dữ liệu. Hãy kiểm tra file sao lưu.", true);
   } finally {
     progress.close();
+  }
+  if (completed) {
+    openEventBackupMessageDialog("Nạp dữ liệu hoàn tất", "Đã hoàn tất nạp dữ liệu từ file sao lưu.", "OK");
   }
 }
 
