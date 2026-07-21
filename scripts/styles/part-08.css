@@ -163,6 +163,10 @@
   justify-content: center;
 }
 
+.event-form-actions button[hidden] {
+  display: none;
+}
+
 .event-submit {
   color: #fff;
   border: 0;

@@ -2,7 +2,7 @@
   "use strict";
 
   const parts = window.LichVietDataParts;
-  const { getAllFromStore, replaceStoreData, blobToDataUrl, dataUrlToBlob, nowIso, setAppMeta,
+  const { getAllFromStore, replaceStoreData, blobToDataUrl, dataUrlToBlob, nowIso, generateId, getMonthFromDate, setAppMeta,
     clearEventsReadCache } = parts;
 
   async function exportBackup() {
@@ -49,7 +49,13 @@
   
     await replaceStoreData("events", backup.events || []);
     if (clearEventsReadCache) clearEventsReadCache();
-    await replaceStoreData("journals", backup.journals || []);
+    const journals = (backup.journals || []).map((journal) => ({
+      ...journal,
+      id: journal.id || generateId("journal"),
+      month: journal.month || getMonthFromDate(journal.date),
+      eventTypeId: journal.eventTypeId || "general"
+    }));
+    await replaceStoreData("journals", journals);
     await replaceStoreData("images", images);
     await replaceStoreData("reminderDismissals", backup.reminderDismissals || []);
     await replaceStoreData("settings", backup.settings || []);

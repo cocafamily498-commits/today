@@ -120,6 +120,8 @@ async function saveEventGroups() {
   });
   document.dispatchEvent(new CustomEvent("eventgroupschange"));
   if (typeof renderEventCalendar === "function") renderEventCalendar();
+  if (typeof renderJournalCalendar === "function") renderJournalCalendar();
+  if (typeof renderJournalList === "function") renderJournalList();
   if (typeof renderMonthlyCalendar === "function") renderMonthlyCalendar();
 }
 
@@ -131,9 +133,13 @@ async function migrateLegacyTemplateGroups() {
 
   if (removedIds.size) {
     const events = await window.LichVietData.getAllEvents();
+    const journals = await window.LichVietData.getAllJournals();
     await Promise.all(events
       .filter((event) => removedIds.has(event.eventTypeId))
       .map((event) => window.LichVietData.updateEvent(event.id, { eventTypeId: "general" })));
+    await Promise.all(journals
+      .filter((journal) => removedIds.has(journal.eventTypeId))
+      .map((journal) => window.LichVietData.updateJournal(journal.id, { eventTypeId: "general" })));
   }
 
   await window.LichVietData.setSetting(EVENT_GROUPS_SETTING_KEY, {
@@ -156,6 +162,9 @@ function getDefaultEventGroupId(eventType = "other") {
 
 async function migrateLegacyEventGroupIds() {
   const events = await window.LichVietData.getAllEvents();
+  const journals = typeof window.LichVietData.getAllJournals === "function"
+    ? await window.LichVietData.getAllJournals()
+    : [];
   const migrationCompleted = await window.LichVietData.getSetting(EVENT_GROUPS_LEGACY_GENERAL_MIGRATION_KEY);
   const legacyEvents = events.filter((event) => !event.eventTypeId || (!migrationCompleted && (
     (event.eventType === "birthday" && event.eventTypeId === "birthday")
@@ -164,6 +173,9 @@ async function migrateLegacyEventGroupIds() {
   await Promise.all(legacyEvents.map((event) => window.LichVietData.updateEvent(event.id, {
     eventTypeId: "general"
   })));
+  await Promise.all(journals
+    .filter((journal) => !journal.eventTypeId)
+    .map((journal) => window.LichVietData.updateJournal(journal.id, { eventTypeId: "general" })));
   if (!migrationCompleted) {
     await window.LichVietData.setSetting(EVENT_GROUPS_LEGACY_GENERAL_MIGRATION_KEY, true);
   }
@@ -175,9 +187,9 @@ function renderEventGroupIcon(group, className = "event-group-icon") {
   return `<svg class="${className}" viewBox="0 0 24 24" style="color:${safeGroup.color}" aria-hidden="true"><use href="icons/event-group-icons-sprite.svg#${safeGroup.iconId}"></use></svg>`;
 }
 
-function updateEventGroupPicker(groupId) {
-  const input = document.getElementById("eventTypeId");
-  const button = document.getElementById("eventGroupPickerButton");
+function updateSharedGroupPicker(config, groupId) {
+  const input = document.getElementById(config.inputId);
+  const button = document.getElementById(config.buttonId);
   if (!input || !button) return;
   const group = getEventGroup(groupId);
   input.value = group ? group.id : "general";
@@ -189,10 +201,10 @@ function updateEventGroupPicker(groupId) {
   button.innerHTML = `${renderEventGroupIcon(selected)}<span>${escapeHtml(selected.name)}</span><span class="event-group-picker-arrow">⌄</span>`;
 }
 
-function renderEventGroupPickerList() {
-  const list = document.getElementById("eventGroupPickerList");
+function renderSharedGroupPickerList(config) {
+  const list = document.getElementById(config.listId);
   if (!list || !eventGroups.length) return;
-  const selectedId = document.getElementById("eventTypeId")?.value || "general";
+  const selectedId = document.getElementById(config.inputId)?.value || "general";
   list.innerHTML = eventGroups.map((group) => `
     <button type="button" role="option" aria-selected="${group.id === selectedId}" data-event-group-id="${escapeHtml(group.id)}">
       ${renderEventGroupIcon(group)}<span>${escapeHtml(group.name)}</span>
@@ -200,15 +212,17 @@ function renderEventGroupPickerList() {
   `).join("");
 }
 
-function setupEventGroupPicker() {
-  const input = document.getElementById("eventTypeId");
-  const button = document.getElementById("eventGroupPickerButton");
-  const list = document.getElementById("eventGroupPickerList");
-  const manageButton = document.getElementById("eventGroupManageButton");
+function setupSharedGroupPicker(config) {
+  const input = document.getElementById(config.inputId);
+  const button = document.getElementById(config.buttonId);
+  const list = document.getElementById(config.listId);
+  const manageButton = document.getElementById(config.manageButtonId);
   if (!input || !button || !list || !manageButton) return;
+  if (button.dataset.groupPickerReady === "true") return;
+  button.dataset.groupPickerReady = "true";
 
-  renderEventGroupPickerList();
-  updateEventGroupPicker(input.value || "general");
+  renderSharedGroupPickerList(config);
+  updateSharedGroupPicker(config, input.value || "general");
   button.addEventListener("click", () => {
     list.hidden = !list.hidden;
     button.setAttribute("aria-expanded", String(!list.hidden));
@@ -216,8 +230,8 @@ function setupEventGroupPicker() {
   list.addEventListener("click", (event) => {
     const option = event.target.closest("[data-event-group-id]");
     if (!option) return;
-    updateEventGroupPicker(option.dataset.eventGroupId);
-    renderEventGroupPickerList();
+    updateSharedGroupPicker(config, option.dataset.eventGroupId);
+    renderSharedGroupPickerList(config);
     list.hidden = true;
     button.setAttribute("aria-expanded", "false");
   });
@@ -230,8 +244,8 @@ function setupEventGroupPicker() {
     openEventGroupManagerDialog();
   });
   document.addEventListener("eventgroupschange", () => {
-    renderEventGroupPickerList();
-    updateEventGroupPicker(input.value);
+    renderSharedGroupPickerList(config);
+    updateSharedGroupPicker(config, input.value);
   });
   document.addEventListener("click", (event) => {
     if (event.target.closest(".event-group-picker")) return;
@@ -240,12 +254,46 @@ function setupEventGroupPicker() {
   });
 }
 
+const EVENT_GROUP_PICKER_CONFIG = {
+  inputId: "eventTypeId",
+  buttonId: "eventGroupPickerButton",
+  listId: "eventGroupPickerList",
+  manageButtonId: "eventGroupManageButton"
+};
+
+const JOURNAL_GROUP_PICKER_CONFIG = {
+  inputId: "journalTypeId",
+  buttonId: "journalGroupPickerButton",
+  listId: "journalGroupPickerList",
+  manageButtonId: "journalGroupManageButton"
+};
+
+function updateEventGroupPicker(groupId) {
+  updateSharedGroupPicker(EVENT_GROUP_PICKER_CONFIG, groupId);
+}
+
+function renderEventGroupPickerList() {
+  renderSharedGroupPickerList(EVENT_GROUP_PICKER_CONFIG);
+}
+
+function setupEventGroupPicker() {
+  setupSharedGroupPicker(EVENT_GROUP_PICKER_CONFIG);
+}
+
+function updateJournalGroupPicker(groupId) {
+  updateSharedGroupPicker(JOURNAL_GROUP_PICKER_CONFIG, groupId);
+}
+
+function setupJournalGroupPicker() {
+  setupSharedGroupPicker(JOURNAL_GROUP_PICKER_CONFIG);
+}
+
 function openEventGroupManagerDialog() {
   const dialog = document.createElement("dialog");
   dialog.className = "event-group-dialog";
   dialog.innerHTML = `
     <div class="event-group-dialog-content">
-      <header><h2>Danh mục nhóm sự kiện</h2><button type="button" data-close aria-label="Đóng">×</button></header>
+      <header><h2>Danh mục nhóm sự kiện / nhật ký</h2><button type="button" data-close aria-label="Đóng">×</button></header>
       <div class="event-group-manager-list">
         ${eventGroups.map((group) => `
           <button type="button" data-edit-group="${escapeHtml(group.id)}">
@@ -417,8 +465,8 @@ function confirmEventGroupDelete(groupName) {
     dialog.className = "event-confirm-dialog";
     dialog.innerHTML = `
       <form method="dialog" class="event-confirm-content">
-        <h2>Xóa nhóm sự kiện?</h2>
-        <p>Nhóm “${escapeHtml(groupName)}” sẽ bị xóa. Các sự kiện thuộc nhóm này sẽ được chuyển về Nhóm chung. Bạn không thể hoàn tác thao tác này.</p>
+        <h2>Xóa nhóm sự kiện / nhật ký?</h2>
+        <p>Nhóm “${escapeHtml(groupName)}” sẽ bị xóa. Các sự kiện và nhật ký thuộc nhóm này sẽ được chuyển về Nhóm chung. Bạn không thể hoàn tác thao tác này.</p>
         <div class="event-confirm-actions">
           <button class="event-secondary-button" value="cancel" type="submit">Hủy</button>
           <button class="event-danger-button" value="delete" type="submit">Xóa nhóm</button>
@@ -440,6 +488,9 @@ function confirmEventGroupDelete(groupName) {
 
 async function reassignDeletedEventGroup(groupId) {
   const events = await window.LichVietData.getAllEvents();
+  const journals = await window.LichVietData.getAllJournals();
   await Promise.all(events.filter((event) => event.eventTypeId === groupId)
     .map((event) => window.LichVietData.updateEvent(event.id, { eventTypeId: "general" })));
+  await Promise.all(journals.filter((journal) => journal.eventTypeId === groupId)
+    .map((journal) => window.LichVietData.updateJournal(journal.id, { eventTypeId: "general" })));
 }

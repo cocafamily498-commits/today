@@ -3,7 +3,7 @@
 
   const parts = window.LichVietDataParts = {};
   const DB_NAME = "so-tay-lich-viet";
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
   const EVENT_TYPES = new Set(["birthday", "deathAnniversary", "other"]);
   const CALENDARS = new Set(["solar", "lunar"]);
   const REPEAT_FREQUENCIES = new Set(["none", "daily", "weekly", "monthly", "yearly"]);
@@ -21,7 +21,7 @@
     databasePromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
   
-      request.onupgradeneeded = () => {
+      request.onupgradeneeded = (event) => {
         const db = request.result;
   
         if (!db.objectStoreNames.contains("events")) {
@@ -32,8 +32,23 @@
   
         if (!db.objectStoreNames.contains("journals")) {
           const store = db.createObjectStore("journals", { keyPath: "id" });
-          store.createIndex("byDate", "date", { unique: true });
+          store.createIndex("byDate", "date", { unique: false });
           store.createIndex("byMonth", "month", { unique: false });
+        } else if (event.oldVersion < 2) {
+          const store = request.transaction.objectStore("journals");
+          if (store.indexNames.contains("byDate")) store.deleteIndex("byDate");
+          store.createIndex("byDate", "date", { unique: false });
+          const cursorRequest = store.openCursor();
+          cursorRequest.onsuccess = () => {
+            const cursor = cursorRequest.result;
+            if (!cursor) return;
+            const journal = cursor.value;
+            if (!journal.eventTypeId) {
+              journal.eventTypeId = "general";
+              cursor.update(journal);
+            }
+            cursor.continue();
+          };
         }
   
         if (!db.objectStoreNames.contains("images")) {

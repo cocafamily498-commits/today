@@ -59,7 +59,9 @@ function renderCalendarGrid(options) {
       && year === today.getFullYear();
     const isSelected = day === selectedDay;
     const dayEvents = eventsByDay && eventsByDay[day] ? eventsByDay[day] : [];
-    const dayJournal = journalsByDay && journalsByDay[day] ? journalsByDay[day] : null;
+    const journalValue = journalsByDay && journalsByDay[day] ? journalsByDay[day] : null;
+    const dayJournals = Array.isArray(journalValue) ? journalValue : journalValue ? [journalValue] : [];
+    const dayJournal = dayJournals[0] || null;
     const button = document.createElement("button");
     button.type = "button";
     button.className = [
@@ -76,7 +78,7 @@ function renderCalendarGrid(options) {
     button.setAttribute("aria-selected", isSelected ? "true" : "false");
     button.setAttribute(
       "aria-label",
-      `${day}/${month}/${year}, âm lịch ${lunar.day}/${lunar.month}/${lunar.year}${lunar.leap ? " nhuận" : ""}${showAuspiciousDot && isAuspicious ? `, ${dayType}` : ""}${dayEvents.length ? `, ${dayEvents.length} sự kiện` : ""}${dayJournal ? ", có nhật ký/ghi chú" : ""}`
+      `${day}/${month}/${year}, âm lịch ${lunar.day}/${lunar.month}/${lunar.year}${lunar.leap ? " nhuận" : ""}${showAuspiciousDot && isAuspicious ? `, ${dayType}` : ""}${dayEvents.length ? `, ${dayEvents.length} sự kiện` : ""}${dayJournals.length ? `, ${dayJournals.length} nhật ký/ghi chú` : ""}`
     );
 
     const dayTypeDot = showAuspiciousDot && isAuspicious ? document.createElement("span") : null;
@@ -122,7 +124,7 @@ function renderCalendarGrid(options) {
 
       const journalText = document.createElement("span");
       journalText.className = "month-journal-text";
-      journalText.textContent = dayJournal.text || "(Không có nội dung)";
+      journalText.textContent = `${dayJournal.text || "(Không có nội dung)"}${dayJournals.length > 1 ? ` (+${dayJournals.length - 1})` : ""}`;
       journalPreview.appendChild(journalText);
 
       if (Array.isArray(dayJournal.imageIds) && dayJournal.imageIds.length > 0) {
@@ -138,8 +140,8 @@ function renderCalendarGrid(options) {
     button.append(...children);
     button.addEventListener("click", () => onDayClick(day));
     if (typeof onDayHover === "function") {
-      button.addEventListener("mouseenter", () => onDayHover(day, dayJournal, button));
-      button.addEventListener("focus", () => onDayHover(day, dayJournal, button));
+      button.addEventListener("mouseenter", () => onDayHover(day, dayJournals, button));
+      button.addEventListener("focus", () => onDayHover(day, dayJournals, button));
     }
     if (typeof onDayHoverEnd === "function") {
       button.addEventListener("mouseleave", onDayHoverEnd);

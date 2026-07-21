@@ -18,7 +18,11 @@
 }
 
 .system-settings-button {
+  display: inline-flex;
   min-height: 58px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   padding: 13px 18px;
   color: #fff;
   font: inherit;
@@ -27,6 +31,17 @@
   border-radius: 8px;
   background: var(--red-dark);
   cursor: pointer;
+}
+
+.system-settings-icon {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .system-settings-button:hover,

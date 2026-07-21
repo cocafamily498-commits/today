@@ -4,43 +4,74 @@
   const parts = window.LichVietDataParts;
   const { withStore, requestToPromise, generateId, nowIso, assertDate, getMonthFromDate } = parts;
 
-  async function upsertJournalByDate(input) {
+  function buildJournalRecord(input, existingJournal = null) {
     assertDate(input && input.date);
-    const existingJournal = await getJournalByDate(input.date);
     const timestamp = nowIso();
-    const journal = {
+    return {
       id: existingJournal ? existingJournal.id : input.id || generateId("journal"),
       date: input.date,
       month: getMonthFromDate(input.date),
       text: String(input.text || ""),
+      eventTypeId: String(input.eventTypeId || "general"),
       imageIds: Array.isArray(input.imageIds) ? input.imageIds.slice() : [],
       createdAt: existingJournal ? existingJournal.createdAt : input.createdAt || timestamp,
       updatedAt: timestamp
     };
-  
+  }
+
+  async function createJournal(input) {
+    const journal = buildJournalRecord(input);
+    await withStore("journals", "readwrite", (store) => store.add(journal));
+    return journal;
+  }
+
+  async function updateJournal(id, input) {
+    const existingJournal = await getJournal(id);
+    if (!existingJournal) throw new Error("Journal not found.");
+    const journal = buildJournalRecord({ ...existingJournal, ...input, id }, existingJournal);
     await withStore("journals", "readwrite", (store) => store.put(journal));
     return journal;
   }
-  
-  async function getJournalByDate(date) {
+
+  async function getJournal(id) {
+    if (!id) return null;
+    return withStore("journals", "readonly", (store) => requestToPromise(store.get(id)));
+  }
+
+  async function getJournalsByDate(date) {
     assertDate(date);
-    return withStore("journals", "readonly", (store) => {
-      const index = store.index("byDate");
-      return requestToPromise(index.get(date));
-    });
+    return withStore("journals", "readonly", (store) => requestToPromise(store.index("byDate").getAll(date)));
+  }
+
+  async function deleteJournal(id) {
+    if (!id) return false;
+    const journal = await getJournal(id);
+    if (!journal) return false;
+    await withStore("journals", "readwrite", (store) => store.delete(id));
+    return true;
+  }
+
+  async function upsertJournalByDate(input) {
+    const journal = input && input.id ? await getJournal(input.id) : null;
+    return journal ? updateJournal(journal.id, input) : createJournal(input);
+  }
+
+  async function getJournalByDate(date) {
+    const journals = await getJournalsByDate(date);
+    return journals[0] || null;
+  }
+
+  async function deleteJournalByDate(date) {
+    const journals = await getJournalsByDate(date);
+    if (!journals.length) return false;
+    await withStore("journals", "readwrite", (store) => journals.forEach((journal) => store.delete(journal.id)));
+    return true;
   }
   
   async function getAllJournals() {
     return withStore("journals", "readonly", (store) => requestToPromise(store.getAll()));
   }
   
-  async function deleteJournalByDate(date) {
-    const journal = await getJournalByDate(date);
-    if (!journal) return false;
-  
-    await withStore("journals", "readwrite", (store) => store.delete(journal.id));
-    return true;
-  }
   
   async function saveJournalImage(input) {
     const source = input || {};
@@ -122,6 +153,7 @@
   
 
   Object.assign(parts, {
+    createJournal, updateJournal, getJournal, getJournalsByDate, deleteJournal,
     upsertJournalByDate, getJournalByDate, getAllJournals, deleteJournalByDate,
     saveJournalImage, getImage, deleteImage, dismissReminderOccurrence, isReminderOccurrenceDismissed,
     getSetting, setSetting, getAppMeta, setAppMeta

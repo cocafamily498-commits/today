@@ -63,6 +63,7 @@ async function setupEventForm() {
     editingEventId = null;
     document.getElementById("eventTitle").value = "";
     setEventFormMode("create");
+    applyTypeDefaults();
     setEventFormStatus("");
     document.getElementById("eventTitle").focus();
   });
@@ -70,6 +71,7 @@ async function setupEventForm() {
   deleteButton.addEventListener("click", deleteEditingEvent);
   listWindowButton.addEventListener("click", openEventListWindow);
   closeButton.addEventListener("click", closeEventDialog);
+  dialog.addEventListener("keydown", trapEventDialogFocus);
   dialog.addEventListener("close", () => {
     document.body.classList.remove("event-dialog-open");
     if (typeof returnToEventListDialogIfNeeded === "function") {
@@ -79,6 +81,10 @@ async function setupEventForm() {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (form.dataset.saved === "true") {
+      closeEventDialog();
+      return;
+    }
     setEventFormStatus("Đang lưu...");
 
     try {
@@ -89,18 +95,10 @@ async function setupEventForm() {
         : await window.LichVietData.createEvent(eventData);
       setEventFormStatus(shouldUpdate ? "Đã lưu thay đổi." : "Đã lưu sự kiện.");
       editingEventId = null;
-      form.reset();
-      if (typeof updateEventGroupPicker === "function") {
-        updateEventGroupPicker(getDefaultEventGroupId(savedEvent.eventType));
-      }
-      setEventDateInputValue(savedEvent.date);
-      document.getElementById("eventTime").value = DEFAULT_EVENT_TIME;
-      applyTypeDefaults();
-      setEventFormMode("create");
       updateEventCalendarOccurrence(savedEvent);
       queueEventWebPushReminderSyncForEvent(savedEvent);
-      closeEventDialog();
       refreshEventChoiceListForSelectedDay();
+      setEventFormSavedState();
     } catch (error) {
       setEventFormStatus("Chưa lưu được sự kiện. Vui lòng kiểm tra lại thông tin.", true);
     }
@@ -108,6 +106,31 @@ async function setupEventForm() {
 
   applyTypeDefaults();
   setupEventCalendar();
+}
+
+function trapEventDialogFocus(event) {
+  if (event.key !== "Tab") return;
+  const dialog = event.currentTarget;
+  if (!dialog || !dialog.open) return;
+  const focusableElements = [...dialog.querySelectorAll(
+    "button:not([disabled]), input:not([disabled]):not([tabindex='-1']), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex='-1'])"
+  )].filter((element) => !element.hidden && element.getClientRects().length > 0);
+  if (focusableElements.length === 0) {
+    event.preventDefault();
+    return;
+  }
+
+  const firstElement = focusableElements[0];
+  const lastElement = focusableElements[focusableElements.length - 1];
+  if (event.shiftKey && document.activeElement === firstElement) {
+    event.preventDefault();
+    lastElement.focus();
+    return;
+  }
+  if (!event.shiftKey && document.activeElement === lastElement) {
+    event.preventDefault();
+    firstElement.focus();
+  }
 }
 
 function updateEventTypeIcon(type) {
@@ -193,13 +216,47 @@ function getSelectedEventCalendarDate() {
 function setEventFormMode(mode) {
   const isEdit = mode === "edit";
   const form = document.getElementById("eventForm");
-  if (form) form.dataset.mode = isEdit ? "edit" : "create";
+  if (form) {
+    form.dataset.mode = isEdit ? "edit" : "create";
+    form.dataset.saved = "false";
+  }
+  setEventFormControlsLocked(false);
   document.getElementById("eventDialogHeading").textContent = isEdit ? "Sửa sự kiện" : "Tạo sự kiện";
   const cancelButton = document.getElementById("eventCancelButton");
   if (cancelButton) cancelButton.hidden = true;
   document.getElementById("eventDeleteButton").hidden = !isEdit;
   document.getElementById("eventResetButton").textContent = "Mới";
   document.querySelector("#eventForm .event-submit").textContent = "Lưu";
+}
+
+function setEventFormControlsLocked(locked) {
+  const form = document.getElementById("eventForm");
+  if (!form) return;
+  form.querySelectorAll("input, select, textarea, button").forEach((control) => {
+    const remainsActive = control.id === "eventResetButton" || control.matches(".event-submit");
+    if (remainsActive) return;
+    if (locked) {
+      control.dataset.eventSavedWasDisabled = String(control.disabled);
+      control.disabled = true;
+      return;
+    }
+    if (!("eventSavedWasDisabled" in control.dataset)) return;
+    control.disabled = control.dataset.eventSavedWasDisabled === "true";
+    delete control.dataset.eventSavedWasDisabled;
+  });
+}
+
+function setEventFormSavedState() {
+  const form = document.getElementById("eventForm");
+  const resetButton = document.getElementById("eventResetButton");
+  const submitButton = document.querySelector("#eventForm .event-submit");
+  if (!form || !resetButton || !submitButton) return;
+  form.dataset.saved = "true";
+  document.getElementById("eventDialogHeading").textContent = "Tạo sự kiện";
+  document.getElementById("eventDeleteButton").hidden = true;
+  setEventFormControlsLocked(true);
+  submitButton.textContent = "Đóng";
+  requestAnimationFrame(() => resetButton.focus({ preventScroll: true }));
 }
 
 function getEventFormValues() {

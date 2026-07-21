@@ -47,9 +47,23 @@
             <div id="journalHoverPreview" class="journal-hover-preview" role="tooltip" hidden></div>
           </section>
 
+          <section id="journalChoiceListPanel" class="event-list event-choice-list journal-choice-list" aria-label="Chọn nhật ký/ghi chú để sửa" hidden>
+            <div class="event-choice-heading">
+              <p class="event-choice-status">Chọn nhật ký/ghi chú để sửa</p>
+              <button id="journalChoiceAddButton" class="event-choice-add-button" type="button" aria-label="Thêm nhật ký/ghi chú mới"></button>
+            </div>
+            <div id="journalChoiceList"></div>
+          </section>
+
           <section id="journalListPanel" class="event-list journal-list-panel" aria-label="Danh sách nhật ký/ghi chú" hidden>
             <form id="journalFilterForm" class="journal-filter-form" autocomplete="off">
-              <label class="event-filter-group">
+              <label class="event-filter-group journal-filter-year">
+                <span class="event-filter-label">Năm</span>
+                <select id="journalYearFilter" class="event-month-filter">
+                  <option value="">Tất cả</option>
+                </select>
+              </label>
+              <label class="event-filter-group journal-filter-month">
                 <span class="event-filter-label">Tháng</span>
                 <select id="journalMonthFilter" class="event-month-filter">
                   <option value="">Tất cả</option>
@@ -67,7 +81,15 @@
                   <option value="12">Tháng 12</option>
                 </select>
               </label>
-              <label class="event-filter-group">
+              <label class="event-filter-group journal-filter-group-field">
+                <span class="event-filter-label">Nhóm</span>
+                <span class="event-group-picker journal-group-filter-picker">
+                  <input id="journalGroupFilter" type="hidden" value="">
+                  <button id="journalGroupFilterButton" class="event-group-picker-button journal-group-filter-button" type="button" aria-haspopup="listbox" aria-expanded="false">Tất cả</button>
+                  <span id="journalGroupFilterList" class="event-group-picker-list journal-group-filter-list" role="listbox" hidden></span>
+                </span>
+              </label>
+              <label class="event-filter-group journal-filter-content">
                 <span class="event-filter-label">Nội dung</span>
                 <input id="journalContentFilter" class="event-name-filter" type="search" placeholder="Nhập nội dung...">
               </label>

@@ -137,6 +137,9 @@ input:focus, select:focus, textarea:focus {
 .event-lunar-date-display {
   color: #45586d !important;
   background: #fff !important;
+  caret-color: transparent;
+  pointer-events: none;
+  user-select: none;
 }
 .event-lunar-leap-badge {
   position: absolute;
@@ -201,6 +204,7 @@ button {
   align-items: center;
   justify-content: center;
 }
+.event-form-actions button[hidden] { display: none; }
 .event-submit {
   color: #fff;
   border: 0;

@@ -6,9 +6,6 @@ async function saveJournalFromForm() {
     setJournalFormStatus("Vui lòng nhập ngày dương lịch hợp lệ.", true);
     return;
   }
-  if (!await validateJournalDateAvailability({ showStatus: true })) {
-    return;
-  }
   if (!text) {
     setJournalFormStatus("Vui lòng nhập nội dung nhật ký/ghi chú.", true);
     return;
@@ -20,9 +17,10 @@ async function saveJournalFromForm() {
 
   setJournalFormStatus("Đang lưu...");
   try {
-    const existing = editingJournalDate
-      ? await window.LichVietData.getJournalByDate(editingJournalDate)
-      : await window.LichVietData.getJournalByDate(date);
+    const shouldUpdate = Boolean(editingJournalId);
+    const existing = editingJournalId
+      ? await window.LichVietData.getJournal(editingJournalId)
+      : null;
     const existingImageIds = existing && Array.isArray(existing.imageIds) ? existing.imageIds : [];
     let imageIds = imageItems.filter((item) => item.kind === "stored" && item.id).map((item) => item.id);
     const newImageItems = imageItems.filter((item) => item.kind === "file" && item.file);
@@ -36,61 +34,34 @@ async function saveJournalFromForm() {
       await Promise.all(removedImageIds.map((id) => window.LichVietData.deleteImage(id)));
     }
 
-    const saved = await window.LichVietData.upsertJournalByDate({ date, text, imageIds });
-    if (editingJournalDate && editingJournalDate !== date) {
-      await window.LichVietData.deleteJournalByDate(editingJournalDate);
-    }
-    editingJournalDate = saved.date;
-    setJournalFormStatus("Đã lưu nhật ký/ghi chú.");
-    setJournalFormMode("edit");
+    const eventTypeId = document.getElementById("journalTypeId")?.value || "general";
+    const saved = editingJournalId
+      ? await window.LichVietData.updateJournal(editingJournalId, { date, text, imageIds, eventTypeId })
+      : await window.LichVietData.createJournal({ date, text, imageIds, eventTypeId });
+    editingJournalId = null;
+    editingJournalDate = null;
+    setJournalFormStatus(shouldUpdate ? "Đã lưu thay đổi." : "Đã lưu nhật ký/ghi chú.");
     await setJournalCalendarDateFromDateValue(saved.date);
-    closeJournalDialog();
+    setJournalFormSavedState();
   } catch (error) {
     setJournalFormStatus("Chưa lưu được nhật ký/ghi chú. Vui lòng kiểm tra lại thông tin.", true);
   }
 }
 
 async function validateJournalDateAvailability(options = {}) {
-  const { showStatus = false } = options;
   const input = document.getElementById("journalDate");
-  if (!input || !window.LichVietData) return true;
-
-  const date = getJournalDateInputValue();
+  if (!input) return true;
   input.setCustomValidity("");
   input.removeAttribute("aria-invalid");
-  if (!date) return true;
-
-  try {
-    const existing = await window.LichVietData.getJournalByDate(date);
-    const isDuplicate = existing && existing.date !== editingJournalDate;
-    if (!isDuplicate) {
-      const status = document.getElementById("journalFormStatus");
-      if (status && status.textContent === JOURNAL_DUPLICATE_DATE_MESSAGE) {
-        setJournalFormStatus("");
-      }
-      return true;
-    }
-
-    input.setCustomValidity(JOURNAL_DUPLICATE_DATE_MESSAGE);
-    input.setAttribute("aria-invalid", "true");
-    if (showStatus || document.activeElement === input) {
-      setJournalFormStatus(JOURNAL_DUPLICATE_DATE_MESSAGE, true);
-    }
-    if (showStatus && typeof input.reportValidity === "function") {
-      input.reportValidity();
-    }
-    return false;
-  } catch (error) {
-    return true;
-  }
+  return true;
 }
 
 async function deleteEditingJournal() {
-  if (!editingJournalDate) return;
+  if (!editingJournalId) return;
   if (!await confirmJournalDelete()) return;
 
-  const journal = await window.LichVietData.getJournalByDate(editingJournalDate);
-  await window.LichVietData.deleteJournalByDate(editingJournalDate);
+  const journal = await window.LichVietData.getJournal(editingJournalId);
+  await window.LichVietData.deleteJournal(editingJournalId);
   if (journal && Array.isArray(journal.imageIds)) {
     await Promise.all(journal.imageIds.map((id) => window.LichVietData.deleteImage(id)));
   }
@@ -131,6 +102,14 @@ function confirmJournalDelete() {
 }
 
 async function loadJournalIntoForm(journal) {
+  if (typeof initializeEventGroups === "function") {
+    try {
+      await initializeEventGroups();
+    } catch (error) {
+      console.error("journal groups initialization failed", error);
+    }
+  }
+  editingJournalId = journal.id;
   editingJournalDate = journal.date;
   setJournalDateInputValue(journal.date);
   const dateInput = document.getElementById("journalDate");
@@ -138,6 +117,7 @@ async function loadJournalIntoForm(journal) {
   dateInput.removeAttribute("aria-invalid");
   updateJournalDateHint();
   document.getElementById("journalText").value = journal.text || "";
+  if (typeof updateJournalGroupPicker === "function") updateJournalGroupPicker(journal.eventTypeId || "general");
   document.getElementById("journalImages").value = "";
   updateJournalImageSummary(journal);
   await renderStoredJournalImagePreviews(journal);
@@ -146,10 +126,15 @@ async function loadJournalIntoForm(journal) {
   openJournalDialog();
 }
 
-function resetJournalForm(date = null) {
+function resetJournalForm(date = null, options = {}) {
   const form = document.getElementById("journalForm");
+  const preservedGroupId = options.preserveGroup
+    ? document.getElementById("journalTypeId")?.value || "general"
+    : "general";
   form.reset();
+  editingJournalId = null;
   editingJournalDate = null;
+  if (typeof updateJournalGroupPicker === "function") updateJournalGroupPicker(preservedGroupId);
   setJournalDateInputValue(date || toDateInputValue(getVietnamToday()));
   const dateInput = document.getElementById("journalDate");
   dateInput.setCustomValidity("");
@@ -163,12 +148,48 @@ function resetJournalForm(date = null) {
 
 function setJournalFormMode(mode) {
   const isEdit = mode === "edit";
+  const form = document.getElementById("journalForm");
+  if (form) {
+    form.dataset.mode = isEdit ? "edit" : "create";
+    form.dataset.saved = "false";
+  }
+  setJournalFormControlsLocked(false);
   document.getElementById("journalDialogHeading").textContent = isEdit ? "Sửa nhật ký/ghi chú" : "Tạo nhật ký/ghi chú";
   const cancelButton = document.getElementById("journalCancelButton");
   if (cancelButton) cancelButton.hidden = true;
   document.getElementById("journalDeleteButton").hidden = !isEdit;
   document.getElementById("journalResetButton").textContent = "Mới";
   document.querySelector("#journalForm .event-submit").textContent = "Lưu";
+}
+
+function setJournalFormControlsLocked(locked) {
+  const form = document.getElementById("journalForm");
+  if (!form) return;
+  form.querySelectorAll("input, select, textarea, button").forEach((control) => {
+    const remainsActive = control.id === "journalResetButton" || control.matches(".event-submit");
+    if (remainsActive) return;
+    if (locked) {
+      control.dataset.journalSavedWasDisabled = String(control.disabled);
+      control.disabled = true;
+      return;
+    }
+    if (!("journalSavedWasDisabled" in control.dataset)) return;
+    control.disabled = control.dataset.journalSavedWasDisabled === "true";
+    delete control.dataset.journalSavedWasDisabled;
+  });
+}
+
+function setJournalFormSavedState() {
+  const form = document.getElementById("journalForm");
+  const resetButton = document.getElementById("journalResetButton");
+  const submitButton = document.querySelector("#journalForm .event-submit");
+  if (!form || !resetButton || !submitButton) return;
+  form.dataset.saved = "true";
+  document.getElementById("journalDialogHeading").textContent = "Tạo nhật ký/ghi chú";
+  document.getElementById("journalDeleteButton").hidden = true;
+  setJournalFormControlsLocked(true);
+  submitButton.textContent = "Đóng";
+  requestAnimationFrame(() => resetButton.focus({ preventScroll: true }));
 }
 
 function setJournalFormStatus(message, isError = false) {

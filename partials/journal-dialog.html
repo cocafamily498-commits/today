@@ -17,8 +17,27 @@
                 <span id="journalLunarLeapBadge" class="event-lunar-leap-badge" hidden>nhuận</span>
               </span>
             </div>
-            <div class="event-field full">
+            <div class="event-field full event-group-field journal-group-field">
+              <label for="journalGroupPickerButton">Nhóm nhật ký/ghi chú</label>
+              <div class="event-group-control-row">
+                <div class="event-group-picker">
+                  <input id="journalTypeId" name="eventTypeId" type="hidden" value="general">
+                  <button id="journalGroupPickerButton" class="event-group-picker-button" type="button" aria-haspopup="listbox" aria-expanded="false">Nhóm chung</button>
+                  <div id="journalGroupPickerList" class="event-group-picker-list" role="listbox" hidden></div>
+                </div>
+                <button id="journalGroupManageButton" class="event-group-manage-button" type="button" aria-label="Thêm hoặc quản lý nhóm sự kiện/nhật ký" title="Thêm hoặc quản lý nhóm sự kiện/nhật ký">+</button>
+              </div>
+            </div>
+            <div class="event-field full journal-content-field">
               <label for="journalText">Nội dung</label>
+              <div class="journal-text-actions" aria-label="Công cụ nội dung nhật ký">
+                <button id="journalReadButton" class="journal-text-action" type="button" aria-label="Đọc nội dung nhật ký" title="Đọc nội dung nhật ký">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm12.5 3a4.5 4.5 0 0 0-2.1-3.8v7.6a4.5 4.5 0 0 0 2.1-3.8Zm-2.1-8.7v2.1a7.5 7.5 0 0 1 0 13.2v2.1a9.5 9.5 0 0 0 0-17.4Z"/></svg>
+                </button>
+                <button id="journalExpandButton" class="journal-text-action" type="button" aria-label="Mở rộng nội dung toàn màn hình" title="Mở rộng toàn màn hình">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H6v4H4V4Zm10 0h6v6h-2V6h-4V4ZM4 14h2v4h4v2H4v-6Zm14 0h2v6h-6v-2h4v-4Z"/></svg>
+                </button>
+              </div>
               <textarea id="journalText" name="text" class="journal-textarea" maxlength="3000" required></textarea>
             </div>
             <div class="event-field full">
@@ -37,5 +56,19 @@
             <button class="event-submit" type="submit">Lưu</button>
           </div>
         </form>
+      </div>
+    </dialog>
+    <dialog id="journalExpandedDialog" class="journal-expanded-dialog" aria-labelledby="journalExpandedDialogHeading">
+      <div class="journal-expanded-content">
+        <header class="event-dialog-header journal-expanded-header">
+          <h2 id="journalExpandedDialogHeading" class="event-dialog-title">Nội dung nhật ký/ghi chú</h2>
+        </header>
+        <div class="journal-expanded-body">
+          <label class="sr-only" for="journalExpandedText">Nội dung nhật ký/ghi chú</label>
+          <textarea id="journalExpandedText" maxlength="3000"></textarea>
+        </div>
+        <footer class="journal-expanded-footer">
+          <button id="journalExpandedCloseButton" class="event-secondary-button" type="button">Đóng</button>
+        </footer>
       </div>
     </dialog>

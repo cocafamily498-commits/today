@@ -42,10 +42,20 @@ function setupJournalForm() {
   const dialog = document.getElementById("journalDialog");
   const imageInput = document.getElementById("journalImages");
   const addImageButton = document.getElementById("journalAddImageButton");
+  const readButton = document.getElementById("journalReadButton");
+  const expandButton = document.getElementById("journalExpandButton");
+  const expandedDialog = document.getElementById("journalExpandedDialog");
+  const expandedCloseButton = document.getElementById("journalExpandedCloseButton");
+  const choiceAddButton = document.getElementById("journalChoiceAddButton");
 
   setJournalDateInputValue(toDateInputValue(getVietnamToday()));
   updateJournalDateHint();
   updateJournalImageSummary(null);
+  if (typeof setupJournalGroupPicker === "function") setupJournalGroupPicker();
+  if (typeof initializeEventGroups === "function") {
+    initializeEventGroups().then(() => updateJournalGroupPicker("general"))
+      .catch((error) => console.error("journal groups initialization failed", error));
+  }
 
   dateInput.addEventListener("input", () => {
     autoFormatEventDateInput(dateInput);
@@ -62,16 +72,38 @@ function setupJournalForm() {
     updateJournalDateHint();
     validateJournalDateAvailability();
   });
-  resetButton.addEventListener("click", () => resetJournalForm(getSelectedJournalCalendarDate()));
+  resetButton.addEventListener("click", () => {
+    resetJournalForm(getSelectedJournalCalendarDate(), { preserveGroup: true });
+    document.getElementById("journalText")?.focus();
+  });
   if (cancelButton) cancelButton.addEventListener("click", closeJournalDialog);
   closeButton.addEventListener("click", closeJournalDialog);
   deleteButton.addEventListener("click", deleteEditingJournal);
+  if (typeof trapEventDialogFocus === "function") dialog.addEventListener("keydown", trapEventDialogFocus);
   dialog.addEventListener("close", () => document.body.classList.remove("event-dialog-open"));
   imageInput.addEventListener("change", () => handleJournalImageInputChange(imageInput));
   if (addImageButton) addImageButton.addEventListener("click", () => imageInput.click());
+  if (readButton) readButton.addEventListener("click", toggleJournalReading);
+  if (expandButton) expandButton.addEventListener("click", openJournalExpandedEditor);
+  if (expandedCloseButton) expandedCloseButton.addEventListener("click", closeJournalExpandedEditor);
+  if (choiceAddButton) choiceAddButton.addEventListener("click", () => {
+    resetJournalForm(getSelectedJournalCalendarDate());
+    setJournalFormStatus("Đang tạo nhật ký/ghi chú mới.");
+    openJournalDialog();
+  });
+  if (expandedDialog) {
+    expandedDialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      closeJournalExpandedEditor();
+    });
+  }
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (form.dataset.saved === "true") {
+      closeJournalDialog();
+      return;
+    }
     await saveJournalFromForm();
   });
 }
@@ -79,15 +111,82 @@ function setupJournalForm() {
 function setupJournalList() {
   const toggleButton = document.getElementById("journalListToggleButton");
   const form = document.getElementById("journalFilterForm");
+  const yearFilter = document.getElementById("journalYearFilter");
   const monthFilter = document.getElementById("journalMonthFilter");
   const contentFilter = document.getElementById("journalContentFilter");
-  if (!toggleButton || !form || !monthFilter || !contentFilter) return;
+  const groupFilter = document.getElementById("journalGroupFilter");
+  if (!toggleButton || !form || !yearFilter || !monthFilter || !contentFilter || !groupFilter) return;
 
   toggleButton.setAttribute("aria-expanded", "false");
   toggleButton.addEventListener("click", openJournalListPanel);
   form.addEventListener("submit", (event) => event.preventDefault());
+  yearFilter.addEventListener("change", renderJournalList);
   monthFilter.addEventListener("change", renderJournalList);
   contentFilter.addEventListener("input", renderJournalList);
+  groupFilter.addEventListener("change", renderJournalList);
+  setupJournalGroupFilterPicker();
+  document.addEventListener("eventgroupschange", populateJournalGroupFilter);
+}
+
+function populateJournalGroupFilter() {
+  const input = document.getElementById("journalGroupFilter");
+  const button = document.getElementById("journalGroupFilterButton");
+  const list = document.getElementById("journalGroupFilterList");
+  if (!input || !button || !list || typeof getEventGroups !== "function") return;
+  const groups = getEventGroups();
+  const selectedGroup = groups.find((group) => group.id === input.value) || null;
+  if (!selectedGroup) input.value = "";
+  button.innerHTML = selectedGroup
+    ? `${renderEventGroupIcon(selectedGroup, "journal-list-group-icon")}<span>${escapeHtml(selectedGroup.name)}</span><span class="event-group-picker-arrow">⌄</span>`
+    : `<span>Tất cả</span><span class="event-group-picker-arrow">⌄</span>`;
+  list.innerHTML = `<button type="button" role="option" aria-selected="${input.value === ""}" data-journal-group-filter=""><span class="journal-filter-all-icon" aria-hidden="true">●</span><span>Tất cả</span></button>${groups.map((group) => `
+    <button type="button" role="option" aria-selected="${group.id === input.value}" data-journal-group-filter="${escapeHtml(group.id)}">
+      ${renderEventGroupIcon(group, "journal-list-group-icon")}<span>${escapeHtml(group.name)}</span>
+    </button>`).join("")}`;
+}
+
+function setupJournalGroupFilterPicker() {
+  const input = document.getElementById("journalGroupFilter");
+  const button = document.getElementById("journalGroupFilterButton");
+  const list = document.getElementById("journalGroupFilterList");
+  if (!input || !button || !list || button.dataset.ready === "true") return;
+  button.dataset.ready = "true";
+  populateJournalGroupFilter();
+  button.addEventListener("click", () => {
+    list.hidden = !list.hidden;
+    button.setAttribute("aria-expanded", String(!list.hidden));
+    if (!list.hidden) list.querySelector("[aria-selected='true']")?.focus();
+  });
+  list.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-journal-group-filter]");
+    if (!option) return;
+    input.value = option.dataset.journalGroupFilter || "";
+    list.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+    populateJournalGroupFilter();
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    button.focus();
+  });
+  list.addEventListener("keydown", (event) => {
+    const options = [...list.querySelectorAll("[data-journal-group-filter]")];
+    const currentIndex = options.indexOf(document.activeElement);
+    if (event.key === "Escape") {
+      event.preventDefault();
+      list.hidden = true;
+      button.setAttribute("aria-expanded", "false");
+      button.focus();
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const direction = event.key === "ArrowDown" ? 1 : -1;
+    options[(currentIndex + direction + options.length) % options.length]?.focus();
+  });
+  document.addEventListener("click", (event) => {
+    if (event.target.closest(".journal-group-filter-picker")) return;
+    list.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+  });
 }
 
 async function openJournalListPanel() {
@@ -95,12 +194,13 @@ async function openJournalListPanel() {
   const button = document.getElementById("journalListToggleButton");
   if (!panel) return;
 
+  clearJournalChoiceList();
   panel.hidden = false;
   if (button) button.setAttribute("aria-expanded", "true");
   await renderJournalList({ force: true });
   requestAnimationFrame(() => {
     panel.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
-    const firstItem = panel.querySelector("[data-journal-date]");
+    const firstItem = panel.querySelector("[data-journal-id]");
     const firstFilter = document.getElementById("journalMonthFilter");
     (firstItem || firstFilter || panel).focus({ preventScroll: true });
   });
@@ -149,6 +249,12 @@ async function loadJournalCalendarEntries() {
     if (journalCalendarKey !== key) return;
     journalCalendarEntries = buildJournalCalendarEntries(journals, journalCalendarYear, journalCalendarMonth);
     renderJournalCalendar();
+    const choicePanel = document.getElementById("journalChoiceListPanel");
+    if (choicePanel && !choicePanel.hidden) {
+      const selectedJournals = journalCalendarEntries[journalCalendarSelectedDay] || [];
+      if (selectedJournals.length > 1) renderJournalChoiceList(selectedJournals);
+      else clearJournalChoiceList();
+    }
     renderJournalList();
   } catch (error) {
     journalCalendarEntries = {};
@@ -160,9 +266,15 @@ function buildJournalCalendarEntries(journals, year, month) {
   journals.forEach((journal) => {
     const date = parseDateValue(journal.date);
     if (!date || date.year !== year || date.month !== month) return;
-    entries[date.day] = journal;
+    if (!entries[date.day]) entries[date.day] = [];
+    entries[date.day].push(journal);
   });
+  Object.values(entries).forEach((dayJournals) => dayJournals.sort(compareJournals));
   return entries;
+}
+
+function compareJournals(left, right) {
+  return String(right.updatedAt || right.createdAt || "").localeCompare(String(left.updatedAt || left.createdAt || ""));
 }
 
 function renderJournalCalendar() {
@@ -187,12 +299,49 @@ async function handleJournalCalendarDayClick(day) {
   journalCalendarSelectedDay = day;
   renderJournalCalendar();
   const date = getSelectedJournalCalendarDate();
-  const journal = journalCalendarEntries[day] || await window.LichVietData.getJournalByDate(date);
-  if (journal) {
-    await loadJournalIntoForm(journal);
+  const journals = journalCalendarEntries[day] || await window.LichVietData.getJournalsByDate(date);
+  if (journals.length === 1) {
+    clearJournalChoiceList();
+    await loadJournalIntoForm(journals[0]);
+  } else if (journals.length > 1) {
+    renderJournalChoiceList(journals);
   } else {
+    clearJournalChoiceList();
+    const journalListPanel = document.getElementById("journalListPanel");
+    if (journalListPanel) journalListPanel.hidden = true;
+    document.getElementById("journalListToggleButton")?.setAttribute("aria-expanded", "false");
     resetJournalForm(date);
     setJournalFormStatus("Ngày này chưa có nhật ký/ghi chú. Nhập nội dung để tạo mới.");
     openJournalDialog();
   }
+}
+
+function renderJournalChoiceList(journals) {
+  const panel = document.getElementById("journalChoiceListPanel");
+  const list = document.getElementById("journalChoiceList");
+  if (!panel || !list) return;
+  const journalListPanel = document.getElementById("journalListPanel");
+  if (journalListPanel) journalListPanel.hidden = true;
+  document.getElementById("journalListToggleButton")?.setAttribute("aria-expanded", "false");
+  panel.hidden = false;
+  list.innerHTML = journals.slice().sort(compareJournals).map(renderJournalListCardMarkup).join("");
+  [...list.querySelectorAll("[data-journal-id]")].forEach((button) => {
+    button.addEventListener("click", async () => {
+      const journal = await window.LichVietData.getJournal(button.dataset.journalId);
+      if (journal) await loadJournalIntoForm(journal);
+    });
+  });
+  requestAnimationFrame(() => {
+    const firstCard = list.querySelector("[data-journal-id]");
+    if (!firstCard) return;
+    firstCard.focus({ preventScroll: true });
+    firstCard.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+  });
+}
+
+function clearJournalChoiceList() {
+  const panel = document.getElementById("journalChoiceListPanel");
+  const list = document.getElementById("journalChoiceList");
+  if (list) list.replaceChildren();
+  if (panel) panel.hidden = true;
 }

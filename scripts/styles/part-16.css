@@ -290,7 +290,16 @@
   }
 
   .journal-filter-form {
-    grid-template-columns: 1fr;
+    grid-template-columns: 76px 92px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .journal-filter-content {
+    grid-column: 1 / -1;
+  }
+
+  .journal-card-group-name {
+    display: none;
   }
 
   .month-weekday {
@@ -299,6 +308,30 @@
 
   .event-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .journal-form .event-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .journal-form .journal-date-field,
+  .journal-form .journal-lunar-date-field {
+    grid-column: span 1;
+    min-width: 0;
+  }
+
+  .journal-form .journal-lunar-date-row {
+    display: block;
+    position: relative;
+    width: 100%;
+  }
+
+  .journal-form .journal-lunar-date-row .event-lunar-leap-badge {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    left: auto;
+    transform: translateY(-50%);
   }
 
   .event-field,

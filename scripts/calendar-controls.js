@@ -16,6 +16,7 @@ let journalCalendarSelectedDay;
 let journalCalendarEntries = {};
 let journalCalendarKey = "";
 let editingJournalDate = null;
+let editingJournalId = null;
 let journalHoverPreviewEnabled = true;
 let journalImagePreviewUrls = [];
 let journalImageItems = [];

@@ -5,10 +5,22 @@
     </header>
     <div class="app-info-dialog-body">
       <div class="system-settings-actions">
-        <button id="appInfoButton" class="system-settings-button" type="button">Thông tin ứng dụng</button>
-        <button id="systemInstallButton" class="system-settings-button" type="button">Cài đặt ứng dụng</button>
-        <button id="systemExportButton" class="system-settings-button" type="button">Export data</button>
-        <button id="systemImportButton" class="system-settings-button" type="button">Import data</button>
+        <button id="appInfoButton" class="system-settings-button" type="button">
+          <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 10.5v6M12 7.5h.01"/></svg>
+          <span>Thông tin ứng dụng</span>
+        </button>
+        <button id="systemInstallButton" class="system-settings-button" type="button">
+          <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v11H5zM8 20h8M12 7v6m-3-3 3 3 3-3"/></svg>
+          <span>Cài đặt ứng dụng</span>
+        </button>
+        <button id="systemExportButton" class="system-settings-button" type="button">
+          <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v9h14v-9M12 16V4m-4 4 4-4 4 4"/></svg>
+          <span>Export data</span>
+        </button>
+        <button id="systemImportButton" class="system-settings-button" type="button">
+          <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v9h14v-9M12 4v12m-4-4 4 4 4-4"/></svg>
+          <span>Import data</span>
+        </button>
         <input id="systemImportInput" type="file" accept=".zip,application/zip,application/x-zip-compressed" hidden>
       </div>
     </div>

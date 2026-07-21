@@ -4,6 +4,13 @@ function setupEventCalendar() {
   eventCalendarMonth = today.getMonth() + 1;
   eventCalendarSelectedDay = today.getDate();
 
+  document.getElementById("eventChoiceAddButton")?.addEventListener("click", () => {
+    const date = getSelectedEventCalendarDate();
+    resetEventForm(date);
+    setEventFormStatus("Đang tạo sự kiện mới.");
+    openEventDialog();
+  });
+
   setupCalendarNavigation({
     ...EVENT_CALENDAR_NAVIGATION,
     getState: () => ({
