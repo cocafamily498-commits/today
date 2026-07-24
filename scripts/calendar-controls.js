@@ -20,6 +20,7 @@ let editingJournalId = null;
 let journalHoverPreviewEnabled = true;
 let journalImagePreviewUrls = [];
 let journalImageItems = [];
+let journalFilteredEntries = [];
 const MONTHLY_CALENDAR_NAVIGATION = {
   monthInputId: "calendarMonthInput",
   monthSelectId: "calendarMonthSelect",

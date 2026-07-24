@@ -1,6 +1,6 @@
 async function loadAppPartials() {
   const root = document.getElementById("appRoot");
-  const partialVersion = "2026-07-21-settings-icons";
+  const partialVersion = "2026-07-24-filtered-journal-pdf";
   const partials = [
     "tabs",
     "today-tab",

@@ -141,9 +141,44 @@ button.event-list-item:hover {
 
 .journal-filter-form {
   display: grid;
-  grid-template-columns: minmax(100px, 140px) minmax(100px, 140px) minmax(140px, 220px) minmax(0, 1fr);
+  grid-template-columns: minmax(100px, 140px) minmax(100px, 140px) minmax(140px, 220px) minmax(0, 1fr) 38px;
   gap: 12px;
   align-items: end;
+}
+
+.journal-filter-print-button {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  align-self: end;
+  place-items: center;
+  padding: 0;
+  color: #12345a;
+  border: 1px solid #8fa3b9;
+  border-radius: 5px;
+  background: #f7f9fc;
+  cursor: pointer;
+}
+
+.journal-filter-print-button:hover,
+.journal-filter-print-button:focus-visible {
+  color: #fff;
+  background: var(--green);
+  outline: none;
+}
+
+.journal-filter-print-button:disabled {
+  color: #8a98a8;
+  border-color: #d5dde6;
+  background: #edf1f5;
+  cursor: not-allowed;
+  opacity: .62;
+}
+
+.journal-filter-print-button svg {
+  width: 19px;
+  height: 19px;
+  fill: currentColor;
 }
 
 .event-filter-group {

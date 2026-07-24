@@ -10,6 +10,10 @@ const TYPES = {
   ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".ttf": "font/ttf",
+  ".woff2": "font/woff2",
   ".ico": "image/x-icon",
   ".svg": "image/svg+xml; charset=utf-8",
   ".webmanifest": "application/manifest+json; charset=utf-8"

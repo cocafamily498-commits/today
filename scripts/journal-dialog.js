@@ -205,6 +205,9 @@ async function renderJournalList() {
     })
     .sort((left, right) => String(right.date || "").localeCompare(String(left.date || ""))
       || String(right.createdAt || "").localeCompare(String(left.createdAt || "")));
+  journalFilteredEntries = filtered;
+  const printButton = document.getElementById("journalFilterPrintButton");
+  if (printButton) printButton.disabled = filtered.length === 0;
 
   list.innerHTML = filtered.map(renderJournalListCardMarkup).join("");
 

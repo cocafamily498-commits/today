@@ -158,6 +158,8 @@ function setJournalFormMode(mode) {
   const cancelButton = document.getElementById("journalCancelButton");
   if (cancelButton) cancelButton.hidden = true;
   document.getElementById("journalDeleteButton").hidden = !isEdit;
+  const exportImageButton = document.getElementById("journalExportImageButton");
+  if (exportImageButton) exportImageButton.hidden = !isEdit;
   document.getElementById("journalResetButton").textContent = "Mới";
   document.querySelector("#journalForm .event-submit").textContent = "Lưu";
 }
@@ -187,6 +189,8 @@ function setJournalFormSavedState() {
   form.dataset.saved = "true";
   document.getElementById("journalDialogHeading").textContent = "Tạo nhật ký/ghi chú";
   document.getElementById("journalDeleteButton").hidden = true;
+  const exportImageButton = document.getElementById("journalExportImageButton");
+  if (exportImageButton) exportImageButton.hidden = true;
   setJournalFormControlsLocked(true);
   submitButton.textContent = "Đóng";
   requestAnimationFrame(() => resetButton.focus({ preventScroll: true }));

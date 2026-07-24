@@ -290,12 +290,28 @@
   }
 
   .journal-filter-form {
-    grid-template-columns: 76px 92px minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr)) 38px;
     gap: 8px;
   }
 
-  .journal-filter-content {
+  .journal-filter-year {
+    grid-column: 1;
+  }
+
+  .journal-filter-month {
+    grid-column: 2;
+  }
+
+  .journal-filter-group-field {
     grid-column: 1 / -1;
+  }
+
+  .journal-filter-content {
+    grid-column: 1 / -2;
+  }
+
+  .journal-filter-print-button {
+    grid-column: -2 / -1;
   }
 
   .journal-card-group-name {

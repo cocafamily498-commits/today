@@ -43,6 +43,7 @@ function setupJournalForm() {
   const imageInput = document.getElementById("journalImages");
   const addImageButton = document.getElementById("journalAddImageButton");
   const readButton = document.getElementById("journalReadButton");
+  const exportImageButton = document.getElementById("journalExportImageButton");
   const expandButton = document.getElementById("journalExpandButton");
   const expandedDialog = document.getElementById("journalExpandedDialog");
   const expandedCloseButton = document.getElementById("journalExpandedCloseButton");
@@ -84,6 +85,7 @@ function setupJournalForm() {
   imageInput.addEventListener("change", () => handleJournalImageInputChange(imageInput));
   if (addImageButton) addImageButton.addEventListener("click", () => imageInput.click());
   if (readButton) readButton.addEventListener("click", toggleJournalReading);
+  if (exportImageButton) exportImageButton.addEventListener("click", openJournalExportTemplateMenu);
   if (expandButton) expandButton.addEventListener("click", openJournalExpandedEditor);
   if (expandedCloseButton) expandedCloseButton.addEventListener("click", closeJournalExpandedEditor);
   if (choiceAddButton) choiceAddButton.addEventListener("click", () => {
@@ -115,6 +117,7 @@ function setupJournalList() {
   const monthFilter = document.getElementById("journalMonthFilter");
   const contentFilter = document.getElementById("journalContentFilter");
   const groupFilter = document.getElementById("journalGroupFilter");
+  const printButton = document.getElementById("journalFilterPrintButton");
   if (!toggleButton || !form || !yearFilter || !monthFilter || !contentFilter || !groupFilter) return;
 
   toggleButton.setAttribute("aria-expanded", "false");
@@ -124,6 +127,7 @@ function setupJournalList() {
   monthFilter.addEventListener("change", renderJournalList);
   contentFilter.addEventListener("input", renderJournalList);
   groupFilter.addEventListener("change", renderJournalList);
+  printButton?.addEventListener("click", () => openJournalExportTemplateMenu("filtered"));
   setupJournalGroupFilterPicker();
   document.addEventListener("eventgroupschange", populateJournalGroupFilter);
 }

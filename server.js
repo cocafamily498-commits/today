@@ -38,11 +38,15 @@ const STATIC_TYPES = {
   ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".ttf": "font/ttf",
+  ".woff2": "font/woff2",
   ".ico": "image/x-icon",
   ".svg": "image/svg+xml; charset=utf-8",
   ".webmanifest": "application/manifest+json; charset=utf-8"
 };
-const STATIC_DIRECTORIES = ["partials", "scripts", "icons", "styles"];
+const STATIC_DIRECTORIES = ["partials", "scripts", "icons", "styles", "assets", "data"];
 const API_CORS_HEADERS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, OPTIONS",
