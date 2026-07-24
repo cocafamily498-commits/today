@@ -6,7 +6,7 @@ const JOURNAL_EXPORT_TEMPLATES = {
     url: "assets/journal-template.jpg",
     area: { x: 138, y: 287, width: 518, bottom: 990 },
     date: { x: 510, y: 103, fontSize: 32, color: "#e77778" },
-    pageNumber: { x: 657, y: 1020 },
+    pageNumber: { x: 384, y: 1035, align: "center" },
     font: { maximum: 29, minimum: 18 },
     photo: { width: 165, height: 132 }
   },
@@ -130,11 +130,20 @@ async function exportFilteredJournalsPdf(templateId) {
         journal.date,
         String(journal.text || "").trim(),
         images,
-        templateConfig
+        templateConfig,
+        false
       );
       allCanvases.push(...journalCanvases);
     }
 
+    allCanvases.forEach((canvas, pageIndex) => {
+      drawJournalExportPageNumber(
+        canvas.getContext("2d"),
+        pageIndex,
+        allCanvases.length,
+        templateConfig
+      );
+    });
     const pdfBlob = await createJournalPdfBlob(allCanvases);
     openJournalPdfViewer(allCanvases, pdfBlob, filename);
     setJournalFormStatus(`Đã tạo PDF từ ${journals.length} nhật ký đang lọc, gồm ${allCanvases.length} trang.`);
@@ -274,7 +283,7 @@ function loadJournalExportImage(url) {
   });
 }
 
-function renderJournalExportPages(template, date, text, images, templateConfig) {
+function renderJournalExportPages(template, date, text, images, templateConfig, includePageNumbers = true) {
   const measurementCanvas = document.createElement("canvas");
   const context = measurementCanvas.getContext("2d");
   let selectedLayout = null;
@@ -292,7 +301,9 @@ function renderJournalExportPages(template, date, text, images, templateConfig) 
     const pageContext = canvas.getContext("2d");
     pageContext.drawImage(template, 0, 0, canvas.width, canvas.height);
     drawJournalExportDate(pageContext, date, templateConfig);
-    drawJournalExportPageNumber(pageContext, pageIndex, selectedLayout.pages.length, templateConfig);
+    if (includePageNumbers) {
+      drawJournalExportPageNumber(pageContext, pageIndex, selectedLayout.pages.length, templateConfig);
+    }
     drawJournalExportPage(pageContext, page, selectedLayout.fontSize);
     return canvas;
   });
@@ -417,7 +428,7 @@ function drawJournalExportPageNumber(context, pageIndex, pageCount, templateConf
   context.save();
   context.fillStyle = "rgba(104, 75, 53, .72)";
   context.font = `17px ${JOURNAL_EXPORT_FONT_FAMILY}`;
-  context.textAlign = "right";
+  context.textAlign = templateConfig.pageNumber.align || "right";
   context.fillText(`${pageIndex + 1}/${pageCount}`, templateConfig.pageNumber.x, templateConfig.pageNumber.y);
   context.restore();
 }

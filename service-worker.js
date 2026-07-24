@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v155";
+const CACHE_NAME = "homnay-pwa-v157";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -587,7 +587,9 @@ const APP_SHELL = [
   "/scripts/journal-export.js?v=16",
   "/styles.css?v=87",
   "/scripts/styles/part-07.css?v=9",
-  "/scripts/journal-export.js?v=17"
+  "/scripts/journal-export.js?v=17",
+  "/scripts/journal-export.js?v=18",
+  "/scripts/journal-export.js?v=19"
 ];
 
 // APP_SHELL keeps historical entries for compatibility, but installing every
