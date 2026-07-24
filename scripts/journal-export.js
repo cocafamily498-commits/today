@@ -693,10 +693,21 @@ async function downloadJournalPdf() {
   const blob = journalPdfViewerState.pdfBlob;
   const filename = journalPdfViewerState.filename;
   if (!blob || !filename) return;
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isAppleMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  if (isAndroid) {
+    const androidUrl = URL.createObjectURL(blob);
+    downloadJournalExportUrl(androidUrl, filename);
+    window.setTimeout(() => URL.revokeObjectURL(androidUrl), 60000);
+    return;
+  }
+
   const file = typeof File === "function"
     ? new File([blob], filename, { type: "application/pdf" })
     : null;
-  if (file && navigator.share && navigator.canShare?.({ files: [file] })) {
+  if (isAppleMobile && file && navigator.share && navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({
         files: [file],
@@ -709,8 +720,8 @@ async function downloadJournalPdf() {
     }
   }
 
-  if (window.matchMedia("(pointer: coarse)").matches) {
-    window.alert("Trình duyệt mobile chỉ có thể lưu PDF qua Share Sheet khi ứng dụng chạy bằng HTTPS. Bạn vẫn có thể dùng nút In ngay trong ứng dụng.");
+  if (isAppleMobile) {
+    window.alert("Safari chỉ có thể lưu PDF qua Share Sheet khi ứng dụng chạy bằng HTTPS. Bạn vẫn có thể dùng nút In ngay trong ứng dụng.");
     return;
   }
 
