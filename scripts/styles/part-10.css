@@ -288,6 +288,12 @@ button.event-list-item:hover {
   overflow-y: auto;
 }
 
+/* Safari iOS can keep the absolutely positioned picker visible unless the
+   hidden state wins explicitly over the picker styles. */
+.journal-group-filter-list[hidden] {
+  display: none;
+}
+
 .journal-filter-all-icon {
   width: 19px;
   color: #94a3b8;
