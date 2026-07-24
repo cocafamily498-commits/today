@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v158";
+const CACHE_NAME = "homnay-pwa-v159";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -589,6 +589,17 @@ const APP_SHELL = [
   "/scripts/styles/part-07.css?v=9",
   "/styles.css?v=88",
   "/scripts/styles/part-10.css?v=12",
+  "/scripts/journal-calendar.js?v=13",
+  "/scripts/partials-loader.js?v=23",
+  "/partials/tabs.html?v=2026-07-24-ios-group-picker",
+  "/partials/today-tab.html?v=2026-07-24-ios-group-picker",
+  "/partials/converter-tab.html?v=2026-07-24-ios-group-picker",
+  "/partials/events-tab.html?v=2026-07-24-ios-group-picker",
+  "/partials/journals-tab.html?v=2026-07-24-ios-group-picker",
+  "/partials/app-info-tab.html?v=2026-07-24-ios-group-picker",
+  "/partials/event-dialog.html?v=2026-07-24-ios-group-picker",
+  "/partials/journal-dialog.html?v=2026-07-24-ios-group-picker",
+  "/partials/app-info-dialog.html?v=2026-07-24-ios-group-picker",
   "/scripts/journal-export.js?v=17",
   "/scripts/journal-export.js?v=18",
   "/scripts/journal-export.js?v=19",

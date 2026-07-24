@@ -154,19 +154,28 @@ function setupJournalGroupFilterPicker() {
   const button = document.getElementById("journalGroupFilterButton");
   const list = document.getElementById("journalGroupFilterList");
   if (!input || !button || !list || button.dataset.ready === "true") return;
+  const closeGroupFilter = () => {
+    list.hidden = true;
+    list.style.display = "none";
+    button.setAttribute("aria-expanded", "false");
+  };
+  const openGroupFilter = () => {
+    list.style.removeProperty("display");
+    list.hidden = false;
+    button.setAttribute("aria-expanded", "true");
+    list.querySelector("[aria-selected='true']")?.focus();
+  };
   button.dataset.ready = "true";
   populateJournalGroupFilter();
   button.addEventListener("click", () => {
-    list.hidden = !list.hidden;
-    button.setAttribute("aria-expanded", String(!list.hidden));
-    if (!list.hidden) list.querySelector("[aria-selected='true']")?.focus();
+    if (list.hidden) openGroupFilter();
+    else closeGroupFilter();
   });
   list.addEventListener("click", (event) => {
     const option = event.target.closest("[data-journal-group-filter]");
     if (!option) return;
     input.value = option.dataset.journalGroupFilter || "";
-    list.hidden = true;
-    button.setAttribute("aria-expanded", "false");
+    closeGroupFilter();
     populateJournalGroupFilter();
     input.dispatchEvent(new Event("change", { bubbles: true }));
     button.focus();
@@ -176,8 +185,7 @@ function setupJournalGroupFilterPicker() {
     const currentIndex = options.indexOf(document.activeElement);
     if (event.key === "Escape") {
       event.preventDefault();
-      list.hidden = true;
-      button.setAttribute("aria-expanded", "false");
+      closeGroupFilter();
       button.focus();
       return;
     }
@@ -188,8 +196,7 @@ function setupJournalGroupFilterPicker() {
   });
   document.addEventListener("click", (event) => {
     if (event.target.closest(".journal-group-filter-picker")) return;
-    list.hidden = true;
-    button.setAttribute("aria-expanded", "false");
+    closeGroupFilter();
   });
 }
 
