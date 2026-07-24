@@ -462,6 +462,7 @@
 }
 
 .journal-pdf-toolbar {
+  position: relative;
   z-index: 2;
   display: flex;
   min-height: 64px;
@@ -599,27 +600,54 @@
 
 @media (max-width: 760px) {
   .journal-pdf-toolbar {
-    flex-wrap: wrap;
-    gap: 4px 10px;
-    padding: 6px 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 6px 8px;
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 8px max(8px, env(safe-area-inset-left));
   }
 
   .journal-pdf-toolbar h2 {
-    flex-basis: calc(100% - 52px);
-    order: 1;
+    display: none;
   }
 
   .journal-pdf-page-controls {
-    order: 3;
+    grid-column: 1;
+    grid-row: 1;
+    justify-content: flex-start;
   }
 
   .journal-pdf-toolbar-group:not(.journal-pdf-page-controls):not(.journal-pdf-file-actions) {
-    order: 4;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: center;
   }
 
   .journal-pdf-file-actions {
-    margin-left: auto;
-    order: 2;
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    padding: 0;
+  }
+
+  .journal-pdf-toolbar .journal-pdf-close-button {
+    position: static;
+    width: 52px;
+    height: 52px;
+    color: #fff;
+    font-size: 2.15rem;
+    font-weight: 500;
+    line-height: 1;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .journal-pdf-toolbar .journal-pdf-close-button:hover,
+  .journal-pdf-toolbar .journal-pdf-close-button:focus-visible,
+  .journal-pdf-toolbar .journal-pdf-close-button:active {
+    background: rgba(255, 255, 255, .16);
   }
 
   .journal-pdf-viewer-stage {

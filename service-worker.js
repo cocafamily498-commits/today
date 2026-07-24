@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v159";
+const CACHE_NAME = "homnay-pwa-v162";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -603,7 +603,23 @@ const APP_SHELL = [
   "/scripts/journal-export.js?v=17",
   "/scripts/journal-export.js?v=18",
   "/scripts/journal-export.js?v=19",
-  "/scripts/journal-export.js?v=20"
+  "/scripts/journal-export.js?v=20",
+  "/styles.css?v=89",
+  "/scripts/styles/part-07.css?v=10",
+  "/scripts/partials-loader.js?v=24",
+  "/partials/tabs.html?v=2026-07-24-ios-pdf-close",
+  "/partials/today-tab.html?v=2026-07-24-ios-pdf-close",
+  "/partials/converter-tab.html?v=2026-07-24-ios-pdf-close",
+  "/partials/events-tab.html?v=2026-07-24-ios-pdf-close",
+  "/partials/journals-tab.html?v=2026-07-24-ios-pdf-close",
+  "/partials/app-info-tab.html?v=2026-07-24-ios-pdf-close",
+  "/partials/event-dialog.html?v=2026-07-24-ios-pdf-close",
+  "/partials/journal-dialog.html?v=2026-07-24-ios-pdf-close",
+  "/partials/app-info-dialog.html?v=2026-07-24-ios-pdf-close",
+  "/styles.css?v=90",
+  "/scripts/styles/part-07.css?v=11",
+  "/styles.css?v=91",
+  "/scripts/styles/part-07.css?v=12"
 ];
 
 // APP_SHELL keeps historical entries for compatibility, but installing every
