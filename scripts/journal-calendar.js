@@ -47,6 +47,7 @@ function setupJournalForm() {
   const expandButton = document.getElementById("journalExpandButton");
   const expandedDialog = document.getElementById("journalExpandedDialog");
   const expandedCloseButton = document.getElementById("journalExpandedCloseButton");
+  const expandedHeaderCloseButton = document.getElementById("journalExpandedHeaderCloseButton");
   const choiceAddButton = document.getElementById("journalChoiceAddButton");
 
   setJournalDateInputValue(toDateInputValue(getVietnamToday()));
@@ -88,6 +89,7 @@ function setupJournalForm() {
   if (exportImageButton) exportImageButton.addEventListener("click", openJournalExportTemplateMenu);
   if (expandButton) expandButton.addEventListener("click", openJournalExpandedEditor);
   if (expandedCloseButton) expandedCloseButton.addEventListener("click", closeJournalExpandedEditor);
+  if (expandedHeaderCloseButton) expandedHeaderCloseButton.addEventListener("click", closeJournalExpandedEditor);
   if (choiceAddButton) choiceAddButton.addEventListener("click", () => {
     resetJournalForm(getSelectedJournalCalendarDate());
     setJournalFormStatus("Đang tạo nhật ký/ghi chú mới.");
@@ -118,6 +120,8 @@ function setupJournalList() {
   const contentFilter = document.getElementById("journalContentFilter");
   const groupFilter = document.getElementById("journalGroupFilter");
   const printButton = document.getElementById("journalFilterPrintButton");
+  const choicePrintButton = document.getElementById("journalChoicePrintButton");
+  const addButton = document.getElementById("journalListAddButton");
   if (!toggleButton || !form || !yearFilter || !monthFilter || !contentFilter || !groupFilter) return;
 
   toggleButton.setAttribute("aria-expanded", "false");
@@ -128,6 +132,12 @@ function setupJournalList() {
   contentFilter.addEventListener("input", renderJournalList);
   groupFilter.addEventListener("change", renderJournalList);
   printButton?.addEventListener("click", () => openJournalExportTemplateMenu("filtered"));
+  choicePrintButton?.addEventListener("click", () => openJournalExportTemplateMenu("day"));
+  addButton?.addEventListener("click", () => {
+    resetJournalForm(getSelectedJournalCalendarDate());
+    setJournalFormStatus("Đang tạo nhật ký/ghi chú mới.");
+    openJournalDialog();
+  });
   setupJournalGroupFilterPicker();
   document.addEventListener("eventgroupschange", populateJournalGroupFilter);
 }
@@ -334,6 +344,9 @@ function renderJournalChoiceList(journals) {
   const journalListPanel = document.getElementById("journalListPanel");
   if (journalListPanel) journalListPanel.hidden = true;
   document.getElementById("journalListToggleButton")?.setAttribute("aria-expanded", "false");
+  journalChoiceEntries = journals.slice()
+    .sort((left, right) => String(left.createdAt || left.updatedAt || "")
+      .localeCompare(String(right.createdAt || right.updatedAt || "")));
   panel.hidden = false;
   list.innerHTML = journals.slice().sort(compareJournals).map(renderJournalListCardMarkup).join("");
   [...list.querySelectorAll("[data-journal-id]")].forEach((button) => {
@@ -354,5 +367,6 @@ function clearJournalChoiceList() {
   const panel = document.getElementById("journalChoiceListPanel");
   const list = document.getElementById("journalChoiceList");
   if (list) list.replaceChildren();
+  journalChoiceEntries = [];
   if (panel) panel.hidden = true;
 }

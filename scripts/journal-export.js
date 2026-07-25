@@ -29,13 +29,37 @@ const journalPdfViewerState = {
   filename: "",
   pageIndex: 0,
   zoom: 1,
-  rotation: 0
+  rotation: 0,
+  fitPage: false,
+  pageTurning: false
 };
+let journalPdfViewerHistoryGuardActive = false;
+
+function guardJournalPdfViewerHistory() {
+  if (journalPdfViewerHistoryGuardActive) return;
+  journalPdfViewerHistoryGuardActive = true;
+  history.pushState({ journalPdfViewer: true }, "", location.href);
+}
+
+function showJournalPdfViewerDialog(dialog) {
+  if (dialog.open) return;
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  guardJournalPdfViewerHistory();
+  dialog.showModal();
+  requestAnimationFrame(() => {
+    dialog.querySelector("[data-pdf-action='close']")?.focus({ preventScroll: true });
+  });
+}
+
+window.addEventListener("popstate", () => {
+  if (!journalPdfViewerHistoryGuardActive) return;
+  history.pushState({ journalPdfViewer: true }, "", location.href);
+});
 
 function openJournalExportTemplateMenu(mode = "single") {
   const dialog = document.getElementById("journalTemplateDialog");
   if (!dialog) return;
-  journalExportSelectionMode = mode === "filtered" ? "filtered" : "single";
+  journalExportSelectionMode = ["filtered", "day"].includes(mode) ? mode : "single";
   if (dialog.dataset.ready !== "true") {
     dialog.dataset.ready = "true";
     document.getElementById("journalTemplateDialogCloseButton")
@@ -48,6 +72,8 @@ function openJournalExportTemplateMenu(mode = "single") {
         dialog.close();
         if (journalExportSelectionMode === "filtered") {
           exportFilteredJournalsPdf(option.dataset.journalTemplate);
+        } else if (journalExportSelectionMode === "day") {
+          exportDayJournalsPdf(option.dataset.journalTemplate);
         } else {
           exportJournalPdfFromForm(option.dataset.journalTemplate);
         }
@@ -56,6 +82,15 @@ function openJournalExportTemplateMenu(mode = "single") {
   }
   if (!dialog.open) dialog.showModal();
   requestAnimationFrame(() => dialog.querySelector("[data-journal-template]")?.focus());
+}
+
+function exportDayJournalsPdf(templateId) {
+  const date = getSelectedJournalCalendarDate() || journalChoiceEntries[0]?.date || "";
+  return exportFilteredJournalsPdf(templateId, journalChoiceEntries, {
+    buttonId: "journalChoicePrintButton",
+    filename: `Nhat-ky-${String(date).replace(/-/g, "")}.pdf`,
+    description: "trong ngày"
+  });
 }
 
 async function exportJournalPdfFromForm(templateId) {
@@ -96,11 +131,11 @@ async function exportJournalPdfFromForm(templateId) {
   }
 }
 
-async function exportFilteredJournalsPdf(templateId) {
-  const journals = journalFilteredEntries.slice()
+async function exportFilteredJournalsPdf(templateId, sourceEntries = journalFilteredEntries, options = {}) {
+  const journals = sourceEntries.slice()
     .sort((left, right) => String(left.date || "").localeCompare(String(right.date || ""))
       || String(left.createdAt || "").localeCompare(String(right.createdAt || "")));
-  const printButton = document.getElementById("journalFilterPrintButton");
+  const printButton = document.getElementById(options.buttonId || "journalFilterPrintButton");
   if (journals.length === 0) {
     if (printButton) printButton.disabled = true;
     return;
@@ -108,7 +143,7 @@ async function exportFilteredJournalsPdf(templateId) {
 
   const templateConfig = JOURNAL_EXPORT_TEMPLATES[templateId] || JOURNAL_EXPORT_TEMPLATES.journal;
   const exportedOn = toDateInputValue(getVietnamToday()).replace(/-/g, "");
-  const filename = `Nhat-ky-da-loc-${exportedOn}.pdf`;
+  const filename = options.filename || `Nhat-ky-da-loc-${exportedOn}.pdf`;
   openJournalPdfViewerLoading(filename, templateConfig.name);
   if (printButton) printButton.disabled = true;
   try {
@@ -146,12 +181,12 @@ async function exportFilteredJournalsPdf(templateId) {
     });
     const pdfBlob = await createJournalPdfBlob(allCanvases);
     openJournalPdfViewer(allCanvases, pdfBlob, filename);
-    setJournalFormStatus(`Đã tạo PDF từ ${journals.length} nhật ký đang lọc, gồm ${allCanvases.length} trang.`);
+    setJournalFormStatus(`Đã tạo PDF từ ${journals.length} nhật ký ${options.description || "đang lọc"}, gồm ${allCanvases.length} trang.`);
   } catch (error) {
     console.error("filtered journal PDF export failed", error);
     showJournalPdfViewerError("Chưa tạo được PDF từ danh sách đang lọc. Vui lòng đóng cửa sổ này và thử lại.");
   } finally {
-    if (printButton) printButton.disabled = journalFilteredEntries.length === 0;
+    if (printButton) printButton.disabled = sourceEntries.length === 0;
   }
 }
 
@@ -488,7 +523,7 @@ function openJournalPdfViewerLoading(filename, templateName) {
   if (canvas) canvas.hidden = true;
   dialog.querySelectorAll("[data-pdf-action]:not([data-pdf-action='close'])")
     .forEach((control) => { control.disabled = true; });
-  if (!dialog.open) dialog.showModal();
+  showJournalPdfViewerDialog(dialog);
 }
 
 function updateJournalPdfViewerLoadingStatus(message) {
@@ -514,7 +549,9 @@ function openJournalPdfViewer(canvases, pdfBlob, filename) {
     filename,
     pageIndex: 0,
     zoom: 1,
-    rotation: 0
+    rotation: 0,
+    fitPage: false,
+    pageTurning: false
   });
   setupJournalPdfViewer(dialog);
   document.getElementById("journalPdfViewerHeading").textContent = filename;
@@ -528,13 +565,17 @@ function openJournalPdfViewer(canvases, pdfBlob, filename) {
   if (canvas) canvas.hidden = false;
   dialog.querySelectorAll("[data-pdf-action]")
     .forEach((control) => { control.disabled = false; });
-  if (!dialog.open) dialog.showModal();
+  showJournalPdfViewerDialog(dialog);
   requestAnimationFrame(fitJournalPdfViewerPage);
 }
 
 function setupJournalPdfViewer(dialog) {
   if (dialog.dataset.ready === "true") return;
   dialog.dataset.ready = "true";
+  const stage = document.getElementById("journalPdfViewerStage");
+  const canvas = document.getElementById("journalPdfViewerCanvas");
+  let pinchStartDistance = 0;
+  let pinchStartZoom = 1;
   dialog.querySelectorAll("[data-pdf-action]").forEach((button) => {
     button.addEventListener("click", () => handleJournalPdfViewerAction(button.dataset.pdfAction));
   });
@@ -547,6 +588,23 @@ function setupJournalPdfViewer(dialog) {
     event.stopPropagation();
     setJournalPdfViewerZoom(journalPdfViewerState.zoom + (event.deltaY < 0 ? 0.1 : -0.1));
   }, { passive: false, capture: true });
+  stage?.addEventListener("touchstart", (event) => {
+    if (event.touches.length !== 2) return;
+    const [first, second] = event.touches;
+    pinchStartDistance = Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY);
+    pinchStartZoom = journalPdfViewerState.zoom;
+    event.preventDefault();
+  }, { passive: false });
+  stage?.addEventListener("touchmove", (event) => {
+    if (event.touches.length !== 2 || pinchStartDistance === 0) return;
+    const [first, second] = event.touches;
+    const distance = Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY);
+    event.preventDefault();
+    setJournalPdfViewerZoom(pinchStartZoom * distance / pinchStartDistance);
+  }, { passive: false });
+  stage?.addEventListener("touchend", (event) => {
+    if (event.touches.length < 2) pinchStartDistance = 0;
+  });
   dialog.addEventListener("keydown", (event) => {
     if ((event.ctrlKey || event.metaKey) && ["+", "=", "-", "_", "0"].includes(event.key)) {
       event.preventDefault();
@@ -570,9 +628,17 @@ function handleJournalPdfViewerAction(action) {
   if (action === "close") {
     document.getElementById("journalPdfViewerDialog")?.close();
   } else if (action === "previous") {
-    showJournalPdfViewerPage(journalPdfViewerState.pageIndex - 1);
+    if (window.matchMedia("(max-width: 760px)").matches && journalPdfViewerState.fitPage) {
+      turnJournalPdfViewerPage(-1);
+    } else {
+      showJournalPdfViewerPage(journalPdfViewerState.pageIndex - 1);
+    }
   } else if (action === "next") {
-    showJournalPdfViewerPage(journalPdfViewerState.pageIndex + 1);
+    if (window.matchMedia("(max-width: 760px)").matches && journalPdfViewerState.fitPage) {
+      turnJournalPdfViewerPage(1);
+    } else {
+      showJournalPdfViewerPage(journalPdfViewerState.pageIndex + 1);
+    }
   } else if (action === "zoom-out") {
     setJournalPdfViewerZoom(journalPdfViewerState.zoom - 0.1);
   } else if (action === "zoom-in") {
@@ -596,6 +662,38 @@ function showJournalPdfViewerPage(pageIndex) {
   journalPdfViewerState.pageIndex = Math.min(Math.max(0, pageIndex), Math.max(0, lastPageIndex));
   journalPdfViewerState.rotation = 0;
   renderJournalPdfViewerPage();
+}
+
+function turnJournalPdfViewerPage(direction) {
+  const targetIndex = journalPdfViewerState.pageIndex + direction;
+  const lastPageIndex = journalPdfViewerState.canvases.length - 1;
+  const canvas = document.getElementById("journalPdfViewerCanvas");
+  const stage = document.getElementById("journalPdfViewerStage");
+  if (!canvas || !stage || journalPdfViewerState.pageTurning || targetIndex < 0 || targetIndex > lastPageIndex) return;
+  journalPdfViewerState.pageTurning = true;
+  const turningPage = document.createElement("div");
+  turningPage.className = `journal-pdf-page-turn-sheet ${direction > 0 ? "turn-next" : "turn-previous"}`;
+  const turningPageCanvas = document.createElement("canvas");
+  turningPageCanvas.width = canvas.width;
+  turningPageCanvas.height = canvas.height;
+  turningPageCanvas.getContext("2d").drawImage(canvas, 0, 0);
+  turningPage.append(turningPageCanvas);
+  turningPage.style.left = `${canvas.offsetLeft}px`;
+  turningPage.style.top = `${canvas.offsetTop}px`;
+  turningPage.style.width = `${canvas.offsetWidth}px`;
+  turningPage.style.height = `${canvas.offsetHeight}px`;
+  turningPage.setAttribute("aria-hidden", "true");
+  stage.append(turningPage);
+  showJournalPdfViewerPage(targetIndex);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      turningPage.classList.add("is-turning");
+      window.setTimeout(() => {
+        turningPage.remove();
+        journalPdfViewerState.pageTurning = false;
+      }, 820);
+    });
+  });
 }
 
 function renderJournalPdfViewerPage() {
@@ -630,13 +728,28 @@ function renderJournalPdfViewerPage() {
   }
   document.getElementById("journalPdfZoomLabel").textContent =
     `${Math.round(journalPdfViewerState.zoom * 100)}%`;
-  const previous = document.querySelector("#journalPdfViewerDialog [data-pdf-action='previous']");
-  const next = document.querySelector("#journalPdfViewerDialog [data-pdf-action='next']");
-  if (previous) previous.disabled = journalPdfViewerState.pageIndex === 0;
-  if (next) next.disabled = journalPdfViewerState.pageIndex >= journalPdfViewerState.canvases.length - 1;
+  const previousControls = document.querySelectorAll("#journalPdfViewerDialog [data-pdf-action='previous']");
+  const nextControls = document.querySelectorAll("#journalPdfViewerDialog [data-pdf-action='next']");
+  previousControls.forEach((control) => { control.disabled = journalPdfViewerState.pageIndex === 0; });
+  nextControls.forEach((control) => {
+    control.disabled = journalPdfViewerState.pageIndex >= journalPdfViewerState.canvases.length - 1;
+  });
+  updateJournalPdfEdgeNavigation(target);
+}
+
+function updateJournalPdfEdgeNavigation(canvas) {
+  const previous = document.querySelector(".journal-pdf-edge-previous");
+  const next = document.querySelector(".journal-pdf-edge-next");
+  const visible = window.matchMedia("(max-width: 760px)").matches && journalPdfViewerState.fitPage;
+  [previous, next].forEach((control) => control?.classList.toggle("is-visible", visible));
+  if (!visible || !canvas || !previous || !next) return;
+  const inset = 6;
+  previous.style.left = `${canvas.offsetLeft + inset}px`;
+  next.style.left = `${canvas.offsetLeft + canvas.offsetWidth - next.offsetWidth - inset}px`;
 }
 
 function setJournalPdfViewerZoom(zoom) {
+  journalPdfViewerState.fitPage = false;
   journalPdfViewerState.zoom = Math.min(2.5, Math.max(0.25, zoom));
   renderJournalPdfViewerPage();
 }
@@ -653,6 +766,7 @@ function fitJournalPdfViewerPage() {
     Math.max(0.25, (stage.clientWidth - 36) / width),
     Math.max(0.25, (stage.clientHeight - 36) / height)
   );
+  journalPdfViewerState.fitPage = true;
   renderJournalPdfViewerPage();
 }
 
@@ -731,6 +845,10 @@ async function downloadJournalPdf() {
 }
 
 function closeJournalPdfViewerState() {
+  if (journalPdfViewerHistoryGuardActive) {
+    journalPdfViewerHistoryGuardActive = false;
+    history.back();
+  }
   if (document.fullscreenElement) document.exitFullscreen?.();
   Object.assign(journalPdfViewerState, {
     canvases: [],
@@ -738,7 +856,9 @@ function closeJournalPdfViewerState() {
     filename: "",
     pageIndex: 0,
     zoom: 1,
-    rotation: 0
+    rotation: 0,
+    fitPage: false,
+    pageTurning: false
   });
   const canvas = document.getElementById("journalPdfViewerCanvas");
   if (canvas) {

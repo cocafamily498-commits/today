@@ -141,9 +141,77 @@ button.event-list-item:hover {
 
 .journal-filter-form {
   display: grid;
-  grid-template-columns: minmax(100px, 140px) minmax(100px, 140px) minmax(140px, 220px) minmax(0, 1fr) 38px;
+  grid-template-columns: minmax(100px, 140px) minmax(100px, 140px) minmax(140px, 220px) minmax(0, 1fr) 38px 38px;
   gap: 12px;
   align-items: end;
+}
+
+.journal-choice-print-button {
+  display: inline-grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: #12345a;
+  border: 1px solid #8fa3b9;
+  border-radius: 5px;
+  background: #f7f9fc;
+  cursor: pointer;
+}
+
+.journal-choice-print-button svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+.journal-choice-print-button:hover,
+.journal-choice-print-button:focus-visible {
+  color: #fff;
+  border-color: var(--green);
+  background: var(--green);
+  outline: none;
+}
+
+.journal-list-add-button {
+  position: relative;
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-self: end;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #fff;
+  border: 0;
+  border-radius: 5px;
+  background: var(--red-dark);
+  box-shadow: 0 2px 6px rgba(18, 52, 90, .16);
+  cursor: pointer;
+}
+
+.journal-list-add-button::before,
+.journal-list-add-button::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.journal-list-add-button::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.journal-list-add-button:hover,
+.journal-list-add-button:focus-visible {
+  background: #1e4a78;
+  outline: none;
 }
 
 .journal-filter-print-button {

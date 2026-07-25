@@ -104,15 +104,15 @@ function openJournalImageViewer(url, label) {
   dialog.className = "journal-image-viewer-dialog";
   dialog.innerHTML = `
     <div class="journal-image-viewer">
-      <div class="journal-image-viewer-toolbar">
-        <strong>${escapeHtml(label || "Ảnh nhật ký")}</strong>
+      <header class="event-dialog-header journal-image-viewer-toolbar">
+        <h2 class="event-dialog-title">Xem ảnh</h2>
         <div class="journal-image-viewer-actions">
           <button class="journal-image-viewer-control" type="button" data-zoom="out" aria-label="Thu nhỏ">-</button>
           <button class="journal-image-viewer-control" type="button" data-zoom="reset" aria-label="Vừa màn hình">100%</button>
           <button class="journal-image-viewer-control" type="button" data-zoom="in" aria-label="Phóng to">+</button>
-          <button class="journal-image-viewer-close" type="button" aria-label="Đóng">×</button>
+          <button class="event-dialog-close journal-image-viewer-close" type="button" aria-label="Đóng" title="Đóng">×</button>
         </div>
-      </div>
+      </header>
       <div class="journal-image-viewer-stage">
         <img src="${escapeHtml(url)}" alt="${escapeHtml(label || "Ảnh nhật ký")}">
       </div>
@@ -122,19 +122,18 @@ function openJournalImageViewer(url, label) {
   document.body.append(dialog);
   document.body.classList.add("event-dialog-open");
   const image = dialog.querySelector("img");
+  const zoomLabel = dialog.querySelector("[data-zoom='reset']");
   let zoom = 1;
   const applyZoom = () => {
     image.style.transform = `scale(${zoom})`;
     image.style.cursor = zoom > 1 ? "grab" : "zoom-in";
+    if (zoomLabel) zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
   };
   dialog.addEventListener("close", () => {
     document.body.classList.remove("event-dialog-open");
     dialog.remove();
   });
   dialog.querySelector(".journal-image-viewer-close").addEventListener("click", () => dialog.close());
-  dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close();
-  });
   dialog.querySelectorAll("[data-zoom]").forEach((button) => {
     button.addEventListener("click", () => {
       const action = button.dataset.zoom;
@@ -145,6 +144,7 @@ function openJournalImageViewer(url, label) {
     });
   });
   image.addEventListener("click", () => {
+    if (window.matchMedia("(max-width: 760px)").matches) return;
     zoom = zoom === 1 ? 2 : 1;
     applyZoom();
   });

@@ -25,7 +25,14 @@
 .event-group-manage-button {
   flex: 0 0 44px; width: 44px; min-height: 44px; color: #12345a; font-size: 1.35rem;
   font-weight: 800; border: 1px solid #8fa3b9; border-radius: 5px; background: #f7f9fc; cursor: pointer;
+  transition: color .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease;
 }
+.event-group-manage-button:hover,
+.event-group-manage-button:focus-visible {
+  color: #fff; border-color: #1e4a78; background: #1e4a78;
+  box-shadow: 0 6px 14px rgba(30, 74, 120, .25); outline: none; transform: translateY(-2px);
+}
+.event-group-manage-button:active { transform: translateY(0); }
 .event-group-picker-list {
   position: absolute; z-index: 20; top: calc(100% + 5px); left: 0; right: 0;
   max-height: 260px; overflow: auto; padding: 5px; border: 1px solid #b8c7d8;

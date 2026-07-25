@@ -117,6 +117,16 @@ function stopJournalReading() {
   setJournalReadButtonState(false);
 }
 
+function updateJournalExpandedViewport() {
+  const dialog = document.getElementById("journalExpandedDialog");
+  if (!dialog?.open) return;
+  const viewport = window.visualViewport;
+  const height = Math.round(viewport?.height || window.innerHeight);
+  const top = Math.round(viewport?.offsetTop || 0);
+  dialog.style.setProperty("--journal-expanded-height", `${height}px`);
+  dialog.style.setProperty("--journal-expanded-top", `${top}px`);
+}
+
 function openJournalExpandedEditor() {
   const dialog = document.getElementById("journalExpandedDialog");
   const source = document.getElementById("journalText");
@@ -125,7 +135,13 @@ function openJournalExpandedEditor() {
   stopJournalReading();
   editor.value = source.value;
   if (!dialog.open) dialog.showModal();
-  requestAnimationFrame(() => editor.focus({ preventScroll: true }));
+  updateJournalExpandedViewport();
+  window.visualViewport?.addEventListener("resize", updateJournalExpandedViewport);
+  window.visualViewport?.addEventListener("scroll", updateJournalExpandedViewport);
+  requestAnimationFrame(() => {
+    document.getElementById("journalExpandedHeaderCloseButton")?.focus({ preventScroll: true });
+    updateJournalExpandedViewport();
+  });
 }
 
 function closeJournalExpandedEditor() {
@@ -137,6 +153,10 @@ function closeJournalExpandedEditor() {
     source.dispatchEvent(new Event("input", { bubbles: true }));
   }
   if (dialog?.open) dialog.close();
+  window.visualViewport?.removeEventListener("resize", updateJournalExpandedViewport);
+  window.visualViewport?.removeEventListener("scroll", updateJournalExpandedViewport);
+  dialog?.style.removeProperty("--journal-expanded-height");
+  dialog?.style.removeProperty("--journal-expanded-top");
   requestAnimationFrame(() => document.getElementById("journalExpandButton")?.focus({ preventScroll: true }));
 }
 

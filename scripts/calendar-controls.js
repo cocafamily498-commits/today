@@ -21,6 +21,7 @@ let journalHoverPreviewEnabled = true;
 let journalImagePreviewUrls = [];
 let journalImageItems = [];
 let journalFilteredEntries = [];
+let journalChoiceEntries = [];
 const MONTHLY_CALENDAR_NAVIGATION = {
   monthInputId: "calendarMonthInput",
   monthSelectId: "calendarMonthSelect",

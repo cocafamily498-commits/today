@@ -50,6 +50,9 @@
           <section id="journalChoiceListPanel" class="event-list event-choice-list journal-choice-list" aria-label="Chọn nhật ký/ghi chú để sửa" hidden>
             <div class="event-choice-heading">
               <p class="event-choice-status">Chọn nhật ký/ghi chú để sửa</p>
+              <button id="journalChoicePrintButton" class="journal-choice-print-button" type="button" aria-label="In các nhật ký/ghi chú của ngày đã chọn" title="In nhật ký/ghi chú của ngày">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v4H7V3Zm10 9h2v5h-3v4H8v-4H5v-5h2v3h10v-3Zm-3 7v-5h-4v5h4ZM6 8h12a4 4 0 0 1 4 4v6h-4v-2h2v-4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v4h2v2H2v-6a4 4 0 0 1 4-4Z"/></svg>
+              </button>
               <button id="journalChoiceAddButton" class="event-choice-add-button" type="button" aria-label="Thêm nhật ký/ghi chú mới"></button>
             </div>
             <div id="journalChoiceList"></div>
@@ -96,6 +99,7 @@
               <button id="journalFilterPrintButton" class="journal-filter-print-button" type="button" aria-label="In các nhật ký đang được lọc" title="In các nhật ký đang được lọc" disabled>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v4H7V3Zm10 9h2v5h-3v4H8v-4H5v-5h2v3h10v-3Zm-3 7v-5h-4v5h4ZM6 8h12a4 4 0 0 1 4 4v6h-4v-2h2v-4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v4h2v2H2v-6a4 4 0 0 1 4-4Z"/></svg>
               </button>
+              <button id="journalListAddButton" class="journal-list-add-button" type="button" aria-label="Thêm nhật ký/ghi chú mới" title="Thêm nhật ký/ghi chú mới"></button>
             </form>
             <div id="journalList" class="journal-list"></div>
             <p id="journalFilterEmptyState" class="empty-state" hidden>Không có nhật ký/ghi chú phù hợp với bộ lọc.</p>
