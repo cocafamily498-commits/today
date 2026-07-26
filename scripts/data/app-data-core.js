@@ -3,7 +3,7 @@
 
   const parts = window.LichVietDataParts = {};
   const DB_NAME = "so-tay-lich-viet";
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   const EVENT_TYPES = new Set(["birthday", "deathAnniversary", "other"]);
   const CALENDARS = new Set(["solar", "lunar"]);
   const REPEAT_FREQUENCIES = new Set(["none", "daily", "weekly", "monthly", "yearly"]);
@@ -34,10 +34,12 @@
           const store = db.createObjectStore("journals", { keyPath: "id" });
           store.createIndex("byDate", "date", { unique: false });
           store.createIndex("byMonth", "month", { unique: false });
-        } else if (event.oldVersion < 2) {
+        } else if (event.oldVersion < 3) {
           const store = request.transaction.objectStore("journals");
-          if (store.indexNames.contains("byDate")) store.deleteIndex("byDate");
-          store.createIndex("byDate", "date", { unique: false });
+          if (event.oldVersion < 2) {
+            if (store.indexNames.contains("byDate")) store.deleteIndex("byDate");
+            store.createIndex("byDate", "date", { unique: false });
+          }
           const cursorRequest = store.openCursor();
           cursorRequest.onsuccess = () => {
             const cursor = cursorRequest.result;
@@ -45,8 +47,9 @@
             const journal = cursor.value;
             if (!journal.eventTypeId) {
               journal.eventTypeId = "general";
-              cursor.update(journal);
             }
+            if (typeof journal.title !== "string") journal.title = "";
+            cursor.update(journal);
             cursor.continue();
           };
         }

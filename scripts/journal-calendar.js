@@ -7,6 +7,8 @@ function setupJournalCalendar() {
   journalCalendarMonth = today.getMonth() + 1;
   journalCalendarSelectedDay = today.getDate();
   journalHoverPreviewEnabled = getStoredJournalHoverPreviewEnabled();
+  document.removeEventListener("eventgroupschange", renderJournalCalendar);
+  document.addEventListener("eventgroupschange", renderJournalCalendar);
 
   setupCalendarNavigation({
     ...JOURNAL_CALENDAR_NAVIGATION,
@@ -35,6 +37,8 @@ const JOURNAL_IMAGE_MIN_SIDE = 180;
 function setupJournalForm() {
   const form = document.getElementById("journalForm");
   const dateInput = document.getElementById("journalDate");
+  const titleInput = document.getElementById("journalTitle");
+  const textInput = document.getElementById("journalText");
   const resetButton = document.getElementById("journalResetButton");
   const cancelButton = document.getElementById("journalCancelButton");
   const deleteButton = document.getElementById("journalDeleteButton");
@@ -51,6 +55,16 @@ function setupJournalForm() {
   const choiceAddButton = document.getElementById("journalChoiceAddButton");
 
   setJournalDateInputValue(toDateInputValue(getVietnamToday()));
+  const validateRequiredText = (control, message) => {
+    if (!control) return;
+    control.setCustomValidity(String(control.value || "").trim() ? "" : message);
+  };
+  const validateJournalTitle = () => validateRequiredText(titleInput, "Vui lòng nhập tiêu đề nhật ký/ghi chú.");
+  const validateJournalText = () => validateRequiredText(textInput, "Vui lòng nhập nội dung nhật ký/ghi chú.");
+  titleInput?.addEventListener("input", validateJournalTitle);
+  titleInput?.addEventListener("invalid", validateJournalTitle);
+  textInput?.addEventListener("input", validateJournalText);
+  textInput?.addEventListener("invalid", validateJournalText);
   updateJournalDateHint();
   updateJournalImageSummary(null);
   if (typeof setupJournalGroupPicker === "function") setupJournalGroupPicker();

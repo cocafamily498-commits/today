@@ -7,7 +7,7 @@ const JOURNAL_EXPORT_TEMPLATES = {
     area: { x: 138, y: 287, width: 518, bottom: 990 },
     date: { x: 510, y: 103, fontSize: 32, color: "#e77778" },
     pageNumber: { x: 384, y: 1035, align: "center" },
-    font: { maximum: 29, minimum: 18 },
+    font: { maximum: 33, minimum: 22 },
     photo: { width: 165, height: 132 }
   },
   note: {
@@ -17,7 +17,7 @@ const JOURNAL_EXPORT_TEMPLATES = {
     area: { x: 66, y: 327, width: 640, bottom: 900 },
     date: { x: 200, y: 258, fontSize: 25, color: "#5b3517" },
     pageNumber: { x: 700, y: 978 },
-    font: { maximum: 29, minimum: 18 },
+    font: { maximum: 33, minimum: 22 },
     photo: { width: 170, height: 136 }
   }
 };
@@ -97,6 +97,7 @@ async function exportJournalPdfFromForm(templateId) {
   const templateConfig = JOURNAL_EXPORT_TEMPLATES[templateId] || JOURNAL_EXPORT_TEMPLATES.journal;
   const button = document.getElementById("journalExportImageButton");
   const date = getJournalDateInputValue();
+  const title = String(document.getElementById("journalTitle")?.value || "").trim();
   const text = String(document.getElementById("journalText")?.value || "").trim();
   if (!date || !text) {
     setJournalFormStatus("Cần có ngày và nội dung để xuất PDF nhật ký.", true);
@@ -118,7 +119,7 @@ async function exportJournalPdfFromForm(templateId) {
       loadJournalExportTemplate(templateConfig),
       loadJournalExportImages()
     ]);
-    const canvases = renderJournalExportPages(template, date, text, images, templateConfig);
+    const canvases = renderJournalExportPages(template, date, title, text, images, templateConfig);
     const pdfBlob = await createJournalPdfBlob(canvases);
     openJournalPdfViewer(canvases, pdfBlob, filename);
     setJournalFormStatus(`Đã tạo PDF ${templateConfig.name} gồm ${canvases.length} trang và mở để xem.`);
@@ -163,6 +164,7 @@ async function exportFilteredJournalsPdf(templateId, sourceEntries = journalFilt
       const journalCanvases = renderJournalExportPages(
         template,
         journal.date,
+        String(journal.title || "").trim(),
         String(journal.text || "").trim(),
         images,
         templateConfig,
@@ -318,13 +320,13 @@ function loadJournalExportImage(url) {
   });
 }
 
-function renderJournalExportPages(template, date, text, images, templateConfig, includePageNumbers = true) {
+function renderJournalExportPages(template, date, title, text, images, templateConfig, includePageNumbers = true) {
   const measurementCanvas = document.createElement("canvas");
   const context = measurementCanvas.getContext("2d");
   let selectedLayout = null;
 
   for (let fontSize = templateConfig.font.maximum; fontSize >= templateConfig.font.minimum; fontSize -= 2) {
-    const layout = layoutJournalExportContent(context, text, images, fontSize, templateConfig);
+    const layout = layoutJournalExportContent(context, title, text, images, fontSize, templateConfig);
     selectedLayout = layout;
     if (layout.pages.length === 1) break;
   }
@@ -344,12 +346,16 @@ function renderJournalExportPages(template, date, text, images, templateConfig, 
   });
 }
 
-function layoutJournalExportContent(context, text, images, fontSize, templateConfig) {
+function layoutJournalExportContent(context, title, text, images, fontSize, templateConfig) {
   const exportArea = templateConfig.area;
   const photoSize = templateConfig.photo;
   const lineHeight = Math.round(fontSize * 1.72);
-  context.font = `${fontSize}px ${JOURNAL_EXPORT_FONT_FAMILY}`;
-  const paragraphs = text.split(/\n+/).map((value) => value.trim()).filter(Boolean);
+  const titleFontSize = fontSize + 2;
+  const paragraphs = [
+    ...(title ? [{ text: title, isTitle: true }] : []),
+    ...text.split(/\n+/).map((value) => value.trim()).filter(Boolean)
+      .map((value) => ({ text: value, isTitle: false }))
+  ];
   const pages = [{ lines: [], images: [] }];
   let page = pages[0];
   let y = exportArea.y;
@@ -362,12 +368,17 @@ function layoutJournalExportContent(context, text, images, fontSize, templateCon
   };
 
   paragraphs.forEach((paragraph, paragraphIndex) => {
+    const paragraphFontSize = paragraph.isTitle ? titleFontSize : fontSize;
+    const paragraphLineHeight = paragraph.isTitle
+      ? Math.round(titleFontSize * 1.55)
+      : lineHeight;
+    context.font = `${paragraph.isTitle ? "700 " : ""}${paragraphFontSize}px ${JOURNAL_EXPORT_FONT_FAMILY}`;
     if (paragraphIndex > 0) y += Math.round(lineHeight * 0.34);
-    if (y + lineHeight > exportArea.bottom) newPage();
+    if (y + paragraphLineHeight > exportArea.bottom) newPage();
     let paragraphImageBottom = 0;
     let paragraphImagePage = null;
 
-    if (imageIndex < images.length) {
+    if (!paragraph.isTitle && imageIndex < images.length) {
       const side = imageIndex % 2 === 0 ? "left" : "right";
       const imageHeight = photoSize.height;
       const imageWidth = photoSize.width;
@@ -385,29 +396,41 @@ function layoutJournalExportContent(context, text, images, fontSize, templateCon
       imageIndex += 1;
     }
 
-    const words = paragraph.split(/\s+/);
+    const words = paragraph.text.split(/\s+/);
     let line = "";
     while (words.length) {
-      if (y + lineHeight > exportArea.bottom) {
+      if (y + paragraphLineHeight > exportArea.bottom) {
         newPage();
         line = "";
       }
-      const lineArea = getJournalExportLineArea(page.images, y, lineHeight, exportArea);
+      const lineArea = getJournalExportLineArea(page.images, y, paragraphLineHeight, exportArea);
       const nextWord = words[0];
       const candidate = line ? `${line} ${nextWord}` : nextWord;
       if (!line || context.measureText(candidate).width <= lineArea.width) {
         line = candidate;
         words.shift();
       } else {
-        page.lines.push({ text: line, x: lineArea.x, y });
+        page.lines.push({
+          text: line,
+          x: lineArea.x,
+          y,
+          fontSize: paragraphFontSize,
+          fontWeight: paragraph.isTitle ? 700 : 400
+        });
         line = "";
-        y += lineHeight;
+        y += paragraphLineHeight;
       }
     }
     if (line) {
-      const lineArea = getJournalExportLineArea(page.images, y, lineHeight, exportArea);
-      page.lines.push({ text: line, x: lineArea.x, y });
-      y += lineHeight;
+      const lineArea = getJournalExportLineArea(page.images, y, paragraphLineHeight, exportArea);
+      page.lines.push({
+        text: line,
+        x: lineArea.x,
+        y,
+        fontSize: paragraphFontSize,
+        fontWeight: paragraph.isTitle ? 700 : 400
+      });
+      y += paragraphLineHeight;
     }
     if (paragraphImageBottom && page === paragraphImagePage) {
       y = Math.max(y, paragraphImageBottom + Math.round(lineHeight * 0.22));
@@ -472,9 +495,11 @@ function drawJournalExportPage(context, page, fontSize) {
   page.images.forEach((item) => drawJournalExportPhoto(context, item));
   context.save();
   context.fillStyle = "#5d4635";
-  context.font = `${fontSize}px ${JOURNAL_EXPORT_FONT_FAMILY}`;
   context.textBaseline = "top";
-  page.lines.forEach((line) => context.fillText(line.text, line.x, line.y));
+  page.lines.forEach((line) => {
+    context.font = `${line.fontWeight || 400} ${line.fontSize || fontSize}px ${JOURNAL_EXPORT_FONT_FAMILY}`;
+    context.fillText(line.text, line.x, line.y);
+  });
   context.restore();
 }
 

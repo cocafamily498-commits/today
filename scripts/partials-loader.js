@@ -1,6 +1,6 @@
 async function loadAppPartials() {
   const root = document.getElementById("appRoot");
-  const partialVersion = "2026-07-25-desktop-pdf-toolbar";
+  const partialVersion = "2026-07-26-app-version-3";
   const partials = [
     "tabs",
     "today-tab",

@@ -66,12 +66,11 @@
 }
 
 .month-journal-preview {
-  display: grid;
+  display: flex;
   width: 100%;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
+  flex-direction: column;
   gap: 3px;
-  align-items: start;
   margin-top: 1px;
   color: #33475e;
   font-size: .58rem;
@@ -86,17 +85,38 @@
   line-height: 1.25;
 }
 
-.month-journal-text {
-  display: -webkit-box;
-  overflow: hidden;
-  text-align: left;
-  overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+.month-journal-entry {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
 }
 
-.journal-calendar-grid .month-journal-text {
-  -webkit-line-clamp: 4;
+.month-journal-group-icon {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  place-items: center;
+}
+
+.month-journal-group-svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  overflow: visible;
+}
+
+.month-journal-text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #33475e;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .month-journal-image-icon {
@@ -116,40 +136,153 @@
 .journal-hover-preview {
   position: fixed;
   z-index: 60;
-  width: min(320px, calc(100vw - 24px));
-  max-height: min(260px, calc(100vh - 24px));
+  width: min(380px, calc(100vw - 24px));
+  max-height: min(340px, calc(100vh - 24px));
   overflow: auto;
   padding: 12px 14px;
   color: #172b42;
   font-size: .88rem;
   line-height: 1.45;
-  white-space: pre-wrap;
+  white-space: normal;
   border: 1px solid #b8c7d8;
   border-radius: 7px;
   background: #fff;
   box-shadow: 0 18px 44px rgba(15, 29, 45, .26);
-  pointer-events: none;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  pointer-events: auto;
 }
 
 .journal-hover-preview[hidden] {
   display: none;
 }
 
-.journal-hover-preview strong {
+.journal-hover-date {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   color: #12345a;
 }
 
-.journal-hover-preview p {
-  margin: 0;
+.journal-hover-entry-list {
+  display: grid;
+  gap: 5px;
 }
 
-.journal-hover-preview span {
+.journal-hover-entry {
+  overflow: hidden;
+  border: 1px solid #d7e0ea;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.journal-hover-entry-heading {
+  display: flex;
+  width: 100%;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  color: #33475e;
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+  border: 0;
+  background: #f7f9fc;
+  cursor: pointer;
+}
+
+.journal-hover-entry-heading:hover,
+.journal-hover-entry-heading:focus-visible,
+.journal-hover-entry.is-expanded .journal-hover-entry-heading {
+  color: #12345a;
+  background: #edf3f8;
+  outline: none;
+}
+
+.journal-hover-entry-icon {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  place-items: center;
+}
+
+.journal-hover-group-icon {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+}
+
+.journal-hover-entry-title {
   display: block;
-  margin-top: 8px;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.journal-hover-entry-content {
+  padding: 8px 10px 7px;
+  border-top: 1px solid #d7e0ea;
+}
+
+.journal-hover-entry-content[hidden] {
+  display: none;
+}
+
+.journal-hover-entry-content p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.journal-hover-meta {
+  display: block;
+  margin-top: 6px;
   color: #00796b;
   font-weight: 800;
+}
+
+.journal-hover-collapse {
+  display: grid;
+  width: 28px;
+  height: 24px;
+  margin: 7px 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: #fff;
+  font: 900 1.1rem/1 sans-serif;
+  border: 0;
+  border-radius: 4px;
+  background: #12345a;
+  cursor: pointer;
+}
+
+.journal-hover-collapse:hover,
+.journal-hover-collapse:focus-visible {
+  background: #1e4a78;
+  outline: none;
+}
+
+@media (max-width: 760px) {
+  .journal-calendar-grid .month-journal-preview {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .journal-calendar-grid .month-journal-entry {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 0;
+  }
+
+  .journal-calendar-grid .month-journal-text {
+    display: none;
+  }
 }
 
 .month-day-button.today .month-solar-day {

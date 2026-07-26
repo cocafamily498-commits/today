@@ -18,6 +18,7 @@ let journalCalendarKey = "";
 let editingJournalDate = null;
 let editingJournalId = null;
 let journalHoverPreviewEnabled = true;
+let journalHoverPreviewHideTimer = 0;
 let journalImagePreviewUrls = [];
 let journalImageItems = [];
 let journalFilteredEntries = [];

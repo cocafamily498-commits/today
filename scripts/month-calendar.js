@@ -121,19 +121,29 @@ function renderCalendarGrid(options) {
     if (showJournalContent && dayJournal) {
       const journalPreview = document.createElement("span");
       journalPreview.className = "month-journal-preview";
+      dayJournals.forEach((journal, journalIndex) => {
+        const entry = document.createElement("span");
+        entry.className = "month-journal-entry";
 
-      const journalText = document.createElement("span");
-      journalText.className = "month-journal-text";
-      journalText.textContent = `${dayJournal.text || "(Không có nội dung)"}${dayJournals.length > 1 ? ` (+${dayJournals.length - 1})` : ""}`;
-      journalPreview.appendChild(journalText);
+        const groupIcon = document.createElement("span");
+        groupIcon.className = "month-journal-group-icon";
+        groupIcon.setAttribute("aria-hidden", "true");
+        const group = typeof getEventGroup === "function"
+          ? getEventGroup(journal.eventTypeId || "general")
+          : null;
+        if (group && typeof renderEventGroupIcon === "function") {
+          groupIcon.innerHTML = renderEventGroupIcon(group, "month-journal-group-svg");
+        }
 
-      if (Array.isArray(dayJournal.imageIds) && dayJournal.imageIds.length > 0) {
-        const imageIcon = document.createElement("span");
-        imageIcon.className = "month-journal-image-icon";
-        imageIcon.setAttribute("aria-hidden", "true");
-        imageIcon.textContent = "▣";
-        journalPreview.appendChild(imageIcon);
-      }
+        const journalText = document.createElement("span");
+        journalText.className = "month-journal-text";
+        journalText.textContent = journal.title || "";
+        if (journalIndex === 0 && dayJournals.length > 1) {
+          journalText.dataset.mobileMoreCount = `+${dayJournals.length - 1}`;
+        }
+        entry.append(groupIcon, journalText);
+        journalPreview.appendChild(entry);
+      });
 
       children.push(journalPreview);
     }

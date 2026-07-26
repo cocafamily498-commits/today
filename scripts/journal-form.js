@@ -1,12 +1,25 @@
 async function saveJournalFromForm() {
   const date = getJournalDateInputValue();
+  const title = String(document.getElementById("journalTitle")?.value || "").trim();
   const text = String(document.getElementById("journalText").value || "").trim();
   const imageItems = getJournalImageItemsForSave();
   if (!date) {
     setJournalFormStatus("Vui lòng nhập ngày dương lịch hợp lệ.", true);
     return;
   }
+  if (!title) {
+    const titleInput = document.getElementById("journalTitle");
+    titleInput?.setCustomValidity("Vui lòng nhập tiêu đề nhật ký/ghi chú.");
+    titleInput?.reportValidity();
+    titleInput?.focus({ preventScroll: true });
+    setJournalFormStatus("Vui lòng nhập tiêu đề nhật ký/ghi chú.", true);
+    return;
+  }
   if (!text) {
+    const textInput = document.getElementById("journalText");
+    textInput?.setCustomValidity("Vui lòng nhập nội dung nhật ký/ghi chú.");
+    textInput?.reportValidity();
+    textInput?.focus({ preventScroll: true });
     setJournalFormStatus("Vui lòng nhập nội dung nhật ký/ghi chú.", true);
     return;
   }
@@ -36,8 +49,8 @@ async function saveJournalFromForm() {
 
     const eventTypeId = document.getElementById("journalTypeId")?.value || "general";
     const saved = editingJournalId
-      ? await window.LichVietData.updateJournal(editingJournalId, { date, text, imageIds, eventTypeId })
-      : await window.LichVietData.createJournal({ date, text, imageIds, eventTypeId });
+      ? await window.LichVietData.updateJournal(editingJournalId, { date, title, text, imageIds, eventTypeId })
+      : await window.LichVietData.createJournal({ date, title, text, imageIds, eventTypeId });
     editingJournalId = null;
     editingJournalDate = null;
     setJournalFormStatus(shouldUpdate ? "Đã lưu thay đổi." : "Đã lưu nhật ký/ghi chú.");
@@ -116,7 +129,12 @@ async function loadJournalIntoForm(journal) {
   dateInput.setCustomValidity("");
   dateInput.removeAttribute("aria-invalid");
   updateJournalDateHint();
-  document.getElementById("journalText").value = journal.text || "";
+  const titleInput = document.getElementById("journalTitle");
+  const textInput = document.getElementById("journalText");
+  titleInput.value = journal.title || "";
+  textInput.value = journal.text || "";
+  titleInput.setCustomValidity("");
+  textInput.setCustomValidity("");
   if (typeof updateJournalGroupPicker === "function") updateJournalGroupPicker(journal.eventTypeId || "general");
   document.getElementById("journalImages").value = "";
   updateJournalImageSummary(journal);
@@ -132,6 +150,8 @@ function resetJournalForm(date = null, options = {}) {
     ? document.getElementById("journalTypeId")?.value || "general"
     : "general";
   form.reset();
+  document.getElementById("journalTitle")?.setCustomValidity("");
+  document.getElementById("journalText")?.setCustomValidity("");
   editingJournalId = null;
   editingJournalDate = null;
   if (typeof updateJournalGroupPicker === "function") updateJournalGroupPicker(preservedGroupId);

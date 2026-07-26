@@ -47,7 +47,10 @@ async function toggleJournalReading() {
     stopJournalReading();
     return;
   }
-  const text = String(document.getElementById("journalText")?.value || "").trim();
+  const title = String(document.getElementById("journalTitle")?.value || "").trim();
+  const text = [title, String(document.getElementById("journalText")?.value || "").trim()]
+    .filter(Boolean)
+    .join(". ");
   if (!text) {
     setJournalFormStatus("Chưa có nội dung để đọc.", true);
     return;
@@ -219,7 +222,8 @@ async function renderJournalList() {
       const journalMonth = String(journal.date || "").slice(5, 7);
       const matchesYear = yearFilter === "" || journalYear === yearFilter;
       const matchesMonth = monthFilter === "" || journalMonth === monthFilter;
-      const matchesContent = contentFilter === "" || normalizeJournalFilterText(journal.text).includes(contentFilter);
+      const matchesContent = contentFilter === ""
+        || normalizeJournalFilterText(`${journal.title || ""} ${journal.text || ""}`).includes(contentFilter);
       const matchesGroup = groupFilter === "" || (journal.eventTypeId || "general") === groupFilter;
       return matchesYear && matchesMonth && matchesContent && matchesGroup;
     })
@@ -252,6 +256,7 @@ function renderJournalListCardMarkup(journal) {
         <span>${escapeHtml(lunarDate)}</span>
         <span class="journal-card-group-icon" title="${escapeHtml(groupName)}" aria-label="Nhóm: ${escapeHtml(groupName)}">${group ? renderEventGroupIcon(group, "journal-list-group-icon") : ""}<span class="journal-card-group-name">${escapeHtml(groupName)}</span></span>
       </span>
+      ${journal.title ? `<strong class="journal-list-title">${escapeHtml(journal.title)}</strong>` : ""}
       <span class="journal-list-text">${escapeHtml(journal.text || "")}</span>
     </button>
   `;
@@ -278,6 +283,30 @@ function normalizeJournalFilterText(value) {
     .trim();
 }
 
+function renderJournalHoverPreviewEntry(journal, index) {
+  const group = typeof getEventGroup === "function"
+    ? getEventGroup(journal.eventTypeId || "general")
+    : null;
+  const icon = group && typeof renderEventGroupIcon === "function"
+    ? renderEventGroupIcon(group, "journal-hover-group-icon")
+    : "";
+  const expanded = index === 0;
+  const entryId = `journal-hover-entry-${index}`;
+  return `
+    <section class="journal-hover-entry${expanded ? " is-expanded" : ""}" data-journal-hover-entry>
+      <button class="journal-hover-entry-heading" type="button" data-journal-hover-toggle aria-expanded="${expanded}" aria-controls="${entryId}">
+        <span class="journal-hover-entry-icon">${icon}</span>
+        ${journal.title ? `<span class="journal-hover-entry-title">${escapeHtml(journal.title)}</span>` : ""}
+      </button>
+      <div id="${entryId}" class="journal-hover-entry-content" ${expanded ? "" : "hidden"}>
+        <p>${escapeHtml(journal.text || "")}</p>
+        ${journal.imageIds && journal.imageIds.length ? `<span class="journal-hover-meta">▣ ${journal.imageIds.length} hình ảnh</span>` : ""}
+        <button class="journal-hover-collapse" type="button" data-journal-hover-collapse aria-label="Thu gọn nhật ký" title="Thu gọn">−</button>
+      </div>
+    </section>
+  `;
+}
+
 function showJournalHoverPreview(day, journals, anchor) {
   const journalList = Array.isArray(journals) ? journals : journals ? [journals] : [];
   const journal = journalList[0];
@@ -286,11 +315,54 @@ function showJournalHoverPreview(day, journals, anchor) {
 
   const preview = document.getElementById("journalHoverPreview");
   if (!preview) return;
+  window.clearTimeout(journalHoverPreviewHideTimer);
+  journalHoverPreviewHideTimer = 0;
+  if (preview.dataset.interactive !== "true") {
+    preview.dataset.interactive = "true";
+    const keepJournalHoverPreviewOpen = () => {
+      window.clearTimeout(journalHoverPreviewHideTimer);
+      journalHoverPreviewHideTimer = 0;
+    };
+    preview.addEventListener("mouseenter", keepJournalHoverPreviewOpen);
+    preview.addEventListener("pointerdown", keepJournalHoverPreviewOpen);
+    preview.addEventListener("focusin", keepJournalHoverPreviewOpen);
+    preview.addEventListener("mouseleave", hideJournalHoverPreview);
+    preview.addEventListener("focusout", (event) => {
+      if (!preview.contains(event.relatedTarget)) hideJournalHoverPreview();
+    });
+    preview.addEventListener("click", (event) => {
+      keepJournalHoverPreviewOpen();
+      if (!(event.target instanceof Element)) return;
+      const collapseButton = event.target.closest("[data-journal-hover-collapse]");
+      const toggleButton = event.target.closest("[data-journal-hover-toggle]");
+      const entry = event.target.closest("[data-journal-hover-entry]");
+      if (!entry || (!collapseButton && !toggleButton)) return;
+      const content = entry.querySelector(".journal-hover-entry-content");
+      const heading = entry.querySelector("[data-journal-hover-toggle]");
+      if (collapseButton) {
+        entry.classList.remove("is-expanded");
+        content.hidden = true;
+        heading.setAttribute("aria-expanded", "false");
+        heading.focus({ preventScroll: true });
+        return;
+      }
+      if (heading.getAttribute("aria-expanded") === "true") return;
+      preview.querySelectorAll("[data-journal-hover-entry]").forEach((otherEntry) => {
+        otherEntry.classList.remove("is-expanded");
+        otherEntry.querySelector(".journal-hover-entry-content").hidden = true;
+        otherEntry.querySelector("[data-journal-hover-toggle]").setAttribute("aria-expanded", "false");
+      });
+      entry.classList.add("is-expanded");
+      content.hidden = false;
+      heading.setAttribute("aria-expanded", "true");
+      entry.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  }
   preview.innerHTML = `
-    <strong>${escapeHtml(formatEventDate(journal.date))}</strong>
-    <p>${escapeHtml(journal.text || "")}</p>
-    ${journalList.length > 1 ? `<span>+ ${journalList.length - 1} nhật ký/ghi chú khác</span>` : ""}
-    ${journal.imageIds && journal.imageIds.length ? `<span>▣ ${journal.imageIds.length} hình ảnh</span>` : ""}
+    <strong class="journal-hover-date">${escapeHtml(formatEventDate(journal.date))}</strong>
+    <div class="journal-hover-entry-list">
+      ${journalList.map(renderJournalHoverPreviewEntry).join("")}
+    </div>
   `;
   preview.hidden = false;
 
@@ -310,5 +382,13 @@ function showJournalHoverPreview(day, journals, anchor) {
 function hideJournalHoverPreview() {
   const preview = document.getElementById("journalHoverPreview");
   if (!preview) return;
-  preview.hidden = true;
+  window.clearTimeout(journalHoverPreviewHideTimer);
+  journalHoverPreviewHideTimer = window.setTimeout(() => {
+    if (preview.matches(":hover") || preview.contains(document.activeElement)) {
+      journalHoverPreviewHideTimer = 0;
+      return;
+    }
+    preview.hidden = true;
+    journalHoverPreviewHideTimer = 0;
+  }, 220);
 }

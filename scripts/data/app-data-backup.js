@@ -53,7 +53,8 @@
       ...journal,
       id: journal.id || generateId("journal"),
       month: journal.month || getMonthFromDate(journal.date),
-      eventTypeId: journal.eventTypeId || "general"
+      eventTypeId: journal.eventTypeId || "general",
+      title: String(journal.title || "")
     }));
     await replaceStoreData("journals", journals);
     await replaceStoreData("images", images);

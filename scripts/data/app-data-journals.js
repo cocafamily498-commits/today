@@ -11,6 +11,7 @@
       id: existingJournal ? existingJournal.id : input.id || generateId("journal"),
       date: input.date,
       month: getMonthFromDate(input.date),
+      title: String(input.title || ""),
       text: String(input.text || ""),
       eventTypeId: String(input.eventTypeId || "general"),
       imageIds: Array.isArray(input.imageIds) ? input.imageIds.slice() : [],
