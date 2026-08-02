@@ -2,12 +2,12 @@ const { getMarkets, getAssets, getFallbackMarkets, getFallbackAssets } = require
 const { getWeather, searchLocations, normalizeRequestedLocation, getFallbackWeather } = require("./data-weather");
 const { getQuotes, getFallbackQuotes } = require("./data-quotes");
 
-function response(body) {
+function response(body, cacheControl = "no-store") {
   return {
     statusCode: 200,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store"
+      "cache-control": cacheControl
     },
     body: JSON.stringify(body)
   };

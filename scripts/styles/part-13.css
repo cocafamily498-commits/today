@@ -56,6 +56,68 @@
   min-height: clamp(96px, calc((100vh - 430px) / 5), 150px);
 }
 
+.event-calendar-grid .month-day-empty,
+.event-calendar-grid .event-day-button {
+  min-height: clamp(96px, calc((100vh - 430px) / 5), 150px);
+}
+
+.event-day-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  gap: 1px;
+  padding-inline: 3px;
+}
+
+.month-event-preview {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 5px;
+  padding-inline: 4px;
+  color: #33475e;
+  font-size: .72rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.month-event-entry {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.month-event-group-icon {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  place-items: center;
+}
+
+.month-event-group-svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  overflow: visible;
+}
+
+.month-event-text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #33475e;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .journal-day-button .month-solar-day {
   flex: 0 0 auto;
 }

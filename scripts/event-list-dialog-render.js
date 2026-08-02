@@ -39,7 +39,7 @@ function renderEventListDialogContent(events, emptyText = "Chưa có sự kiện
 
   return `
     <header class="event-list-dialog-header">
-      <h2 class="event-list-dialog-title">Danh sách sự kiện</h2>
+      <h2 id="eventListTitle" class="event-list-dialog-title">Danh sách sự kiện</h2>
       <div class="event-list-dialog-actions">
         <button id="eventListDialogCloseButton" class="event-list-dialog-close" type="button" aria-label="Đóng">&times;</button>
       </div>

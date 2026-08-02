@@ -6,6 +6,12 @@ const {
   parseJsonBody,
   sanitizeReminders
 } = require("./push-shared");
+const {
+  PUSH_JOB_SCHEMA_VERSION,
+  createJobs,
+  getManifestKey,
+  getPushJobStore
+} = require("./push-jobs");
 
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return optionsResponse();
@@ -18,24 +24,57 @@ exports.handler = async (event) => {
     const key = getSubscriptionKey(subscription);
     const store = getPushStore();
     const replaceEventIds = sanitizeReplaceEventIds(input.replaceEventIds);
-    const existing = replaceEventIds.length > 0
-      ? await store.get(key, { type: "json" }).catch(() => null)
-      : null;
+    const existing = await store.get(key, { type: "json" }).catch(() => null);
     const storedReminders = mergeReminders(existing && existing.reminders, reminders, replaceEventIds);
     const record = {
       key,
       subscription,
       reminders: storedReminders,
+      schemaVersion: PUSH_JOB_SCHEMA_VERSION,
       updatedAt: new Date().toISOString(),
       userAgent: event.headers["user-agent"] || ""
     };
 
+    await syncReminderJobs(key, storedReminders, replaceEventIds);
     await store.setJSON(key, record);
-    return jsonResponse({ ok: true, reminders: storedReminders.length });
+    return jsonResponse({ ok: true, reminders: storedReminders.length, schemaVersion: PUSH_JOB_SCHEMA_VERSION });
   } catch (error) {
     return jsonResponse({ error: error.message || "Could not save push subscription." }, 400);
   }
 };
+
+async function syncReminderJobs(subscriptionKey, reminders, replaceEventIds) {
+  const jobStore = getPushJobStore();
+  const manifestKey = getManifestKey(subscriptionKey);
+  const manifest = await jobStore.get(manifestKey, { type: "json" }).catch(() => null);
+  const replaceSet = new Set(replaceEventIds);
+  const previousJobs = Array.isArray(manifest && manifest.jobs) ? manifest.jobs : [];
+  const jobsToKeep = replaceSet.size === 0
+    ? []
+    : previousJobs.filter((job) => !replaceSet.has(job.eventId));
+  const jobsToDelete = replaceSet.size === 0
+    ? previousJobs
+    : previousJobs.filter((job) => replaceSet.has(job.eventId));
+
+  await Promise.all(jobsToDelete.map((job) => jobStore.delete(job.key).catch(() => undefined)));
+
+  const remindersToSchedule = replaceSet.size === 0
+    ? reminders
+    : reminders.filter((reminder) => replaceSet.has(reminder.eventId));
+  const newJobs = createJobs(subscriptionKey, remindersToSchedule);
+  await Promise.all(newJobs.map((job) => jobStore.setJSON(job.key, job)));
+
+  await jobStore.setJSON(manifestKey, {
+    schemaVersion: PUSH_JOB_SCHEMA_VERSION,
+    subscriptionKey,
+    jobs: [...jobsToKeep, ...newJobs].map((job) => ({
+      key: job.key,
+      eventId: job.eventId,
+      dueAt: job.dueAt
+    })),
+    updatedAt: new Date().toISOString()
+  });
+}
 
 function sanitizeReplaceEventIds(value) {
   if (!Array.isArray(value)) return [];

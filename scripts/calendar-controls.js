@@ -8,6 +8,8 @@ let eventCalendarMonth;
 let eventCalendarSelectedDay;
 let eventCalendarOccurrences = {};
 let eventCalendarKey = "";
+let eventHoverPreviewEnabled = true;
+let eventHoverPreviewHideTimer = 0;
 let editingEventId = null;
 let eventReminderDialogShownThisSession = false;
 let journalCalendarYear;

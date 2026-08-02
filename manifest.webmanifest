@@ -28,6 +28,17 @@
       ]
     }
   },
+  "file_handlers": [
+    {
+      "action": "/?file-handler=backup",
+      "accept": {
+        "application/zip": [
+          ".zip"
+        ]
+      },
+      "launch_type": "single-client"
+    }
+  ],
   "icons": [
     {
       "src": "icons/app-icon-lichviet-calendar-192.png",

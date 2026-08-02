@@ -215,6 +215,63 @@
   }
 }
 
+.zip-import-drop-overlay {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  color: #fff;
+  background: rgba(15, 29, 45, .82);
+  backdrop-filter: blur(5px);
+}
+
+.zip-import-drop-overlay[hidden] {
+  display: none;
+}
+
+.zip-import-drop-card {
+  display: grid;
+  width: min(520px, 100%);
+  min-height: 250px;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  padding: 34px;
+  text-align: center;
+  border: 3px dashed rgba(255, 255, 255, .82);
+  border-radius: 18px;
+  background: rgba(18, 52, 90, .92);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .38);
+}
+
+.zip-import-drop-card strong {
+  font-size: clamp(1.15rem, 2.6vw, 1.6rem);
+}
+
+.zip-import-drop-card span:last-child {
+  color: rgba(255, 255, 255, .82);
+  font-size: .92rem;
+}
+
+.zip-import-drop-icon {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  place-items: center;
+  color: #12345a;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  border-radius: 14px;
+  background: var(--gold);
+}
+
+body.zip-import-dragging {
+  overflow: hidden;
+}
+
 .app-install-dialog {
   width: min(calc(100% - 32px), 420px);
   padding: 0;

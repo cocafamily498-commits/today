@@ -37,7 +37,14 @@
               <div class="month-weekday weekend">T7</div>
               <div class="month-weekday weekend">CN</div>
             </div>
-            <div id="eventCalendarGrid" class="month-calendar-grid" role="grid" aria-label="Lịch sự kiện"></div>
+            <div id="eventCalendarGrid" class="month-calendar-grid event-calendar-grid" role="grid" aria-label="Lịch sự kiện"></div>
+            <div class="journal-calendar-options event-calendar-options">
+              <label class="journal-hover-toggle">
+                <input id="eventHoverPreviewToggle" type="checkbox" checked>
+                <span>Hiển thị khi rê chuột</span>
+              </label>
+            </div>
+            <div id="eventHoverPreview" class="journal-hover-preview event-hover-preview" role="tooltip" hidden></div>
             <div class="month-event-legend" aria-label="Chú giải sự kiện">
               <span><span class="month-event-icon birthday" aria-hidden="true">☀</span> Sinh nhật</span>
               <span><span class="month-event-icon deathAnniversary" aria-hidden="true">☾</span> Đám giỗ</span>

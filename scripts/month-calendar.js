@@ -24,6 +24,7 @@ function renderCalendarGrid(options) {
     eventsByDay = null,
     journalsByDay = null,
     showEventIcons = false,
+    showEventContent = false,
     showJournalContent = false,
     showAuspiciousDot = false,
     onDayClick,
@@ -70,6 +71,7 @@ function renderCalendarGrid(options) {
       isToday ? "today" : "",
       isSelected ? "selected" : "",
       showJournalContent ? "journal-day-button" : "",
+      showEventContent ? "event-day-button" : "",
       dayJournal ? "has-journal" : ""
     ]
       .filter(Boolean).join(" ");
@@ -105,7 +107,7 @@ function renderCalendarGrid(options) {
       lunarDay.textContent = `${lunar.day}${lunar.leap ? "N" : ""}`;
     }
     const children = [...(dayTypeDot ? [dayTypeDot] : []), solarDay, lunarDay];
-    if (showEventIcons) {
+    if (showEventIcons && !showEventContent) {
       const eventTypes = [...new Set(dayEvents.map((item) => item.eventType))];
       const eventIcons = document.createElement("span");
       eventIcons.className = "month-event-icons";
@@ -117,6 +119,32 @@ function renderCalendarGrid(options) {
         eventIcons.appendChild(icon);
       });
       children.push(eventIcons);
+    }
+    if (showEventContent && dayEvents.length) {
+      const eventPreview = document.createElement("span");
+      eventPreview.className = "month-event-preview";
+      dayEvents.forEach((calendarEvent, eventIndex) => {
+        const entry = document.createElement("span");
+        entry.className = "month-event-entry";
+
+        const groupIcon = document.createElement("span");
+        groupIcon.className = "month-event-group-icon";
+        groupIcon.setAttribute("aria-hidden", "true");
+        groupIcon.innerHTML = getEventTypeIconMarkup(
+          calendarEvent.eventType,
+          "month-event-icon"
+        );
+
+        const eventText = document.createElement("span");
+        eventText.className = "month-event-text";
+        eventText.textContent = calendarEvent.title || "";
+        if (eventIndex === 0 && dayEvents.length > 1) {
+          eventText.dataset.mobileMoreCount = `+${dayEvents.length - 1}`;
+        }
+        entry.append(groupIcon, eventText);
+        eventPreview.appendChild(entry);
+      });
+      children.push(eventPreview);
     }
     if (showJournalContent && dayJournal) {
       const journalPreview = document.createElement("span");
@@ -150,8 +178,9 @@ function renderCalendarGrid(options) {
     button.append(...children);
     button.addEventListener("click", () => onDayClick(day));
     if (typeof onDayHover === "function") {
-      button.addEventListener("mouseenter", () => onDayHover(day, dayJournals, button));
-      button.addEventListener("focus", () => onDayHover(day, dayJournals, button));
+      const hoverItems = showEventContent ? dayEvents : dayJournals;
+      button.addEventListener("mouseenter", () => onDayHover(day, hoverItems, button));
+      button.addEventListener("focus", () => onDayHover(day, hoverItems, button));
     }
     if (typeof onDayHoverEnd === "function") {
       button.addEventListener("mouseleave", onDayHoverEnd);

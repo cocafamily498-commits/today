@@ -207,8 +207,9 @@ function updateJournalDateHint() {
 async function renderJournalList() {
   const list = document.getElementById("journalList");
   const emptyState = document.getElementById("journalFilterEmptyState");
+  const resultCount = document.getElementById("journalFilterResultCount");
   const panel = document.getElementById("journalListPanel");
-  if (!list || !emptyState || !panel || panel.hidden) return;
+  if (!list || !emptyState || !resultCount || !panel || panel.hidden) return;
 
   const journals = await window.LichVietData.getAllJournals();
   populateJournalYearFilter(journals);
@@ -243,6 +244,8 @@ async function renderJournalList() {
   });
 
   emptyState.hidden = filtered.length > 0;
+  resultCount.hidden = filtered.length === 0;
+  resultCount.textContent = filtered.length > 0 ? `Kết quả lọc: ${filtered.length} nhật ký` : "";
 }
 
 function renderJournalListCardMarkup(journal) {

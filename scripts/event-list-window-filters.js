@@ -11,6 +11,7 @@ function initializeEventListWindowFilters(targetWindow, openEventCallback = null
   const groupIcon = doc.getElementById("eventGroupFilterIcon");
   const cards = [...doc.querySelectorAll(".event-card")];
   const emptyState = doc.getElementById("eventFilterEmptyState");
+  const title = doc.getElementById("eventListTitle");
   if (!form || !monthInput || !nameInput || !typeInput || !groupInput) return;
   if (form.dataset.filtersReady === "true") return;
   form.dataset.filtersReady = "true";
@@ -100,6 +101,11 @@ function initializeEventListWindowFilters(targetWindow, openEventCallback = null
     });
 
     if (emptyState) emptyState.hidden = visibleCount > 0 || cards.length === 0;
+    if (title) {
+      title.textContent = visibleCount > 0
+        ? `Kết quả lọc: ${visibleCount} sự kiện`
+        : "Danh sách sự kiện";
+    }
   };
 
   const openEventCard = (card) => {

@@ -281,6 +281,23 @@
     min-height: 86px;
   }
 
+  .event-calendar-grid .month-day-empty,
+  .event-calendar-grid .event-day-button {
+    min-height: 57px;
+  }
+
+  .event-calendar-grid .month-event-preview {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    padding-inline: 1px;
+  }
+
+  .event-calendar-grid .month-event-text {
+    display: none;
+  }
+
   .journal-calendar-grid .month-journal-preview {
     font-size: .54rem;
   }
@@ -292,6 +309,11 @@
   .journal-filter-form {
     grid-template-columns: repeat(2, minmax(0, 1fr)) 38px 38px;
     gap: 8px;
+  }
+
+  .journal-list {
+    max-height: 52rem;
+    padding-right: 3px;
   }
 
   .journal-filter-year {
@@ -430,7 +452,8 @@
 }
 
 @media (hover: none), (pointer: coarse) {
-  .journal-calendar-options {
+  .journal-calendar-options,
+  .event-calendar-options {
     display: none;
   }
 }

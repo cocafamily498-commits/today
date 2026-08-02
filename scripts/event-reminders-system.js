@@ -1,41 +1,58 @@
 const EVENT_SYSTEM_REMINDER_CHECK_INTERVAL = 60 * 1000;
 const EVENT_PUSH_REMINDER_DAYS_AHEAD = 370;
+const EVENT_PUSH_SYNC_SCHEMA_VERSION = "2";
+const EVENT_PUSH_SYNC_DIRTY_KEY = "homnay.eventPushSyncDirty";
+const EVENT_PUSH_SYNC_SCHEMA_KEY = "homnay.eventPushSyncSchema";
+const EVENT_PUSH_VAPID_CACHE_KEY = "homnay.eventPushVapidPublicKey";
+const EVENT_PUSH_VAPID_CACHE_TTL = 24 * 60 * 60 * 1000;
 let eventSystemReminderListenersReady = false;
+let eventWebPushRecoveryPromise = null;
+let eventWebPushRecoveryTimer = null;
+let eventWebPushMutationPromise = Promise.resolve();
+let eventWebPushMutationVersion = 0;
+let eventWebPushMutationFailed = false;
+let eventWebPushPublicKey = "";
 
 function setupEventSystemReminderControls() {
   const buttons = Array.from(document.querySelectorAll(".event-system-reminder-trigger"));
   if (buttons.length === 0) return;
 
   refreshEventSystemReminderControls();
-  buttons.forEach((button) => button.addEventListener("click", async () => {
-    if ("Notification" in window && Notification.permission === "denied") {
-      openNotificationBlockedDialog();
-      return;
-    }
+  buttons.filter((button) => button.dataset.eventSystemReminderReady !== "true").forEach((button) => {
+    button.dataset.eventSystemReminderReady = "true";
+    button.addEventListener("click", async () => {
+      if ("Notification" in window && Notification.permission === "denied") {
+        openNotificationBlockedDialog();
+        return;
+      }
 
-    const permission = await requestEventSystemNotificationPermission();
-    updateEventSystemReminderButtons(buttons);
-    if (permission === "granted") {
-      const synced = await syncEventWebPushReminders();
-      updateEventSystemReminderButtons(buttons, synced);
-    }
-  }));
+      const permission = await requestEventSystemNotificationPermission();
+      updateEventSystemReminderButtons(buttons);
+      if (permission === "granted") {
+        const synced = await syncEventWebPushReminders();
+        updateEventSystemReminderButtons(buttons, synced);
+      }
+    });
+  });
 
   if (!eventSystemReminderListenersReady) {
     eventSystemReminderListenersReady = true;
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
         refreshEventSystemReminderControls();
-        syncEventWebPushReminders().then((synced) => refreshEventSystemReminderControls(synced));
+        scheduleEventWebPushRecovery();
       }
     });
     window.addEventListener("focus", () => {
       refreshEventSystemReminderControls();
-      syncEventWebPushReminders().then((synced) => refreshEventSystemReminderControls(synced));
+      scheduleEventWebPushRecovery();
+    });
+    window.addEventListener("online", () => {
+      scheduleEventWebPushRecovery();
     });
   }
 
-  syncEventWebPushReminders().then((synced) => refreshEventSystemReminderControls(synced));
+  recoverEventWebPushReminders().then((synced) => refreshEventSystemReminderControls(synced));
 }
 
 function getEventSystemReminderButtons() {
@@ -130,7 +147,55 @@ async function getReadyServiceWorkerRegistration(timeoutMs = 3000) {
 }
 
 async function syncEventWebPushReminders() {
-  return syncEventWebPushReminderPayloads();
+  markEventWebPushSyncDirty();
+  const synced = await syncEventWebPushReminderPayloads();
+  if (synced) markEventWebPushSyncComplete();
+  return synced;
+}
+
+function markEventWebPushSyncDirty() {
+  try {
+    localStorage.setItem(EVENT_PUSH_SYNC_DIRTY_KEY, "true");
+  } catch (error) {
+    // A later explicit sync still works when localStorage is unavailable.
+  }
+}
+
+function markEventWebPushSyncComplete() {
+  eventWebPushMutationFailed = false;
+  try {
+    localStorage.removeItem(EVENT_PUSH_SYNC_DIRTY_KEY);
+    localStorage.setItem(EVENT_PUSH_SYNC_SCHEMA_KEY, EVENT_PUSH_SYNC_SCHEMA_VERSION);
+  } catch (error) {
+    // Sync completion does not depend on local bookkeeping.
+  }
+}
+
+function needsEventWebPushRecovery() {
+  try {
+    return localStorage.getItem(EVENT_PUSH_SYNC_DIRTY_KEY) === "true"
+      || localStorage.getItem(EVENT_PUSH_SYNC_SCHEMA_KEY) !== EVENT_PUSH_SYNC_SCHEMA_VERSION;
+  } catch (error) {
+    return true;
+  }
+}
+
+function recoverEventWebPushReminders() {
+  if (!needsEventWebPushRecovery()) return Promise.resolve(true);
+  if (eventWebPushRecoveryPromise) return eventWebPushRecoveryPromise;
+  eventWebPushRecoveryPromise = syncEventWebPushReminders()
+    .finally(() => {
+      eventWebPushRecoveryPromise = null;
+    });
+  return eventWebPushRecoveryPromise;
+}
+
+function scheduleEventWebPushRecovery() {
+  if (eventWebPushRecoveryTimer !== null) window.clearTimeout(eventWebPushRecoveryTimer);
+  eventWebPushRecoveryTimer = window.setTimeout(() => {
+    eventWebPushRecoveryTimer = null;
+    recoverEventWebPushReminders().then((synced) => refreshEventSystemReminderControls(synced));
+  }, 250);
 }
 
 async function syncEventWebPushRemindersForEvent(event) {
@@ -153,14 +218,29 @@ async function removeEventWebPushReminders(eventId) {
 }
 
 function queueEventWebPushReminderSync(promiseFactory) {
-  window.setTimeout(() => {
-    promiseFactory()
-      .then((synced) => refreshEventSystemReminderControls(synced))
-      .catch((error) => {
-        console.error("queued web push reminder sync failed", error);
-        refreshEventSystemReminderControls(false);
-      });
-  }, 0);
+  markEventWebPushSyncDirty();
+  eventWebPushMutationVersion += 1;
+  const mutationVersion = eventWebPushMutationVersion;
+  eventWebPushMutationPromise = eventWebPushMutationPromise
+    .catch(() => false)
+    .then(() => promiseFactory())
+    .then((synced) => {
+      if (!synced) {
+        eventWebPushMutationFailed = true;
+        markEventWebPushSyncDirty();
+      } else if (!eventWebPushMutationFailed && mutationVersion === eventWebPushMutationVersion) {
+        markEventWebPushSyncComplete();
+      }
+      refreshEventSystemReminderControls(synced);
+      return synced;
+    })
+    .catch((error) => {
+      eventWebPushMutationFailed = true;
+      markEventWebPushSyncDirty();
+      console.error("queued web push reminder sync failed", error);
+      refreshEventSystemReminderControls(false);
+      return false;
+    });
 }
 
 function queueEventWebPushReminderSyncForEvent(event) {
@@ -175,11 +255,9 @@ async function syncEventWebPushReminderPayloads(options = {}) {
   if (!canUseEventWebPushReminderSync()) return false;
 
   try {
-    const publicKey = await getWebPushPublicKey();
-    if (!publicKey) return false;
     const registration = await getReadyServiceWorkerRegistration();
     if (!registration || !registration.pushManager) return false;
-    const subscription = await getOrCreateWebPushSubscription(registration, publicKey);
+    const subscription = await getOrCreateWebPushSubscription(registration);
     const reminders = Array.isArray(options.reminders)
       ? options.reminders
       : await buildEventPushReminderPayloads();
@@ -221,15 +299,12 @@ async function sendEventWebPushTestNotification() {
   }
 
   try {
-    const publicKey = await getWebPushPublicKey();
-    if (!publicKey) return { ok: false, error: "Missing VAPID public key." };
-
     const registration = await getReadyServiceWorkerRegistration();
     if (!registration || !registration.pushManager) {
       return { ok: false, error: "Service worker is not ready." };
     }
 
-    const subscription = await getOrCreateWebPushSubscription(registration, publicKey);
+    const subscription = await getOrCreateWebPushSubscription(registration);
     const response = await fetch(getApiUrl("/api/send-test-push"), {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -244,20 +319,63 @@ async function sendEventWebPushTestNotification() {
 }
 
 async function getWebPushPublicKey() {
-  const response = await fetch(getApiUrl("/api/push-vapid-public-key"), { cache: "no-store" });
-  if (!response.ok) return "";
-  const data = await response.json();
-  return data && data.publicKey ? data.publicKey : "";
+  if (eventWebPushPublicKey) return eventWebPushPublicKey;
+
+  let cached = null;
+  try {
+    cached = JSON.parse(localStorage.getItem(EVENT_PUSH_VAPID_CACHE_KEY) || "null");
+    if (cached && cached.publicKey && Date.now() - Number(cached.cachedAt) < EVENT_PUSH_VAPID_CACHE_TTL) {
+      eventWebPushPublicKey = cached.publicKey;
+      return eventWebPushPublicKey;
+    }
+  } catch (error) {
+    cached = null;
+  }
+
+  try {
+    const response = await fetch(getApiUrl("/api/push-vapid-public-key"), { cache: "no-store" });
+    if (!response.ok) throw new Error("VAPID public key is unavailable.");
+    const data = await response.json();
+    eventWebPushPublicKey = data && data.publicKey ? data.publicKey : "";
+    if (eventWebPushPublicKey) {
+      try {
+        localStorage.setItem(EVENT_PUSH_VAPID_CACHE_KEY, JSON.stringify({
+          publicKey: eventWebPushPublicKey,
+          cachedAt: Date.now()
+        }));
+      } catch (error) {
+        // The in-memory cache remains available when localStorage is blocked.
+      }
+    }
+    return eventWebPushPublicKey;
+  } catch (error) {
+    return cached && cached.publicKey ? cached.publicKey : "";
+  }
 }
 
-async function getOrCreateWebPushSubscription(registration, publicKey) {
+async function getOrCreateWebPushSubscription(registration) {
   const existing = await registration.pushManager.getSubscription();
-  if (existing) return existing;
+  const publicKey = await getWebPushPublicKey();
+  if (!publicKey) {
+    if (existing) return existing;
+    throw new Error("Missing VAPID public key.");
+  }
+
+  if (existing && pushSubscriptionUsesPublicKey(existing, publicKey)) return existing;
+  if (existing) await existing.unsubscribe();
 
   return registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(publicKey)
   });
+}
+
+function pushSubscriptionUsesPublicKey(subscription, publicKey) {
+  const existingKey = subscription && subscription.options && subscription.options.applicationServerKey;
+  if (!existingKey) return true;
+  const expected = urlBase64ToUint8Array(publicKey);
+  const actual = new Uint8Array(existingKey);
+  return actual.length === expected.length && actual.every((value, index) => value === expected[index]);
 }
 
 function urlBase64ToUint8Array(value) {

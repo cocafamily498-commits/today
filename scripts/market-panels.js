@@ -2,13 +2,30 @@ function renderMarkets(markets) {
   renderMarketsToGrid("marketGrid", markets);
 }
 
+const STOCK_MARKET_OPEN_TTL = 5 * 60 * 1000;
+const STOCK_MARKET_CLOSED_TTL = 60 * 60 * 1000;
+const ASSET_DATA_TTL = 60 * 60 * 1000;
+let marketsLoadedAt = 0;
+let assetsLoadedAt = 0;
+let marketsRequestPromise = null;
+let assetsRequestPromise = null;
+let marketRefreshSetupReady = false;
+
 async function loadMarkets() {
-  try {
-    const response = await fetch(getApiUrl("/api/markets"), { cache: "no-store" });
+  if (document.hidden) return false;
+  const now = Date.now();
+  if (marketsLoadedAt && now - marketsLoadedAt < getStockMarketRefreshTtl(new Date(now))) return false;
+  if (marketsRequestPromise) return marketsRequestPromise;
+  marketsLoadedAt = now;
+
+  marketsRequestPromise = (async () => {
+    const response = await fetch(getApiUrl("/api/markets"));
     if (!response.ok) throw new Error("Market data unavailable");
     const data = await response.json();
     renderMarkets(data.markets);
-  } catch (error) {
+    marketsLoadedAt = Date.now();
+    return true;
+  })().catch((error) => {
     const grid = document.getElementById("marketGrid");
     grid.innerHTML = `
       <div class="market-item">
@@ -17,16 +34,28 @@ async function loadMarkets() {
         <p class="market-change flat">Chạy bằng server local để tải dữ liệu</p>
       </div>
     `;
-  }
+    return false;
+  }).finally(() => {
+    marketsRequestPromise = null;
+  });
+  return marketsRequestPromise;
 }
 
 async function loadAssets() {
-  try {
-    const response = await fetch(getApiUrl("/api/assets"), { cache: "no-store" });
+  if (document.hidden) return false;
+  const now = Date.now();
+  if (assetsLoadedAt && now - assetsLoadedAt < ASSET_DATA_TTL) return false;
+  if (assetsRequestPromise) return assetsRequestPromise;
+  assetsLoadedAt = now;
+
+  assetsRequestPromise = (async () => {
+    const response = await fetch(getApiUrl("/api/assets"));
     if (!response.ok) throw new Error("Asset data unavailable");
     const data = await response.json();
     renderMarketsToGrid("assetGrid", data.assets);
-  } catch (error) {
+    assetsLoadedAt = Date.now();
+    return true;
+  })().catch((error) => {
     document.getElementById("assetGrid").innerHTML = `
       <div class="market-item">
         <p class="market-name">Bitcoin & dầu</p>
@@ -34,7 +63,69 @@ async function loadAssets() {
         <p class="market-change flat">Chạy bằng server local để tải dữ liệu</p>
       </div>
     `;
-  }
+    return false;
+  }).finally(() => {
+    assetsRequestPromise = null;
+  });
+  return assetsRequestPromise;
+}
+
+function setupMarketDataRefresh() {
+  if (marketRefreshSetupReady) return;
+  marketRefreshSetupReady = true;
+  window.setInterval(loadMarkets, 60 * 1000);
+  window.setInterval(loadAssets, ASSET_DATA_TTL);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) return;
+    loadMarkets();
+    loadAssets();
+  });
+}
+
+function getStockMarketRefreshTtl(now = new Date()) {
+  return isVietnamStockMarketOpen(now) || isUsStockMarketOpen(now)
+    ? STOCK_MARKET_OPEN_TTL
+    : STOCK_MARKET_CLOSED_TTL;
+}
+
+function isVietnamStockMarketOpen(now) {
+  return isMarketSessionOpen(now, "Asia/Ho_Chi_Minh", [
+    [9 * 60, 11 * 60 + 30],
+    [13 * 60, 15 * 60]
+  ]);
+}
+
+function isUsStockMarketOpen(now) {
+  return isMarketSessionOpen(now, "America/New_York", [
+    [9 * 60 + 30, 16 * 60]
+  ]);
+}
+
+function isMarketSessionOpen(now, timeZone, sessions) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(now).reduce((values, part) => {
+    values[part.type] = part.value;
+    return values;
+  }, {});
+  if (parts.weekday === "Sat" || parts.weekday === "Sun") return false;
+  const minuteOfDay = Number(parts.hour) * 60 + Number(parts.minute);
+  return sessions.some(([start, end]) => minuteOfDay >= start && minuteOfDay < end);
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    ASSET_DATA_TTL,
+    STOCK_MARKET_CLOSED_TTL,
+    STOCK_MARKET_OPEN_TTL,
+    getStockMarketRefreshTtl,
+    isUsStockMarketOpen,
+    isVietnamStockMarketOpen
+  };
 }
 
 function renderMarketsToGrid(gridId, items) {

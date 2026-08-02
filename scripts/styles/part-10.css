@@ -281,6 +281,23 @@ button.event-list-item:hover {
 .journal-list {
   display: grid;
   gap: 9px;
+  max-height: 172rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.journal-filter-result-count {
+  margin: 12px 0 8px;
+  color: #33475e;
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+.journal-filter-result-count[hidden] {
+  display: none;
 }
 
 .journal-list-title {

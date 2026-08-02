@@ -75,6 +75,7 @@ async function startApplication() {
     [setupApplicationInfo, "setupApplicationInfo"],
     [setupMonthlyCalendar, "setupMonthlyCalendar"],
     [setupCollapsiblePanels, "setupCollapsiblePanels"],
+    [setupMarketDataRefresh, "setupMarketDataRefresh"],
     [setupEventSystemReminderControls, "setupEventSystemReminderControls"],
     [setupTodayEventReminderPrompt, "setupTodayEventReminderPrompt"],
     [setupLazyTabInitialization, "setupLazyTabInitialization"]
@@ -93,8 +94,6 @@ async function startApplication() {
   await importSharedBackupFile();
 
   setInterval(loadWeather, 10 * 60 * 1000);
-  setInterval(loadMarkets, 60 * 1000);
-  setInterval(loadAssets, 60 * 1000);
   setInterval(loadQuotes, 5 * 60 * 1000);
 }
 

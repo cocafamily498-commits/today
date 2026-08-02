@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v194";
+const CACHE_NAME = "homnay-pwa-v196";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -136,6 +136,7 @@ const APP_SHELL = [
   "/manifest.webmanifest",
   "/manifest.webmanifest?v=10",
   "/manifest.webmanifest?v=11",
+  "/manifest.webmanifest?v=12",
   "/icons/app-icon-lichviet-transparent-192.png",
   "/icons/app-icon-lichviet-transparent-512.png",
   "/icons/app-icon-lichviet-calendar-192.png",
@@ -238,10 +239,12 @@ const APP_SHELL = [
   "/scripts/event-list-window.js?v=4",
   "/scripts/event-list-window.js?v=5",
   "/scripts/event-list-window.js?v=6",
+  "/scripts/event-list-window.js?v=7",
   "/scripts/event-list-window-filters.js",
   "/scripts/event-list-window-filters.js?v=2",
   "/scripts/event-list-window-filters.js?v=3",
   "/scripts/event-list-window-filters.js?v=4",
+  "/scripts/event-list-window-filters.js?v=5",
   "/scripts/event-list-dialog-render.js",
   "/scripts/event-list-dialog-render.js?v=3",
   "/scripts/event-list-dialog-render.js?v=4",
@@ -260,8 +263,12 @@ const APP_SHELL = [
   "/scripts/event-list-dialog-render.js?v=17",
   "/scripts/event-list-dialog-render.js?v=18",
   "/scripts/event-list-dialog-render.js?v=19",
+  "/scripts/event-list-dialog-render.js?v=20",
   "/scripts/event-reminders-system.js?v=3",
   "/scripts/event-reminders-system.js?v=4",
+  "/scripts/event-reminders-system.js?v=5",
+  "/scripts/event-reminders-system.js?v=6",
+  "/scripts/event-reminders-system.js?v=7",
   "/scripts/event-reminders-push.js",
   "/scripts/event-reminders-push.js?v=2",
   "/scripts/event-reminders-push.js?v=3",
@@ -352,6 +359,7 @@ const APP_SHELL = [
   "/scripts/app-shell.js?v=6",
   "/scripts/app-shell.js?v=7",
   "/scripts/app-shell.js?v=8",
+  "/scripts/app-shell.js?v=16",
   "/scripts/event-calendar.js?v=3",
   "/scripts/event-calendar.js?v=4",
   "/scripts/event-calendar.js?v=5",
@@ -360,6 +368,10 @@ const APP_SHELL = [
   "/scripts/event-calendar.js?v=8",
   "/scripts/event-calendar.js?v=9",
   "/scripts/event-calendar.js?v=10",
+  "/scripts/event-calendar.js?v=11",
+  "/scripts/event-calendar.js?v=12",
+  "/scripts/event-calendar.js?v=13",
+  "/scripts/event-calendar.js?v=14",
   "/scripts/journal-calendar.js",
   "/scripts/journal-form.js",
   "/scripts/journal-calendar.js?v=2",
@@ -380,6 +392,7 @@ const APP_SHELL = [
   "/scripts/today-panel.js?v=3",
   "/scripts/weather-panel.js",
   "/scripts/market-panels.js",
+  "/scripts/market-panels.js?v=2",
   "/scripts/pwa-install.js?v=2",
   "/scripts/pwa-install.js?v=3",
   "/scripts/startup.js",
@@ -471,6 +484,7 @@ const APP_SHELL = [
   "/scripts/journal-calendar.js?v=11",
   "/styles.css?v=75",
   "/scripts/styles/part-02.css?v=20",
+  "/scripts/styles/part-02.css?v=21",
   "/scripts/partials-loader.js?v=16",
   "/partials/tabs.html?v=2026-07-21-settings-icons",
   "/partials/today-tab.html?v=2026-07-21-settings-icons",
@@ -660,6 +674,8 @@ const APP_SHELL = [
   "/styles.css?v=100",
   "/scripts/styles/part-10.css?v=13",
   "/scripts/styles/part-16.css?v=12",
+  "/scripts/styles/part-16.css?v=13",
+  "/scripts/styles/part-16.css?v=14",
   "/scripts/journal-calendar.js?v=14",
   "/partials/tabs.html?v=2026-07-25-journal-list-add",
   "/partials/today-tab.html?v=2026-07-25-journal-list-add",
@@ -752,9 +768,12 @@ const APP_SHELL = [
   "/styles.css?v=113",
   "/scripts/styles/part-13.css?v=3",
   "/scripts/calendar-controls.js?v=8",
+  "/scripts/calendar-controls.js?v=9",
   "/scripts/journal-dialog.js?v=15",
   "/styles.css?v=114",
   "/scripts/styles/part-10.css?v=15",
+  "/scripts/styles/part-10.css?v=16",
+  "/scripts/styles/part-10.css?v=17",
   "/scripts/styles/part-13.css?v=4",
   "/scripts/data/app-data-core.js?v=3",
   "/scripts/data/app-data-journals.js?v=3",
@@ -771,13 +790,21 @@ const APP_SHELL = [
   "/scripts/styles/part-13.css?v=6",
   "/scripts/journal-dialog.js?v=18",
   "/scripts/journal-dialog.js?v=19",
+  "/scripts/journal-dialog.js?v=20",
   "/scripts/month-calendar.js?v=7",
+  "/scripts/month-calendar.js?v=8",
+  "/scripts/month-calendar.js?v=9",
   "/styles.css?v=117",
   "/scripts/styles/part-13.css?v=7",
   "/scripts/journal-export.js?v=31",
   "/scripts/journal-calendar.js?v=18",
   "/styles.css?v=118",
+  "/styles.css?v=119",
+  "/styles.css?v=120",
+  "/styles.css?v=121",
+  "/styles.css?v=122",
   "/scripts/styles/part-13.css?v=8",
+  "/scripts/styles/part-13.css?v=9",
   "/scripts/journal-export.js?v=32",
   "/scripts/journal-export.js?v=33",
   "/scripts/journal-export.js?v=34",
@@ -793,6 +820,8 @@ const APP_SHELL = [
   "/partials/app-info-dialog.html?v=2026-07-26-journal-title",
   "/scripts/partials-loader.js?v=26",
   "/scripts/partials-loader.js?v=27",
+  "/scripts/partials-loader.js?v=28",
+  "/scripts/partials-loader.js?v=29",
   "/partials/tabs.html?v=2026-07-26-app-version-3",
   "/partials/today-tab.html?v=2026-07-26-app-version-3",
   "/partials/converter-tab.html?v=2026-07-26-app-version-3",
@@ -809,6 +838,8 @@ const APP_SHELL = [
   "/partials/converter-tab.html?v=2026-07-26-journal-title-required",
   "/partials/events-tab.html?v=2026-07-26-journal-title-required",
   "/partials/journals-tab.html?v=2026-07-26-journal-title-required",
+  "/partials/journals-tab.html?v=2026-08-02-journal-filter-count",
+  "/partials/events-tab.html?v=2026-08-02-event-calendar-preview",
   "/partials/app-info-tab.html?v=2026-07-26-journal-title-required",
   "/partials/event-dialog.html?v=2026-07-26-journal-title-required",
   "/partials/journal-dialog.html?v=2026-07-26-journal-title-required",
@@ -881,6 +912,18 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).catch(() => caches.match("/index.html")));
+    return;
+  }
+
+  // App information changes between releases and must not remain stale in an
+  // installed desktop PWA. Keep the cached copy only as an offline fallback.
+  if (url.pathname === "/partials/app-info-dialog.html"
+      || url.pathname === "/partials/app-info-tab.html") {
+    event.respondWith(fetch(request).then((response) => {
+      const copy = response.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+      return response;
+    }).catch(() => caches.match(request)));
     return;
   }
 

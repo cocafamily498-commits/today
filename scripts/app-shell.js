@@ -115,9 +115,103 @@ function setupApplicationInfo() {
       importInput.value = "";
       if (!file) return;
       await importEventBackupFile(file);
-      if (typeof syncEventWebPushReminders === "function") await syncEventWebPushReminders();
     });
   }
+
+  setupDesktopZipDropImport();
+  setupPwaZipFileHandling();
+}
+
+let desktopZipDropSetupReady = false;
+let pwaZipFileHandlingReady = false;
+
+function setupDesktopZipDropImport() {
+  if (desktopZipDropSetupReady) return;
+  desktopZipDropSetupReady = true;
+  let dragDepth = 0;
+  const overlay = document.createElement("div");
+  overlay.className = "zip-import-drop-overlay";
+  overlay.hidden = true;
+  overlay.innerHTML = `
+    <div class="zip-import-drop-card" role="status" aria-live="polite">
+      <span class="zip-import-drop-icon" aria-hidden="true">ZIP</span>
+      <strong>Thả file sao lưu vào đây</strong>
+      <span>Chỉ chấp nhận một file .zip của Sổ tay lịch Việt</span>
+    </div>
+  `;
+  document.body.append(overlay);
+
+  const isFileDrag = (event) => Array.from(event.dataTransfer && event.dataTransfer.types || []).includes("Files");
+  window.addEventListener("dragenter", (event) => {
+    if (!isFileDrag(event)) return;
+    event.preventDefault();
+    dragDepth += 1;
+    overlay.hidden = false;
+    document.body.classList.add("zip-import-dragging");
+  });
+  window.addEventListener("dragover", (event) => {
+    if (!isFileDrag(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  });
+  window.addEventListener("dragleave", (event) => {
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) hideZipImportDropOverlay(overlay);
+  });
+  window.addEventListener("dragend", () => {
+    dragDepth = 0;
+    hideZipImportDropOverlay(overlay);
+  });
+  window.addEventListener("drop", async (event) => {
+    if (!isFileDrag(event)) return;
+    event.preventDefault();
+    dragDepth = 0;
+    hideZipImportDropOverlay(overlay);
+    const files = Array.from(event.dataTransfer.files || []);
+    if (files.length !== 1 || !isZipImportFile(files[0])) {
+      showZipImportFileError();
+      return;
+    }
+    await importEventBackupFile(files[0]);
+  });
+}
+
+function hideZipImportDropOverlay(overlay) {
+  overlay.hidden = true;
+  document.body.classList.remove("zip-import-dragging");
+}
+
+function isZipImportFile(file) {
+  return Boolean(file && /\.zip$/i.test(file.name || ""));
+}
+
+function showZipImportFileError() {
+  const message = "Hãy chọn hoặc kéo thả đúng một file sao lưu có đuôi .zip.";
+  if (typeof openEventBackupMessageDialog === "function") {
+    openEventBackupMessageDialog("Không thể nhập file", message, "Đóng");
+  } else if (typeof setEventFormStatus === "function") {
+    setEventFormStatus(message, true);
+  }
+}
+
+function setupPwaZipFileHandling() {
+  if (pwaZipFileHandlingReady || !("launchQueue" in window)) return;
+  pwaZipFileHandlingReady = true;
+  window.launchQueue.setConsumer(async (launchParams) => {
+    const handles = Array.from(launchParams.files || []);
+    if (handles.length !== 1) return;
+    try {
+      const file = await handles[0].getFile();
+      if (!isZipImportFile(file)) {
+        showZipImportFileError();
+        return;
+      }
+      await importEventBackupFile(file);
+    } catch (error) {
+      console.error("PWA ZIP file import failed", error);
+      showZipImportFileError();
+    }
+  });
 }
 
 async function importSharedBackupFile() {

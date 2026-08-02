@@ -287,7 +287,7 @@ h1 {
 <body>
   <main>
     <header class="event-list-header">
-      <h1>Danh sách sự kiện</h1>
+      <h1 id="eventListTitle">Danh sách sự kiện</h1>
       <button id="eventAddButton" class="event-add-button" type="button" aria-label="Thêm sự kiện mới"></button>
     </header>
     <form id="eventFilterForm" class="event-filter-form" autocomplete="off">
@@ -334,6 +334,7 @@ const typeIcon = document.getElementById("eventTypeFilterIcon");
 const groupIcon = document.getElementById("eventGroupFilterIcon");
 const cards = [...document.querySelectorAll(".event-card")];
 const emptyState = document.getElementById("eventFilterEmptyState");
+const title = document.getElementById("eventListTitle");
 
 function normalizeFilterText(value) {
   return String(value || "").trim().toLowerCase();
@@ -367,6 +368,11 @@ function applyEventFilters() {
   });
 
   if (emptyState) emptyState.hidden = visibleCount > 0 || cards.length === 0;
+  if (title) {
+    title.textContent = visibleCount > 0
+      ? "Kết quả lọc: " + visibleCount + " sự kiện"
+      : "Danh sách sự kiện";
+  }
 }
 
 typeInput.addEventListener("change", applyEventFilters);

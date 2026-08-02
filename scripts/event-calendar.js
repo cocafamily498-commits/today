@@ -3,6 +3,7 @@ function setupEventCalendar() {
   eventCalendarYear = today.getFullYear();
   eventCalendarMonth = today.getMonth() + 1;
   eventCalendarSelectedDay = today.getDate();
+  eventHoverPreviewEnabled = getStoredEventHoverPreviewEnabled();
 
   document.getElementById("eventChoiceAddButton")?.addEventListener("click", () => {
     const date = getSelectedEventCalendarDate();
@@ -21,6 +22,8 @@ function setupEventCalendar() {
     setDate: setEventCalendarDate,
     render: renderEventCalendar
   });
+
+  setupEventHoverPreviewToggle();
 
   renderEventCalendar();
   loadEventCalendarOccurrences();
@@ -263,7 +266,8 @@ function getEventTypeIcon(type) {
 
 function getEventTypeIconMarkup(type, className = "month-event-icon", eventTypeId = null) {
   if (eventTypeId && typeof getEventGroup === "function") {
-    return renderEventGroupIcon(getEventGroup(eventTypeId), `${className} event-group-icon`);
+    const groupMarkup = renderEventGroupIcon(getEventGroup(eventTypeId), `${className} event-group-icon`);
+    if (groupMarkup) return groupMarkup;
   }
   const eventType = ["birthday", "deathAnniversary", "other"].includes(type) ? type : "other";
   return `<span class="${className} ${eventType}" aria-hidden="true">${getEventTypeIcon(eventType)}</span>`;
@@ -280,9 +284,100 @@ function renderEventCalendar() {
     ariaLabel: `Lịch sự kiện tháng ${eventCalendarMonth} năm ${eventCalendarYear}`,
     eventsByDay: eventCalendarOccurrences,
     showEventIcons: true,
+    showEventContent: true,
     showAuspiciousDot: false,
-    onDayClick: handleEventCalendarDayClick
+    onDayClick: handleEventCalendarDayClick,
+    onDayHover: showEventHoverPreview,
+    onDayHoverEnd: hideEventHoverPreview
   });
+}
+
+function setupEventHoverPreviewToggle() {
+  const toggle = document.getElementById("eventHoverPreviewToggle");
+  if (!toggle || toggle.dataset.ready === "true") return;
+  toggle.dataset.ready = "true";
+  toggle.checked = eventHoverPreviewEnabled;
+  toggle.addEventListener("change", () => {
+    eventHoverPreviewEnabled = toggle.checked;
+    try {
+      localStorage.setItem("homnay.eventHoverPreviewEnabled", String(eventHoverPreviewEnabled));
+    } catch (error) {
+      // The setting still works for this session when storage is unavailable.
+    }
+    hideEventHoverPreview(true);
+  });
+}
+
+function getStoredEventHoverPreviewEnabled() {
+  try {
+    const stored = localStorage.getItem("homnay.eventHoverPreviewEnabled");
+    return stored === null ? true : stored === "true";
+  } catch (error) {
+    return true;
+  }
+}
+
+function renderEventHoverPreviewEntry(calendarEvent) {
+  const note = String(calendarEvent.note || "").trim();
+  const time = calendarEvent.time && /^\d{2}:\d{2}$/.test(calendarEvent.time)
+    ? calendarEvent.time
+    : calendarEvent.allDay === false ? "" : "Cả ngày";
+  return `
+    <section class="journal-hover-entry event-hover-entry">
+      <div class="journal-hover-entry-heading event-hover-entry-heading">
+        <span class="journal-hover-entry-icon">${getEventTypeIconMarkup(calendarEvent.eventType, "month-event-icon")}</span>
+        <span class="journal-hover-entry-title">${escapeHtml(calendarEvent.title || "")}</span>
+      </div>
+      ${(note || time) ? `<div class="journal-hover-entry-content">
+        ${note ? `<p>${escapeHtml(note)}</p>` : ""}
+        ${time ? `<span class="journal-hover-meta">${escapeHtml(time)}</span>` : ""}
+      </div>` : ""}
+    </section>`;
+}
+
+function showEventHoverPreview(day, events, anchor) {
+  const eventList = Array.isArray(events) ? events : [];
+  if (!eventList.length || !eventHoverPreviewEnabled) return;
+  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+  const preview = document.getElementById("eventHoverPreview");
+  if (!preview) return;
+  window.clearTimeout(eventHoverPreviewHideTimer);
+  eventHoverPreviewHideTimer = 0;
+  if (preview.dataset.interactive !== "true") {
+    preview.dataset.interactive = "true";
+    preview.addEventListener("mouseenter", () => window.clearTimeout(eventHoverPreviewHideTimer));
+    preview.addEventListener("mouseleave", hideEventHoverPreview);
+  }
+  const date = `${eventCalendarYear}-${String(eventCalendarMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  preview.innerHTML = `
+    <strong class="journal-hover-date">${escapeHtml(formatEventDate(date))}</strong>
+    <div class="journal-hover-entry-list">${eventList.map(renderEventHoverPreviewEntry).join("")}</div>`;
+  preview.hidden = false;
+  const anchorRect = anchor.getBoundingClientRect();
+  const previewRect = preview.getBoundingClientRect();
+  const left = Math.min(
+    Math.max(12, anchorRect.left + anchorRect.width / 2 - previewRect.width / 2),
+    window.innerWidth - previewRect.width - 12
+  );
+  const top = anchorRect.top > previewRect.height + 18
+    ? anchorRect.top - previewRect.height - 10
+    : anchorRect.bottom + 10;
+  preview.style.left = `${left}px`;
+  preview.style.top = `${Math.max(12, top)}px`;
+}
+
+function hideEventHoverPreview(immediate = false) {
+  const preview = document.getElementById("eventHoverPreview");
+  if (!preview) return;
+  const closeImmediately = immediate === true;
+  window.clearTimeout(eventHoverPreviewHideTimer);
+  const close = () => {
+    if (!closeImmediately && preview.matches(":hover")) return;
+    preview.hidden = true;
+    eventHoverPreviewHideTimer = 0;
+  };
+  if (closeImmediately) close();
+  else eventHoverPreviewHideTimer = window.setTimeout(close, 220);
 }
 
 async function handleEventCalendarDayClick(day) {

@@ -119,13 +119,19 @@ async function handleApiRequest(request, response, requestUrl) {
 
   if (requestUrl.pathname === "/api/markets") {
     const markets = await getMarkets().catch(() => getFallbackMarkets());
-    send(response, 200, "application/json; charset=utf-8", JSON.stringify({ markets }), API_CORS_HEADERS);
+    send(response, 200, "application/json; charset=utf-8", JSON.stringify({ markets }), {
+      ...API_CORS_HEADERS,
+      "cache-control": "public, max-age=60"
+    });
     return true;
   }
 
   if (requestUrl.pathname === "/api/assets") {
     const assets = await getAssets().catch(() => getFallbackAssets());
-    send(response, 200, "application/json; charset=utf-8", JSON.stringify({ assets }), API_CORS_HEADERS);
+    send(response, 200, "application/json; charset=utf-8", JSON.stringify({ assets }), {
+      ...API_CORS_HEADERS,
+      "cache-control": "public, max-age=300"
+    });
     return true;
   }
 
