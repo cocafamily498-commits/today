@@ -234,3 +234,48 @@ async function importSharedBackupFile() {
     }
   }
 }
+let vietnameseValidationSetupReady = false;
+
+function getVietnameseValidationMessage(control) {
+  const validity = control && control.validity;
+  if (!validity) return "Dữ liệu nhập chưa hợp lệ.";
+  if (validity.valueMissing) return "Vui lòng nhập thông tin này.";
+  if (validity.badInput) return "Vui lòng nhập một số hợp lệ.";
+  if (validity.typeMismatch) {
+    if (control.type === "email") return "Vui lòng nhập địa chỉ email hợp lệ.";
+    if (control.type === "url") return "Vui lòng nhập địa chỉ liên kết hợp lệ.";
+    return "Vui lòng nhập đúng loại dữ liệu yêu cầu.";
+  }
+  if (validity.patternMismatch) return "Vui lòng nhập đúng định dạng yêu cầu.";
+  if (validity.rangeUnderflow) return `Giá trị phải lớn hơn hoặc bằng ${control.min}.`;
+  if (validity.rangeOverflow) return `Giá trị phải nhỏ hơn hoặc bằng ${control.max}.`;
+  if (validity.stepMismatch) return "Vui lòng nhập một giá trị hợp lệ theo bước quy định.";
+  if (validity.tooShort) return `Vui lòng nhập ít nhất ${control.minLength} ký tự.`;
+  if (validity.tooLong) return `Vui lòng nhập không quá ${control.maxLength} ký tự.`;
+  return "Dữ liệu nhập chưa hợp lệ.";
+}
+
+function setupVietnameseValidationMessages() {
+  if (vietnameseValidationSetupReady) return;
+  vietnameseValidationSetupReady = true;
+
+  document.addEventListener("invalid", (event) => {
+    const control = event.target;
+    if (!control || typeof control.setCustomValidity !== "function") return;
+    if (control.validity.customError && control.dataset.vietnameseValidation !== "true") return;
+    control.setCustomValidity("");
+    control.setCustomValidity(getVietnameseValidationMessage(control));
+    control.dataset.vietnameseValidation = "true";
+  }, true);
+
+  document.addEventListener("input", (event) => {
+    const control = event.target;
+    if (!control || control.dataset.vietnameseValidation !== "true") return;
+    control.setCustomValidity("");
+    delete control.dataset.vietnameseValidation;
+  }, true);
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { getVietnameseValidationMessage };
+}

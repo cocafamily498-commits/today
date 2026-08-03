@@ -73,6 +73,7 @@ async function startApplication() {
     [render, "render"],
     [setupAppTabs, "setupAppTabs"],
     [setupApplicationInfo, "setupApplicationInfo"],
+    [setupVietnameseValidationMessages, "setupVietnameseValidationMessages"],
     [setupMonthlyCalendar, "setupMonthlyCalendar"],
     [setupCollapsiblePanels, "setupCollapsiblePanels"],
     [setupMarketDataRefresh, "setupMarketDataRefresh"],
