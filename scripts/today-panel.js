@@ -8,7 +8,7 @@ function render() {
   const weekday = titleCaseWords(WEEKDAYS[today.getDay()]);
   const lunarMonth = lunar.leap ? `${lunar.month} nhuận` : lunar.month;
   const fullDate = `${weekday}, ngày ${dd} tháng ${mm} năm ${yy}.`;
-  const lunarFullDate = `Ngày ${canChiDay(lunar.jd)},${lunar.day} tháng ${lunarMonth} năm ${canChiYear(lunar.year)}.`;
+  const lunarFullDate = `Ngày ${canChiDay(lunar.jd)}, ${lunar.day} tháng ${lunarMonth} năm ${canChiYear(lunar.year)}.`;
 
   document.getElementById("solarFullDate").textContent = fullDate;
   document.getElementById("solarMonth").textContent = `${monthName} năm ${yy}`;
@@ -79,7 +79,7 @@ function renderWeatherIcon(icon) {
 }
 
 function renderWeather(weather) {
-  const locationName = weather.location && weather.location.name ? weather.location.name : "Thành phố Hồ Chí Minh";
+  const locationName = weather.location && weather.location.name ? weather.location.name : "Thành phố Đà Nẵng";
   const condition = weather.condition || { text: "Thời tiết hôm nay", icon: "cloud" };
   document.getElementById("weatherCard").innerHTML = `
     <div class="weather-main">

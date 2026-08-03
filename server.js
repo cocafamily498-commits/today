@@ -148,13 +148,12 @@ async function handleApiRequest(request, response, requestUrl) {
   }
 
   if (requestUrl.pathname === "/api/weather") {
-    const clientIp = request.headers["x-forwarded-for"] || request.socket.remoteAddress;
     const requestedLocation = normalizeRequestedLocation({
       name: requestUrl.searchParams.get("name"),
       latitude: requestUrl.searchParams.get("lat"),
       longitude: requestUrl.searchParams.get("lon")
     });
-    const weather = await getWeather(clientIp, requestedLocation).catch(() => getFallbackWeather(requestedLocation));
+    const weather = await getWeather(requestedLocation).catch(() => getFallbackWeather(requestedLocation));
     send(response, 200, "application/json; charset=utf-8", JSON.stringify({ weather }), API_CORS_HEADERS);
     return true;
   }

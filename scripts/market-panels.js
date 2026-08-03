@@ -5,10 +5,15 @@ function renderMarkets(markets) {
 const STOCK_MARKET_OPEN_TTL = 5 * 60 * 1000;
 const STOCK_MARKET_CLOSED_TTL = 60 * 60 * 1000;
 const ASSET_DATA_TTL = 60 * 60 * 1000;
+const QUOTE_DATA_TTL = 60 * 60 * 1000;
+const QUOTE_RETRY_TTL = 5 * 60 * 1000;
 let marketsLoadedAt = 0;
 let assetsLoadedAt = 0;
+let quotesLoadedAt = 0;
+let quotesLastAttemptAt = 0;
 let marketsRequestPromise = null;
 let assetsRequestPromise = null;
+let quotesRequestPromise = null;
 let marketRefreshSetupReady = false;
 
 async function loadMarkets() {
@@ -75,10 +80,12 @@ function setupMarketDataRefresh() {
   marketRefreshSetupReady = true;
   window.setInterval(loadMarkets, 60 * 1000);
   window.setInterval(loadAssets, ASSET_DATA_TTL);
+  window.setInterval(loadQuotes, QUOTE_DATA_TTL);
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) return;
     loadMarkets();
     loadAssets();
+    loadQuotes();
   });
 }
 
@@ -120,12 +127,22 @@ function isMarketSessionOpen(now, timeZone, sessions) {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     ASSET_DATA_TTL,
+    QUOTE_DATA_TTL,
+    QUOTE_RETRY_TTL,
     STOCK_MARKET_CLOSED_TTL,
     STOCK_MARKET_OPEN_TTL,
     getStockMarketRefreshTtl,
     isUsStockMarketOpen,
-    isVietnamStockMarketOpen
+    isVietnamStockMarketOpen,
+    loadQuotes,
+    resetQuoteRefreshState
   };
+}
+
+function resetQuoteRefreshState() {
+  quotesLoadedAt = 0;
+  quotesLastAttemptAt = 0;
+  quotesRequestPromise = null;
 }
 
 function renderMarketsToGrid(gridId, items) {
@@ -233,44 +250,63 @@ function renderQuoteChange(change, fallbackText) {
   return `<p class="quote-change ${direction}">${sign}${formatNumber(change.value)} (${sign}${change.percent.toFixed(2)}%)</p>`;
 }
 
-async function loadQuotes() {
-  try {
-    const response = await fetch(getApiUrl("/api/quotes"), { cache: "no-store" });
+function loadQuotes() {
+  if (document.hidden) return Promise.resolve(false);
+  if (quotesRequestPromise) return quotesRequestPromise;
+
+  const quoteGrid = document.getElementById("quoteGrid");
+  const currencyGrid = document.getElementById("currencyGrid");
+  const silverGrid = document.getElementById("silverGrid");
+  if (!quoteGrid || !currencyGrid || !silverGrid) return Promise.resolve(false);
+
+  const now = Date.now();
+  if (quotesLoadedAt && now - quotesLoadedAt < QUOTE_DATA_TTL) return Promise.resolve(false);
+  if (quotesLastAttemptAt && now - quotesLastAttemptAt < QUOTE_RETRY_TTL) return Promise.resolve(false);
+  quotesLastAttemptAt = now;
+
+  quotesRequestPromise = (async () => {
+    const response = await fetch(getApiUrl("/api/quotes"));
     if (!response.ok) throw new Error("Quote data unavailable");
     const data = await response.json();
-    document.getElementById("quoteGrid").innerHTML = [
+    quoteGrid.innerHTML = [
       renderQuoteCard(data.gold),
       renderWorldMetalCard(data.worldGold)
     ].join("");
-    document.getElementById("currencyGrid").innerHTML = [
+    currencyGrid.innerHTML = [
       renderQuoteCard(data.usd),
       renderQuoteCard(data.eur)
     ].join("");
-    document.getElementById("silverGrid").innerHTML = [
+    silverGrid.innerHTML = [
       renderQuoteCard(data.silver, "Bạc miếng Phú Quý 999"),
       renderWorldMetalCard(data.worldSilver, "Bạc thế giới")
     ].join("");
-  } catch (error) {
-    document.getElementById("quoteGrid").innerHTML = `
+    quotesLoadedAt = Date.now();
+    return true;
+  })().catch((error) => {
+    quoteGrid.innerHTML = `
       <div class="market-item">
         <p class="market-name">Vàng</p>
         <p class="market-value">--</p>
         <p class="market-change flat">Chạy bằng server local để tải dữ liệu</p>
       </div>
     `;
-    document.getElementById("currencyGrid").innerHTML = `
+    currencyGrid.innerHTML = `
       <div class="market-item">
         <p class="market-name">Ngoại tệ</p>
         <p class="market-value">--</p>
         <p class="market-change flat">Tạm thời chưa tải được dữ liệu</p>
       </div>
     `;
-    document.getElementById("silverGrid").innerHTML = `
+    silverGrid.innerHTML = `
       <div class="market-item">
         <p class="market-name">Bạc</p>
         <p class="market-value">--</p>
         <p class="market-change flat">Tạm thời chưa tải được dữ liệu</p>
       </div>
     `;
-  }
+    return false;
+  }).finally(() => {
+    quotesRequestPromise = null;
+  });
+  return quotesRequestPromise;
 }

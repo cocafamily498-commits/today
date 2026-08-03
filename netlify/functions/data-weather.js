@@ -1,14 +1,14 @@
 const { getJson } = require("./data-http");
 
 const DEFAULT_WEATHER_LOCATION = {
-  name: "Th\u00e0nh ph\u1ed1 H\u1ed3 Ch\u00ed Minh",
-  latitude: 10.8231,
-  longitude: 106.6297,
+  name: "Th\u00e0nh ph\u1ed1 \u0110\u00e0 N\u1eb5ng",
+  latitude: 16.0544,
+  longitude: 108.2022,
   fallback: true
 };
 
-async function getWeather(clientIp, requestedLocation) {
-  const location = normalizeRequestedLocation(requestedLocation) || await resolveWeatherLocation(clientIp);
+async function getWeather(requestedLocation) {
+  const location = normalizeRequestedLocation(requestedLocation) || DEFAULT_WEATHER_LOCATION;
   try {
     return await getOpenMeteoWeather(location);
   } catch (error) {
@@ -152,59 +152,6 @@ function describeMetWeather(symbol) {
   return { text: isNight ? "Trời quang" : "Trời nắng", icon: isNight ? "moon" : "sun" };
 }
 
-async function resolveWeatherLocation(clientIp) {
-  const ip = normalizeClientIp(clientIp);
-  const suffix = ip ? `/${encodeURIComponent(ip)}` : "/";
-  try {
-    const data = await getJson(`https://ipwho.is${suffix}`);
-    const latitude = Number(data.latitude);
-    const longitude = Number(data.longitude);
-
-    if (data.success === false || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      throw new Error(data.message || "IP location unavailable");
-    }
-
-    return {
-      name: formatLocationName(data),
-      latitude,
-      longitude,
-      fallback: false
-    };
-  } catch (error) {}
-
-  try {
-    const url = ip ? `https://ipapi.co/${encodeURIComponent(ip)}/json/` : "https://ipapi.co/json/";
-    const data = await getJson(url);
-    const latitude = Number(data.latitude);
-    const longitude = Number(data.longitude);
-    if (!data.error && Number.isFinite(latitude) && Number.isFinite(longitude)) {
-      return { name: formatLocationName(data), latitude, longitude, fallback: false };
-    }
-  } catch (error) {}
-
-  return DEFAULT_WEATHER_LOCATION;
-}
-
-function normalizeClientIp(clientIp) {
-  if (!clientIp || typeof clientIp !== "string") return null;
-  let ip = clientIp.split(",")[0].trim();
-  if (ip.toLowerCase().startsWith("::ffff:")) ip = ip.slice(7);
-
-  if (!ip || ip === "::1" || ip === "127.0.0.1") return null;
-  if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(ip)) return null;
-  if (/^(fc|fd)[0-9a-f]{2}:/i.test(ip) || /^fe80:/i.test(ip)) return null;
-
-  return ip;
-}
-
-function formatLocationName(data) {
-  const city = data.city || data.region || data.country_name;
-  const region = data.region && data.region !== city ? data.region : "";
-  const countryName = data.country_name || data.country;
-  const country = countryName && countryName !== region ? countryName : "";
-  return [city, region, country].filter(Boolean).slice(0, 2).join(", ") || DEFAULT_WEATHER_LOCATION.name;
-}
-
 function firstValue(values) {
   return Array.isArray(values) ? values[0] : null;
 }
@@ -278,4 +225,10 @@ function getFallbackWeather(requestedLocation) {
   };
 }
 
-module.exports = { getWeather, searchLocations, normalizeRequestedLocation, getFallbackWeather };
+module.exports = {
+  DEFAULT_WEATHER_LOCATION,
+  getWeather,
+  searchLocations,
+  normalizeRequestedLocation,
+  getFallbackWeather
+};

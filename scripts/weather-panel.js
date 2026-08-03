@@ -1,7 +1,16 @@
 const WEATHER_LOCATION_KEY = "homnay.weatherLocation";
+const WEATHER_DATA_TTL = 2 * 60 * 60 * 1000;
+const WEATHER_RETRY_TTL = 5 * 60 * 1000;
 let selectedLocationSuggestion = null;
 let locationSearchTimer = null;
 let locationSearchController = null;
+let weatherLoadedAt = 0;
+let weatherLoadedEndpoint = "";
+let weatherLastAttemptAt = 0;
+let weatherLastAttemptEndpoint = "";
+let weatherRequestPromise = null;
+let weatherRequestEndpoint = "";
+let weatherRefreshSetupReady = false;
 
 function getSavedWeatherLocation() {
   try {
@@ -36,11 +45,16 @@ function setupLocationPicker() {
       status.textContent = "Hãy chọn một thành phố trong danh sách gợi ý.";
       return;
     }
-    localStorage.setItem(WEATHER_LOCATION_KEY, JSON.stringify(selectedLocationSuggestion));
+    try {
+      localStorage.setItem(WEATHER_LOCATION_KEY, JSON.stringify(selectedLocationSuggestion));
+    } catch (error) {
+      status.textContent = "Không thể lưu địa điểm trên thiết bị này.";
+      return;
+    }
     input.value = selectedLocationSuggestion.displayName;
     status.textContent = `Đã lưu ${selectedLocationSuggestion.displayName}.`;
     renderLocationSuggestions([]);
-    loadWeather();
+    loadWeather({ force: true });
   });
 
   document.addEventListener("click", (event) => {
@@ -88,23 +102,48 @@ function renderLocationSuggestions(locations) {
   input.setAttribute("aria-expanded", locations.length ? "true" : "false");
 }
 
-async function loadWeather() {
-  try {
-    const savedLocation = getSavedWeatherLocation();
-    const params = new URLSearchParams();
-    if (savedLocation) {
-      params.set("name", savedLocation.displayName || savedLocation.name);
-      params.set("lat", savedLocation.latitude);
-      params.set("lon", savedLocation.longitude);
-    }
-    const endpoint = getApiUrl(params.size ? `/api/weather?${params}` : "/api/weather");
-    const response = await fetch(endpoint, { cache: "no-store" });
+function getWeatherEndpoint(savedLocation = getSavedWeatherLocation()) {
+  const params = new URLSearchParams();
+  if (savedLocation) {
+    params.set("name", savedLocation.displayName || savedLocation.name);
+    params.set("lat", savedLocation.latitude);
+    params.set("lon", savedLocation.longitude);
+  }
+  const query = params.toString();
+  return getApiUrl(query ? `/api/weather?${query}` : "/api/weather");
+}
+
+function loadWeather({ force = false } = {}) {
+  if (document.hidden) return Promise.resolve(false);
+  if (!document.getElementById("weatherCard")) return Promise.resolve(false);
+
+  const savedLocation = getSavedWeatherLocation();
+  const endpoint = getWeatherEndpoint(savedLocation);
+  if (weatherRequestPromise) {
+    if (weatherRequestEndpoint === endpoint) return weatherRequestPromise;
+    return weatherRequestPromise.then(() => loadWeather({ force: true }));
+  }
+
+  const now = Date.now();
+  if (!force && weatherLoadedEndpoint === endpoint
+    && weatherLoadedAt && now - weatherLoadedAt < WEATHER_DATA_TTL) return Promise.resolve(false);
+  if (!force && weatherLastAttemptEndpoint === endpoint
+    && weatherLastAttemptAt && now - weatherLastAttemptAt < WEATHER_RETRY_TTL) return Promise.resolve(false);
+
+  weatherLastAttemptAt = now;
+  weatherLastAttemptEndpoint = endpoint;
+  weatherRequestEndpoint = endpoint;
+  weatherRequestPromise = (async () => {
+    const response = await fetch(endpoint);
     if (!response.ok) throw new Error("Weather data unavailable");
     const data = await response.json();
     renderWeather(data.weather);
-  } catch (error) {
+    weatherLoadedAt = Date.now();
+    weatherLoadedEndpoint = endpoint;
+    return true;
+  })().catch((error) => {
     renderWeather({
-      location: { name: "Thanh pho Ho Chi Minh" },
+      location: { name: savedLocation ? savedLocation.displayName || savedLocation.name : "Thành phố Đà Nẵng" },
       condition: { text: "Tam thoi chua co du lieu", icon: "cloud" },
       temperature: null,
       apparentTemperature: null,
@@ -121,18 +160,39 @@ async function loadWeather() {
       cloudCover: null,
       source: "Kiem tra server local"
     });
-    return;
-    document.getElementById("weatherCard").innerHTML = `
-      <div class="weather-main">
-        <div class="weather-icon weather-icon-cloud" aria-hidden="true">${renderWeatherIcon("cloud")}</div>
-        <div>
-          <p class="weather-location">Tại Thành phố Hồ Chí Minh</p>
-          <div class="weather-temp-row">
-            <p class="weather-temp">--°</p>
-            <p class="weather-condition">Đang tải</p>
-          </div>
-        </div>
-      </div>
-    `;
-  }
+    return false;
+  }).finally(() => {
+    weatherRequestPromise = null;
+    weatherRequestEndpoint = "";
+  });
+  return weatherRequestPromise;
+}
+
+function setupWeatherDataRefresh() {
+  if (weatherRefreshSetupReady) return;
+  weatherRefreshSetupReady = true;
+  window.setInterval(loadWeather, WEATHER_DATA_TTL);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) loadWeather();
+  });
+}
+
+function resetWeatherRefreshState() {
+  weatherLoadedAt = 0;
+  weatherLoadedEndpoint = "";
+  weatherLastAttemptAt = 0;
+  weatherLastAttemptEndpoint = "";
+  weatherRequestPromise = null;
+  weatherRequestEndpoint = "";
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    WEATHER_DATA_TTL,
+    WEATHER_RETRY_TTL,
+    getSavedWeatherLocation,
+    getWeatherEndpoint,
+    loadWeather,
+    resetWeatherRefreshState
+  };
 }

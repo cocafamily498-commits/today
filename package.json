@@ -10,6 +10,6 @@
   "scripts": {
     "build": "node build.js",
     "start": "node server.js",
-    "test": "node tests/push-jobs.test.js && node tests/market-refresh.test.js"
+    "test": "node tests/push-jobs.test.js && node tests/market-refresh.test.js && node tests/quotes-refresh.test.js && node tests/quotes-backend.test.js && node tests/weather-refresh.test.js && node tests/weather-backend.test.js"
   }
 }

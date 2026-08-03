@@ -7,51 +7,35 @@ const WORLD_GOLD_SYMBOL = "OANDA:XAUUSD";
 const WORLD_SILVER_SYMBOL = "TVC:SILVER";
 const TROY_OUNCE_GRAMS = 31.1034768;
 const VIETNAM_GOLD_TAEL_GRAMS = 37.5;
-async function getWorldGoldSpot() {
+async function getWorldMetalSpots() {
   const payload = await postJson("https://scanner.tradingview.com/global/scan", {
     symbols: {
-      tickers: [WORLD_GOLD_SYMBOL],
+      tickers: [WORLD_GOLD_SYMBOL, WORLD_SILVER_SYMBOL],
       query: { types: [] }
     },
     columns: ["name", "description", "close", "change", "change_abs"]
   });
-  const row = payload.data && payload.data[0] && payload.data[0].d;
-
-  if (!row || !Number.isFinite(row[2])) {
-    throw new Error("Cannot parse world gold price");
-  }
-
-  return {
-    symbol: WORLD_GOLD_SYMBOL,
-    name: "V\u00e0ng th\u1ebf gi\u1edbi",
-    ounceUsd: row[2],
-    change: row[3],
-    changeAbs: row[4],
-    source: "TradingView"
+  const rows = Array.isArray(payload.data) ? payload.data : [];
+  const parseSpot = (symbol, name) => {
+    const result = rows.find((row) => row && row.s === symbol);
+    const values = result && result.d;
+    if (!values || !Number.isFinite(values[2])) {
+      console.error(`TradingView ${symbol} failed: Cannot parse spot price`);
+      return null;
+    }
+    return {
+      symbol,
+      name,
+      ounceUsd: values[2],
+      change: values[3],
+      changeAbs: values[4],
+      source: "TradingView"
+    };
   };
-}
-
-async function getWorldSilverSpot() {
-  const payload = await postJson("https://scanner.tradingview.com/global/scan", {
-    symbols: {
-      tickers: [WORLD_SILVER_SYMBOL],
-      query: { types: [] }
-    },
-    columns: ["name", "description", "close", "change", "change_abs"]
-  });
-  const row = payload.data && payload.data[0] && payload.data[0].d;
-
-  if (!row || !Number.isFinite(row[2])) {
-    throw new Error("Cannot parse world silver price");
-  }
 
   return {
-    symbol: WORLD_SILVER_SYMBOL,
-    name: "B\u1ea1c th\u1ebf gi\u1edbi",
-    ounceUsd: row[2],
-    change: row[3],
-    changeAbs: row[4],
-    source: "TradingView"
+    worldGoldSpot: parseSpot(WORLD_GOLD_SYMBOL, "V\u00e0ng th\u1ebf gi\u1edbi"),
+    worldSilverSpot: parseSpot(WORLD_SILVER_SYMBOL, "B\u1ea1c th\u1ebf gi\u1edbi")
   };
 }
 
@@ -102,8 +86,7 @@ async function getGoldQuote() {
   }, "So v\u1edbi h\u00f4m tr\u01b0\u1edbc");
 }
 
-async function getCurrencyQuote(currencyCode, name, unit) {
-  const xml = await getText(VCB_EXCHANGE_URL);
+function parseCurrencyQuote(xml, currencyCode, name, unit) {
   const pattern = new RegExp(`<Exrate[^>]*CurrencyCode="${currencyCode}"[^>]*Buy="([^"]+)"[^>]*Transfer="([^"]+)"[^>]*Sell="([^"]+)"`);
   const currencyMatch = xml.match(pattern);
   const updatedMatch = xml.match(/<DateTime>([^<]+)<\/DateTime>/);
@@ -123,23 +106,31 @@ async function getCurrencyQuote(currencyCode, name, unit) {
   }, null, `Netlify kh\u00f4ng l\u01b0u d\u1eef li\u1ec7u ${currencyCode} h\u00f4m tr\u01b0\u1edbc`);
 }
 
-async function getUsdQuote() {
-  return getCurrencyQuote("USD", "USD Vietcombank", "VND/USD");
-}
-
-async function getEurQuote() {
-  return getCurrencyQuote("EUR", "EUR Vietcombank", "VND/EUR");
+async function getCurrencyQuotes() {
+  const xml = await getText(VCB_EXCHANGE_URL);
+  return {
+    usd: getOptionalParsedQuote(
+      () => parseCurrencyQuote(xml, "USD", "USD Vietcombank", "VND/USD"),
+      "Vietcombank USD"
+    ),
+    eur: getOptionalParsedQuote(
+      () => parseCurrencyQuote(xml, "EUR", "EUR Vietcombank", "VND/EUR"),
+      "Vietcombank EUR"
+    )
+  };
 }
 
 async function getQuotes() {
-  const [gold, silver, usd, eur, worldGoldSpot, worldSilverSpot] = await Promise.all([
-    getOptionalQuote(getGoldQuote),
-    getOptionalQuote(getSilverQuote),
-    getOptionalQuote(getUsdQuote),
-    getOptionalQuote(getEurQuote),
-    getOptionalQuote(getWorldGoldSpot),
-    getOptionalQuote(getWorldSilverSpot)
+  const [gold, silver, currencies, metals] = await Promise.all([
+    getOptionalQuote(getGoldQuote, "giavang.org"),
+    getOptionalQuote(getSilverQuote, "Phu Quy silver"),
+    getOptionalQuote(getCurrencyQuotes, "Vietcombank"),
+    getOptionalQuote(getWorldMetalSpots, "TradingView")
   ]);
+  const usd = currencies && currencies.usd;
+  const eur = currencies && currencies.eur;
+  const worldGoldSpot = metals && metals.worldGoldSpot;
+  const worldSilverSpot = metals && metals.worldSilverSpot;
   return {
     gold,
     silver,
@@ -150,10 +141,20 @@ async function getQuotes() {
   };
 }
 
-async function getOptionalQuote(loader) {
+async function getOptionalQuote(loader, source) {
   try {
     return await loader();
   } catch (error) {
+    console.error(`${source} failed:`, error.message);
+    return null;
+  }
+}
+
+function getOptionalParsedQuote(loader, source) {
+  try {
+    return loader();
+  } catch (error) {
+    console.error(`${source} failed:`, error.message);
     return null;
   }
 }
@@ -250,4 +251,4 @@ function getFallbackQuotes() {
   };
 }
 
-module.exports = { getQuotes, getFallbackQuotes };
+module.exports = { getQuotes, getFallbackQuotes, parseCurrencyQuote };
