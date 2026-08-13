@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v220-encrypted-vault-zip";
+const CACHE_NAME = "homnay-pwa-v221-backup-minute-name";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -173,6 +173,7 @@ const APP_SHELL = [
   "/scripts/vault-gate.js?v=20",
   "/scripts/vault-gate.js?v=21",
   "/scripts/vault-gate.js?v=22",
+  "/scripts/vault-gate.js?v=23",
   "/scripts/data/app-data-events.js",
   "/scripts/data/app-data-events.js?v=2",
   "/scripts/data/app-data-events.js?v=3",

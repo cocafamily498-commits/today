@@ -230,7 +230,8 @@
       const vietnam = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
       const date = `${vietnam.getFullYear()}-${String(vietnam.getMonth() + 1).padStart(2, "0")}-${String(vietnam.getDate()).padStart(2, "0")}`;
       const hour = String(vietnam.getHours()).padStart(2, "0");
-      const link = document.createElement("a"); link.href = URL.createObjectURL(zip); link.download = `Sotaylichviet-${date}-${hour}h.zip`; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
+      const minute = String(vietnam.getMinutes()).padStart(2, "0");
+      const link = document.createElement("a"); link.href = URL.createObjectURL(zip); link.download = `Sotaylichviet-${date}-${hour}h${minute}.zip`; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
     } catch (error) { openSettingsDialog("Chưa tạo được backup", `<p>${error.message}</p>`, async () => {}); }
   }
   function openSettingsDialog(title, fields, action, options = {}) {
