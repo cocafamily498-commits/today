@@ -5,11 +5,14 @@
   "dependencies": {
     "@netlify/blobs": "^8.2.0",
     "@netlify/functions": "^2.8.2",
+    "@noble/hashes": "^2.2.0",
+    "@scure/bip39": "^2.2.0",
+    "hash-wasm": "^4.12.0",
     "web-push": "^3.6.7"
   },
   "scripts": {
     "build": "node build.js",
     "start": "node server.js",
-    "test": "node tests/push-jobs.test.js && node tests/market-refresh.test.js && node tests/quotes-refresh.test.js && node tests/quotes-backend.test.js && node tests/weather-refresh.test.js && node tests/weather-backend.test.js && node tests/validation-messages.test.js"
+    "test": "node tests/zk-crypto.test.js && node tests/push-jobs.test.js && node tests/market-refresh.test.js && node tests/quotes-refresh.test.js && node tests/quotes-backend.test.js && node tests/weather-refresh.test.js && node tests/weather-backend.test.js && node tests/validation-messages.test.js"
   }
 }

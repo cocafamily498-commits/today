@@ -9,3 +9,6 @@ local-server.out.log
 .local-server.pid
 .local-server-job.id
 dist/
+.tools/
+cloudflared-tunnel.log
+.cloudflared.pid

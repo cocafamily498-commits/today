@@ -85,6 +85,45 @@ body {
   background-size: 18px 18px, auto;
 }
 
+.vault-gate {
+  width: min(100%, 460px);
+  margin: clamp(34px, 10vh, 100px) auto;
+  padding: 30px;
+  border: 1px solid #cbd6e2;
+  border-top: 7px solid var(--gold);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+.vault-gate-mark { color: var(--red-dark); font-size: 2.7rem; text-align: center; }
+.vault-gate h1 { margin: 4px 0 10px; color: var(--red-dark); font-size: 1.45rem; text-align: center; }
+.vault-gate > p { margin: 0 0 24px; color: var(--muted); line-height: 1.55; text-align: center; }
+.vault-gate form { display: grid; gap: 10px; }
+.vault-gate label { margin-top: 4px; color: #273b50; font-size: .84rem; font-weight: 750; }
+.vault-gate input { width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; border: 1px solid #aebdcb; border-radius: 7px; }
+.vault-gate input:focus { border-color: var(--red-dark); outline: 3px solid rgba(18, 52, 90, .14); }
+.vault-gate-warning { margin: 8px 0 0; padding: 10px 12px; color: #725500; font-size: .76rem; line-height: 1.45; border-radius: 7px; background: #fff8d8; }
+.vault-gate-status { min-height: 1.25rem; margin: 0; color: #a02b2b; font-size: .8rem; }
+.vault-gate button { min-height: 46px; color: #fff; font: inherit; font-weight: 800; border: 0; border-radius: 7px; background: var(--red-dark); cursor: pointer; }
+.vault-gate button:disabled { cursor: wait; opacity: .65; }
+.vault-choice-grid { display: grid; gap: 12px; }
+.vault-choice-grid button { display: grid; gap: 5px; padding: 16px; color: var(--red-dark); text-align: left; border: 1px solid #b8c7d8; background: #f7fafc; }
+.vault-choice-grid button span { color: var(--muted); font-size: .78rem; font-weight: 500; }
+.vault-link { color: var(--red-dark) !important; background: transparent !important; text-decoration: underline; }
+.vault-gate textarea { width: 100%; padding: 10px 12px; font: inherit; border: 1px solid #aebdcb; border-radius: 7px; resize: vertical; }
+.vault-field-help { margin: -4px 0 5px; color: #725500; font-size: .74rem; line-height: 1.4; }
+.recovery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 18px 0; }
+.recovery-grid span { padding: 8px; border: 1px solid #d5dee7; border-radius: 6px; background: #f7fafc; font-family: ui-monospace, monospace; font-size: .76rem; }
+.recovery-grid b { margin-right: 6px; color: #7a8794; }
+.vault-confirm { display: flex !important; align-items: center; gap: 8px; }
+.vault-confirm input { width: auto; min-height: auto; }
+.vault-row { display: flex; gap: 10px; }
+.vault-row > * { flex: 1; }
+.vault-settings-form { display: grid; gap: 12px; padding: 24px; }
+.vault-settings-form label { display: grid; gap: 6px; font-weight: 700; }
+.vault-settings-form input { min-height: 42px; padding: 8px 10px; font: inherit; }
+@media (max-width: 520px) { .recovery-grid { grid-template-columns: repeat(2, 1fr); } }
+
 body.event-dialog-open {
   overflow: hidden;
 }

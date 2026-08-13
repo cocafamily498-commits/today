@@ -67,12 +67,14 @@ function setupLazyTabInitialization() {
 }
 
 async function startApplication() {
+  await window.LichVietVault.requireSession();
   await loadAppPartials();
 
   [
     [render, "render"],
     [setupAppTabs, "setupAppTabs"],
     [setupApplicationInfo, "setupApplicationInfo"],
+    [window.LichVietVault.setupSystemControls, "setupSystemVaultControls"],
     [setupVietnameseValidationMessages, "setupVietnameseValidationMessages"],
     [setupMonthlyCalendar, "setupMonthlyCalendar"],
     [setupCollapsiblePanels, "setupCollapsiblePanels"],
@@ -100,5 +102,23 @@ async function startApplication() {
 startApplication().catch((error) => {
   console.error("startup failed", error);
   const root = document.getElementById("appRoot");
-  if (root) root.innerHTML = `<p class="app-loading" role="alert">Khong tai duoc giao dien ung dung.</p>`;
+  if (root) {
+    const message = error && error.name === "VersionError"
+      ? "Dữ liệu local đang dùng phiên bản mới hơn ứng dụng. Hãy tải lại bản mới nhất."
+      : error && error.message ? error.message : "Không tải được giao diện ứng dụng.";
+    root.replaceChildren();
+    const panel = document.createElement("section");
+    panel.className = "vault-gate";
+    const title = document.createElement("h1");
+    title.textContent = "Chưa mở được dữ liệu local";
+    const detail = document.createElement("p");
+    detail.setAttribute("role", "alert");
+    detail.textContent = message;
+    const reload = document.createElement("button");
+    reload.type = "button";
+    reload.textContent = "Tải lại ứng dụng";
+    reload.addEventListener("click", () => location.reload());
+    panel.append(title, detail, reload);
+    root.append(panel);
+  }
 });

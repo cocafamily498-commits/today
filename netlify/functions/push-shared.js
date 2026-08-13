@@ -94,7 +94,7 @@ function getSubscriptionKey(subscription) {
 
 function sanitizeReminder(reminder) {
   const source = reminder || {};
-  if (!source.id || !source.reminderAt || !source.title) return null;
+  if (!source.id || !source.reminderAt) return null;
   const reminderAtMs = Date.parse(source.reminderAt);
   if (!Number.isFinite(reminderAtMs)) return null;
   const occurrenceAtMs = Date.parse(source.occurrenceAt || "");
@@ -102,8 +102,8 @@ function sanitizeReminder(reminder) {
   return {
     id: String(source.id).slice(0, 240),
     reminderAt: new Date(reminderAtMs).toISOString(),
-    title: String(source.title).slice(0, 120),
-    body: String(source.body || "").slice(0, 400),
+    title: "Sắp đến sự kiện",
+    body: "Mở Sổ tay Lịch Việt để xem chi tiết.",
     tag: String(source.tag || source.id).slice(0, 240),
     url: String(source.url || "/").slice(0, 500),
     icon: String(source.icon || "/icons/app-icon-lichviet-calendar-192.png").slice(0, 200),

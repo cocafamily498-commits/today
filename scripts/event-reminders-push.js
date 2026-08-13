@@ -41,8 +41,8 @@ function buildEventPushReminderPayload(event, occurrenceDate, reminderAt, id) {
   return {
     id,
     reminderAt: reminderAt.toISOString(),
-    title: event && event.title ? `Sắp đến: ${event.title}` : "Sắp đến sự kiện",
-    body: getEventPushReminderBody(occurrenceAt, reminderAt),
+    title: "Sắp đến sự kiện",
+    body: "Mở Sổ tay Lịch Việt để xem chi tiết.",
     tag: `lichviet-event-${event.id}-${occurrenceDate}`,
     url: `${window.location.origin}${window.location.pathname}#eventsTab`,
     icon: "/icons/app-icon-lichviet-calendar-192.png",
