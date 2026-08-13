@@ -205,6 +205,16 @@
   async function runMigration(db, dek, vaultId, options = {}) {
     const detected = await migratePlaintextSnapshot(db, dek, vaultId);
     if (detected) return detected;
+    const sourceCounts = await Promise.all(STORE_MAP.map((config) => count(db, config.source)));
+    if (sourceCounts.every((value) => value === 0)) {
+      return {
+        key: MIGRATION_KEY,
+        version: 1,
+        status: "verified",
+        plaintextRetained: false,
+        noPlaintextDetected: true
+      };
+    }
     let state = await readState(db);
     while (state.status !== "verified") state = await migrateBatch(db, dek, vaultId, options.batchSize || 25);
     return state;

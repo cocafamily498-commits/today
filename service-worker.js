@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v206-android-backup-picker";
+const CACHE_NAME = "homnay-pwa-v207-restore-migration-guard";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -134,6 +134,7 @@ const APP_SHELL = [
   "/scripts/data/zk-crypto.js?v=4",
   "/scripts/data/zk-migration.js?v=1",
   "/scripts/data/zk-migration.js?v=2",
+  "/scripts/data/zk-migration.js?v=3",
   "/scripts/data/zk-backup.js?v=1",
   "/scripts/data/zk-backup.js?v=2",
   "/scripts/data/zk-backup.js?v=3",
