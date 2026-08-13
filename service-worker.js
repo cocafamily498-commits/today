@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v218-password-change-confirmation";
+const CACHE_NAME = "homnay-pwa-v220-encrypted-vault-zip";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -148,6 +148,7 @@ const APP_SHELL = [
   "/scripts/data/zk-backup.js?v=1",
   "/scripts/data/zk-backup.js?v=2",
   "/scripts/data/zk-backup.js?v=3",
+  "/scripts/data/zk-backup.js?v=4",
   "/scripts/data/zk-repository.js?v=1",
   "/scripts/data/zk-repository.js?v=2",
   "/scripts/vault-gate.js?v=1",
@@ -170,6 +171,8 @@ const APP_SHELL = [
   "/scripts/vault-gate.js?v=18",
   "/scripts/vault-gate.js?v=19",
   "/scripts/vault-gate.js?v=20",
+  "/scripts/vault-gate.js?v=21",
+  "/scripts/vault-gate.js?v=22",
   "/scripts/data/app-data-events.js",
   "/scripts/data/app-data-events.js?v=2",
   "/scripts/data/app-data-events.js?v=3",

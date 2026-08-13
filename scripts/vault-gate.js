@@ -148,24 +148,28 @@
     };
   }
   function renderDeviceRestore(resolve) {
-    shell("Chuyển két từ thiết bị khác", "Chọn file .lichvietzk được tạo từ mục Backup két mã hóa, nhập 24 từ recovery và tạo mật khẩu cho thiết bị này.", `<form id="vaultGateForm"><label for="vaultBackupFile">Backup két mã hóa (.lichvietzk)</label><input id="vaultBackupFile" name="backup" type="file" accept=".lichvietzk,application/json,application/octet-stream" required><small class="vault-field-help">Ứng dụng xác minh nội dung file; không dùng file .ZIP Export data của phiên bản cũ.</small><label for="vaultRecovery">24 từ recovery</label><textarea id="vaultRecovery" name="recovery" rows="5" required></textarea>${passwordFields()}<button type="submit">Khôi phục két</button><button class="vault-link" id="vaultBack" type="button">Quay lại</button></form>`);
+    shell("Chuyển két từ thiết bị khác", "Chọn file ZIP backup két mã hóa, nhập 24 từ recovery và tạo mật khẩu cho thiết bị này.", `<form id="vaultGateForm"><label for="vaultBackupFile">Backup két mã hóa (.zip)</label><input id="vaultBackupFile" name="backup" type="file" accept=".zip,application/zip" required><small class="vault-field-help">Chỉ nhận ZIP được tạo từ chức năng Backup két mã hóa.</small><label for="vaultRecovery">24 từ recovery</label><textarea id="vaultRecovery" name="recovery" rows="5" required></textarea>${passwordFields()}<button type="submit">Khôi phục két</button><button class="vault-link" id="vaultBack" type="button">Quay lại</button></form>`);
     document.getElementById("vaultBack").onclick = () => firstUse(resolve);
     document.getElementById("vaultGateForm").onsubmit = async (event) => {
       event.preventDefault(); const form = event.currentTarget; const button = form.querySelector("button[type=submit]"); button.disabled = true;
       try {
         if (form.password.value !== form.passwordConfirm.value) throw new Error("Hai mật khẩu chưa khớp.");
         const file = document.getElementById("vaultBackupFile")?.files?.[0];
-        if (!file) throw new Error("Hãy chọn file Backup két mã hóa.");
+        if (!file) throw new Error("Hãy chọn file ZIP backup két mã hóa.");
+        if (!/\.zip$/i.test(file.name || "")) throw new Error("Chỉ chấp nhận file ZIP backup két mã hóa.");
         if (!window.isSecureContext || !window.crypto?.subtle) throw new Error("Android đang mở app qua HTTP LAN nên không cho phép Web Crypto. Hãy dùng HTTPS hoặc USB adb reverse rồi mở http://localhost:3000.");
-        status("Đang xác thực backup và recovery…"); const parsed = window.LichVietZkBackup.parseBackup(await file.text());
+        status("Đang kiểm tra loại backup ZIP…");
+        const files = readEventBackupZip(await file.arrayBuffer());
+        if (files.size !== 1 || !files.has("vault.json")) throw new Error("Đây không phải ZIP backup két mã hóa hợp lệ.");
+        const parsed = window.LichVietZkBackup.parseBackup(eventBackupTextDecoder.decode(files.get("vault.json")));
         const restored = await window.LichVietZkCrypto.restoreFromRecoverySource(parsed, form.recovery.value, form.password.value);
-        await window.LichVietZkBackup.verifyBackup(parsed, restored.dek); await importCipherRecords(parsed.records, restored.meta);
+        await window.LichVietZkBackup.verifyBackup(parsed, restored.dek); await importCipherRecords(parsed.records, restored.meta, parsed.eventGroups);
         session = restored; await finishSession(resolve);
       } catch (error) { status(error.message || "Không khôi phục được két."); button.disabled = false; }
     };
   }
-  async function importCipherRecords(records, meta) {
-    const stores = ["zk_events_v1", "zk_journals_v1", "zk_attachments_v1", "zk_vault_v1", "events", "journals", "images"];
+  async function importCipherRecords(records, meta, eventGroups = null) {
+    const stores = ["zk_events_v1", "zk_journals_v1", "zk_attachments_v1", "zk_vault_v1", "events", "journals", "images", "settings"];
     const tx = database.transaction(stores, "readwrite");
     stores.slice(0, 3).forEach((storeName) => tx.objectStore(storeName).clear());
     const storeByKind = { event: stores[0], journal: stores[1], attachment: stores[2] };
@@ -175,7 +179,9 @@
       tx.objectStore(storeName).put(record);
     });
     tx.objectStore("zk_vault_v1").put(meta);
-    stores.slice(4).forEach((storeName) => tx.objectStore(storeName).clear());
+    stores.slice(4, 7).forEach((storeName) => tx.objectStore(storeName).clear());
+    if (eventGroups) tx.objectStore("settings").put({ key: "eventGroups", value: eventGroups, updatedAt: new Date().toISOString() });
+    else tx.objectStore("settings").delete("eventGroups");
     await txDone(tx);
   }
   function renderLogin(meta, resolve) {
@@ -217,9 +223,14 @@
   async function exportEncryptedBackup() {
     try {
       if (!session.meta.recoveryKdf || !session.meta.recoveryWrappedDek) throw new Error("Két chưa có recovery wrapper.");
-      const [events, journals, attachments] = await Promise.all([all("zk_events_v1"), all("zk_journals_v1"), all("zk_attachments_v1")]);
-      const text = await window.LichVietZkBackup.createBackup({ ...session.meta, dek: session.dek, events, journals, attachments });
-      const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([text], { type: "application/json" })); link.download = `Sotaylichviet-${new Date().toISOString().slice(0, 10)}.lichvietzk`; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
+      const [events, journals, attachments, eventGroups] = await Promise.all([all("zk_events_v1"), all("zk_journals_v1"), all("zk_attachments_v1"), window.LichVietData.getSetting("eventGroups")]);
+      const text = await window.LichVietZkBackup.createBackup({ ...session.meta, dek: session.dek, events, journals, attachments, eventGroups });
+      const zip = createEventBackupZip([{ name: "vault.json", bytes: eventBackupTextEncoder.encode(text) }]);
+      const now = new Date();
+      const vietnam = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+      const date = `${vietnam.getFullYear()}-${String(vietnam.getMonth() + 1).padStart(2, "0")}-${String(vietnam.getDate()).padStart(2, "0")}`;
+      const hour = String(vietnam.getHours()).padStart(2, "0");
+      const link = document.createElement("a"); link.href = URL.createObjectURL(zip); link.download = `Sotaylichviet-${date}-${hour}h.zip`; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
     } catch (error) { openSettingsDialog("Chưa tạo được backup", `<p>${error.message}</p>`, async () => {}); }
   }
   function openSettingsDialog(title, fields, action, options = {}) {

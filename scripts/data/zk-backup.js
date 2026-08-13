@@ -8,6 +8,7 @@
   const VERSION = 1;
   const MAX_BACKUP_BYTES = 512 * 1024 * 1024;
   const MAX_RECORDS = 200000;
+  const MAX_EVENT_GROUPS = 500;
 
   function toBase64(value) {
     const bytes = value instanceof Uint8Array ? value : new Uint8Array(value);
@@ -45,9 +46,14 @@
     const records = [...(input.events || []), ...(input.journals || []), ...(input.attachments || [])];
     if (records.length > MAX_RECORDS) throw new Error("Backup has too many records.");
     const head = records.map((record) => ({ kind: record.kind, id: record.id, revision: record.revision, deleted: record.deleted === true }));
-    const manifest = await zk.seal(head, input.dek, zk.aad("backup-manifest", { vaultId: input.vaultId }));
+    const hasEventGroups = input.eventGroups != null;
+    const [manifest, eventGroupsCipher] = await Promise.all([
+      zk.seal({ records: head, hasEventGroups }, input.dek, zk.aad("backup-manifest", { vaultId: input.vaultId })),
+      hasEventGroups ? zk.seal(input.eventGroups, input.dek, zk.aad("backup-event-groups", { vaultId: input.vaultId })) : null
+    ]);
     return JSON.stringify({ format: FORMAT, version: VERSION, exportedAt: new Date().toISOString(), vaultId: input.vaultId,
-      recoveryKdf: { name: input.recoveryKdf.name, salt: toBase64(input.recoveryKdf.salt) }, recoveryWrappedDek: boxToJson(input.recoveryWrappedDek), manifest: boxToJson(manifest), records: records.map((record) => mapBoxes(record, boxToJson)) });
+      recoveryKdf: { name: input.recoveryKdf.name, salt: toBase64(input.recoveryKdf.salt) }, recoveryWrappedDek: boxToJson(input.recoveryWrappedDek), manifest: boxToJson(manifest),
+      eventGroupsCipher: eventGroupsCipher ? boxToJson(eventGroupsCipher) : undefined, records: records.map((record) => mapBoxes(record, boxToJson)) });
   }
   function parseBackup(text) {
     if (typeof text !== "string" || new TextEncoder().encode(text).byteLength > MAX_BACKUP_BYTES) throw new Error("File backup vượt quá giới hạn cho phép.");
@@ -56,12 +62,32 @@
     try { value = JSON.parse(text); } catch { throw new Error("File không phải backup két mã hóa hợp lệ (.lichvietzk)."); }
     if (!value || value.format !== FORMAT || value.version !== VERSION || typeof value.vaultId !== "string" || !Array.isArray(value.records) || value.records.length > MAX_RECORDS) throw new Error("Unsupported backup format.");
     if (value.recoveryKdf?.name !== "HKDF-SHA-256") throw new Error("Backup thiếu Recovery KDF hợp lệ.");
-    return { ...value, recoveryKdf: { name: "HKDF-SHA-256", salt: fromBase64(value.recoveryKdf.salt, 16) }, recoveryWrappedDek: jsonToBox(value.recoveryWrappedDek), manifest: jsonToBox(value.manifest), records: value.records.map(decodeRecord) };
+    return { ...value, recoveryKdf: { name: "HKDF-SHA-256", salt: fromBase64(value.recoveryKdf.salt, 16) }, recoveryWrappedDek: jsonToBox(value.recoveryWrappedDek), manifest: jsonToBox(value.manifest),
+      eventGroupsCipher: value.eventGroupsCipher ? jsonToBox(value.eventGroupsCipher) : null, records: value.records.map(decodeRecord) };
+  }
+  function validateEventGroups(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value) || !Array.isArray(value.groups) || value.groups.length > MAX_EVENT_GROUPS) throw new Error("Invalid encrypted event groups.");
+    value.groups.forEach((group) => {
+      if (!group || typeof group !== "object" || typeof group.id !== "string" || group.id.length > 120
+        || typeof group.name !== "string" || group.name.length > 240
+        || (group.iconId != null && (typeof group.iconId !== "string" || group.iconId.length > 120))
+        || (group.color != null && (typeof group.color !== "string" || group.color.length > 32))) throw new Error("Invalid encrypted event group entry.");
+    });
+    return value;
   }
   async function verifyBackup(backup, dek) {
     const actual = await zk.openJson(backup.manifest, dek, zk.aad("backup-manifest", { vaultId: backup.vaultId }));
     const expected = backup.records.map((record) => ({ kind: record.kind, id: record.id, revision: record.revision, deleted: record.deleted === true }));
-    if (zk.canonicalize(actual) !== zk.canonicalize(expected)) throw new Error("Backup manifest authentication failed.");
+    if (Array.isArray(actual)) {
+      if (zk.canonicalize(actual) !== zk.canonicalize(expected)) throw new Error("Backup manifest authentication failed.");
+      backup.eventGroups = null;
+      return true;
+    }
+    const expectedManifest = { records: expected, hasEventGroups: Boolean(backup.eventGroupsCipher) };
+    if (zk.canonicalize(actual) !== zk.canonicalize(expectedManifest)) throw new Error("Backup manifest authentication failed.");
+    backup.eventGroups = backup.eventGroupsCipher
+      ? validateEventGroups(await zk.openJson(backup.eventGroupsCipher, dek, zk.aad("backup-event-groups", { vaultId: backup.vaultId })))
+      : null;
     return true;
   }
   function mergeRecords(localRecords, incomingRecords) {
@@ -75,5 +101,5 @@
     });
     return { records: [...merged.values()], conflicts };
   }
-  return { FORMAT, VERSION, MAX_BACKUP_BYTES, MAX_RECORDS, toBase64, fromBase64, boxToJson, jsonToBox, createBackup, parseBackup, verifyBackup, mergeRecords };
+  return { FORMAT, VERSION, MAX_BACKUP_BYTES, MAX_RECORDS, MAX_EVENT_GROUPS, toBase64, fromBase64, boxToJson, jsonToBox, createBackup, parseBackup, verifyBackup, mergeRecords };
 });

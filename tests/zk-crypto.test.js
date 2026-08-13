@@ -48,15 +48,22 @@ async function rejects(action, message) {
 
   const wrappingKey = await zk.createSessionDek();
   const recoveryWrappedDek = await zk.seal(new Uint8Array(32), wrappingKey, zk.aad("test-wrapper", { vaultId }));
-  const text = await backup.createBackup({ vaultId, dek, recoveryKdf: { name: "HKDF-SHA-256", salt: new Uint8Array(16) }, recoveryWrappedDek, events: [encrypted], attachments: [attachment] });
+  const eventGroups = { version: 3, groups: [{ id: "general", name: "Nhóm chung", iconId: "group-family", color: "#64748b", readonly: true }, { id: "family-secret", name: "Gia đình riêng", iconId: "group-family", color: "#d97706", readonly: false }] };
+  const text = await backup.createBackup({ vaultId, dek, recoveryKdf: { name: "HKDF-SHA-256", salt: new Uint8Array(16) }, recoveryWrappedDek, events: [encrypted], attachments: [attachment], eventGroups });
   assert.equal(text.includes("Bí mật"), false);
+  assert.equal(text.includes("Gia đình riêng"), false);
   const parsed = backup.parseBackup(text);
   assert.equal(await backup.verifyBackup(parsed, dek), true);
+  assert.deepEqual(parsed.eventGroups, eventGroups);
   assert.throws(() => backup.parseBackup("PK\u0003\u0004legacy zip"), /ZIP backup cũ/);
 
   const tampered = backup.parseBackup(text);
   tampered.records[0].revision += 1;
   await rejects(() => backup.verifyBackup(tampered, dek), "manifest mismatch must fail");
+
+  const missingGroups = backup.parseBackup(text);
+  missingGroups.eventGroupsCipher = null;
+  await rejects(() => backup.verifyBackup(missingGroups, dek), "removing encrypted groups must fail manifest verification");
 
   const conflict = structuredClone(encrypted);
   conflict.listCipher.iv[0] ^= 1;
