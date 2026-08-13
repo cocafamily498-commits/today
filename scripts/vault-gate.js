@@ -6,6 +6,16 @@
   const txDone = (tx) => new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error); });
   async function readMeta() { const tx = database.transaction("zk_vault_v1", "readonly"); return new Promise((resolve, reject) => { const request = tx.objectStore("zk_vault_v1").get("meta"); request.onsuccess = () => resolve(request.result || null); request.onerror = () => reject(request.error); }); }
   async function writeMeta(meta) { const tx = database.transaction("zk_vault_v1", "readwrite"); tx.objectStore("zk_vault_v1").put(meta); await txDone(tx); }
+  async function hasLegacyPlaintext() {
+    const stores = ["events", "journals", "images"];
+    const tx = database.transaction(stores, "readonly");
+    const counts = await Promise.all(stores.map((storeName) => new Promise((resolve, reject) => {
+      const request = tx.objectStore(storeName).count();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    })));
+    return counts.some((count) => count > 0);
+  }
   async function discardPreRecoveryTestVault(meta) {
     if (!meta || meta.recoveryWrappedDek) return false;
     const stores = ["zk_vault_v1", "zk_events_v1", "zk_journals_v1", "zk_attachments_v1", "zk_migrations_v1"];
@@ -32,12 +42,25 @@
     document.getElementById("createVaultChoice").onclick = () => renderCreate(resolve);
     document.getElementById("restoreVaultChoice").onclick = () => renderDeviceRestore(resolve);
   }
+  function renderLegacyUpgrade(resolve) {
+    shell(
+      "Dữ liệu của bạn cần được bảo vệ",
+      "Ứng dụng phát hiện dữ liệu được tạo bởi phiên bản cũ và chưa được mã hóa. Hãy tạo két để ứng dụng mã hóa, xác minh và bảo vệ dữ liệu hiện có của bạn.",
+      `<button id="confirmLegacyUpgrade" type="button">OK, tạo két bảo mật</button><small class="vault-field-help">Không đóng ứng dụng trong lúc nâng cấp. Dữ liệu cũ chỉ bị xóa sau khi bản mã hóa đã được kiểm tra thành công.</small>`
+    );
+    document.getElementById("confirmLegacyUpgrade").onclick = () => renderCreate(resolve, { legacyUpgrade: true });
+  }
   function passwordFields(confirm = true) {
     return `<label for="vaultPassword">Mật khẩu két</label><input id="vaultPassword" name="password" type="password" minlength="8" autocomplete="new-password" required>${confirm ? `<label for="vaultPasswordConfirm">Nhập lại mật khẩu</label><input id="vaultPasswordConfirm" name="passwordConfirm" type="password" minlength="8" autocomplete="new-password" required>` : ""}`;
   }
-  function renderCreate(resolve) {
-    shell("Tạo két dữ liệu riêng tư", "Sau bước này bạn sẽ nhận 24 từ recovery chỉ hiển thị một lần.", `<form id="vaultGateForm">${passwordFields()}<button type="submit">Tạo két mới</button><button class="vault-link" id="vaultBack" type="button">Quay lại</button></form>`);
-    document.getElementById("vaultBack").onclick = () => firstUse(resolve);
+  function renderCreate(resolve, options = {}) {
+    const legacyUpgrade = options.legacyUpgrade === true;
+    const title = legacyUpgrade ? "Tạo két để mã hóa dữ liệu cũ" : "Tạo két dữ liệu riêng tư";
+    const submitLabel = legacyUpgrade ? "Tạo két và mã hóa dữ liệu" : "Tạo két mới";
+    shell(title, "Sau bước này bạn sẽ nhận 24 từ recovery chỉ hiển thị một lần.", `<form id="vaultGateForm">${passwordFields()}<button type="submit">${submitLabel}</button><button class="vault-link" id="vaultBack" type="button">Quay lại</button></form>`);
+    const back = document.getElementById("vaultBack");
+    if (legacyUpgrade) back.remove();
+    else back.onclick = () => firstUse(resolve);
     document.getElementById("vaultGateForm").onsubmit = async (event) => {
       event.preventDefault(); const form = event.currentTarget; const button = form.querySelector("button[type=submit]"); button.disabled = true;
       try {
@@ -104,7 +127,12 @@
     // Két chuyển tiếp trước khi có BIP39 không thể đáp ứng recovery contract.
     // Chỉ bỏ ciphertext dẫn xuất; các store plaintext v3 vẫn nguyên vẹn để migrate lại.
     const discarded = await discardPreRecoveryTestVault(meta);
-    return new Promise((resolve) => !discarded && meta ? renderLogin(meta, resolve) : firstUse(resolve));
+    const legacyPlaintext = await hasLegacyPlaintext();
+    return new Promise((resolve) => {
+      if (!discarded && meta) renderLogin(meta, resolve);
+      else if (legacyPlaintext) renderLegacyUpgrade(resolve);
+      else firstUse(resolve);
+    });
   }
 
   function setupSystemControls() {
