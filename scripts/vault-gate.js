@@ -160,13 +160,34 @@
         if (!window.isSecureContext || !window.crypto?.subtle) throw new Error("Android đang mở app qua HTTP LAN nên không cho phép Web Crypto. Hãy dùng HTTPS hoặc USB adb reverse rồi mở http://localhost:3000.");
         status("Đang kiểm tra loại backup ZIP…");
         const files = readEventBackupZip(await file.arrayBuffer());
-        if (files.size !== 1 || !files.has("vault.json")) throw new Error("Đây không phải ZIP backup két mã hóa hợp lệ.");
-        const parsed = window.LichVietZkBackup.parseBackup(eventBackupTextDecoder.decode(files.get("vault.json")));
+        const parsed = window.LichVietZkBackup.parseBackup(JSON.stringify(parseEncryptedVaultZip(files)));
         const restored = await window.LichVietZkCrypto.restoreFromRecoverySource(parsed, form.recovery.value, form.password.value);
         await window.LichVietZkBackup.verifyBackup(parsed, restored.dek); await importCipherRecords(parsed.records, restored.meta, parsed.eventGroups);
         session = restored; await finishSession(resolve);
       } catch (error) { status(error.message || "Không khôi phục được két."); button.disabled = false; }
     };
+  }
+  function parseEncryptedVaultZip(files) {
+    const vaultBytes = files.get("vault.json");
+    if (!vaultBytes) throw new Error("ZIP backup két mã hóa thiếu vault.json.");
+    let packed;
+    try { packed = JSON.parse(eventBackupTextDecoder.decode(vaultBytes)); }
+    catch { throw new Error("vault.json trong ZIP không hợp lệ."); }
+    const referenced = new Set(["vault.json"]);
+    (packed.records || []).forEach((record) => {
+      if (record?.kind !== "attachment") return;
+      (record.chunks || []).forEach((chunk) => {
+        const name = chunk?.box?.ciphertextFile;
+        if (typeof name !== "string" || !/^attachments\/[0-9]{6}-[0-9]{4}\.bin$/.test(name) || referenced.has(name)) throw new Error("Tham chiếu attachment mã hóa không hợp lệ.");
+        const bytes = files.get(name);
+        if (!bytes) throw new Error(`ZIP thiếu attachment mã hóa ${name}.`);
+        referenced.add(name);
+        chunk.box.ciphertext = window.LichVietZkBackup.toBase64(bytes);
+        delete chunk.box.ciphertextFile;
+      });
+    });
+    if (files.size !== referenced.size || [...files.keys()].some((name) => !referenced.has(name))) throw new Error("ZIP backup két chứa file không được phép.");
+    return packed;
   }
   async function importCipherRecords(records, meta, eventGroups = null) {
     const stores = ["zk_events_v1", "zk_journals_v1", "zk_attachments_v1", "zk_vault_v1", "events", "journals", "images", "settings"];
@@ -225,7 +246,21 @@
       if (!session.meta.recoveryKdf || !session.meta.recoveryWrappedDek) throw new Error("Két chưa có recovery wrapper.");
       const [events, journals, attachments, eventGroups] = await Promise.all([all("zk_events_v1"), all("zk_journals_v1"), all("zk_attachments_v1"), window.LichVietData.getSetting("eventGroups")]);
       const text = await window.LichVietZkBackup.createBackup({ ...session.meta, dek: session.dek, events, journals, attachments, eventGroups });
-      const zip = createEventBackupZip([{ name: "vault.json", bytes: eventBackupTextEncoder.encode(text) }]);
+      const packed = JSON.parse(text);
+      const zipFiles = [];
+      let attachmentIndex = 0;
+      packed.records.forEach((record) => {
+        if (record.kind !== "attachment") return;
+        attachmentIndex += 1;
+        record.chunks.forEach((chunk, chunkIndex) => {
+          const name = `attachments/${String(attachmentIndex).padStart(6, "0")}-${String(chunkIndex).padStart(4, "0")}.bin`;
+          zipFiles.push({ name, bytes: window.LichVietZkBackup.fromBase64(chunk.box.ciphertext) });
+          chunk.box.ciphertextFile = name;
+          delete chunk.box.ciphertext;
+        });
+      });
+      zipFiles.unshift({ name: "vault.json", bytes: eventBackupTextEncoder.encode(JSON.stringify(packed)) });
+      const zip = createEventBackupZip(zipFiles);
       const now = new Date();
       const vietnam = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
       const date = `${vietnam.getFullYear()}-${String(vietnam.getMonth() + 1).padStart(2, "0")}-${String(vietnam.getDate()).padStart(2, "0")}`;
