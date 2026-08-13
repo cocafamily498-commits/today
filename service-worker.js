@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v203-secure-restore-errors";
+const CACHE_NAME = "homnay-pwa-v205-legacy-encryption";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -133,9 +133,12 @@ const APP_SHELL = [
   "/scripts/data/zk-crypto.js?v=3",
   "/scripts/data/zk-crypto.js?v=4",
   "/scripts/data/zk-migration.js?v=1",
+  "/scripts/data/zk-migration.js?v=2",
   "/scripts/data/zk-backup.js?v=1",
   "/scripts/data/zk-backup.js?v=2",
   "/scripts/data/zk-backup.js?v=3",
+  "/scripts/data/zk-repository.js?v=1",
+  "/scripts/data/zk-repository.js?v=2",
   "/scripts/vault-gate.js?v=1",
   "/scripts/vault-gate.js?v=2",
   "/scripts/vault-gate.js?v=3",
@@ -143,6 +146,8 @@ const APP_SHELL = [
   "/scripts/vault-gate.js?v=5",
   "/scripts/vault-gate.js?v=6",
   "/scripts/vault-gate.js?v=7",
+  "/scripts/vault-gate.js?v=8",
+  "/scripts/vault-gate.js?v=9",
   "/scripts/data/app-data-events.js",
   "/scripts/data/app-data-events.js?v=2",
   "/scripts/data/app-data-events.js?v=3",

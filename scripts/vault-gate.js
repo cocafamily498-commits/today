@@ -16,6 +16,13 @@
   }
   const root = () => document.getElementById("appRoot");
   const status = (message = "") => { const node = document.getElementById("vaultGateStatus"); if (node) node.textContent = message; };
+  async function finishSession(resolve) {
+    if (!session?.dek || !window.LichVietZkRepository) throw new Error("Không thể kích hoạt kho dữ liệu mã hóa.");
+    status("Đang kiểm tra dữ liệu local cũ…");
+    await window.LichVietZkMigration.runMigration(database, session.dek, session.meta.vaultId, { batchSize: 20 });
+    window.LichVietZkRepository.activate(database, session);
+    resolve(session);
+  }
 
   function shell(title, copy, content) {
     root().innerHTML = `<section class="vault-gate" aria-labelledby="vaultGateTitle"><div class="vault-gate-mark" aria-hidden="true">⌾</div><h1 id="vaultGateTitle">${title}</h1><p>${copy}</p>${content}<p id="vaultGateStatus" class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
@@ -47,7 +54,7 @@
     shell("Lưu 24 từ recovery", "Chép và cất ở nơi an toàn. Ứng dụng không lưu cụm từ này và không thể cấp lại.", `<div class="recovery-grid">${words}</div><label class="vault-confirm"><input id="recoverySaved" type="checkbox"> Tôi đã chép và kiểm tra đủ 24 từ</label><div class="vault-row"><button id="copyRecovery" type="button">Sao chép</button><button id="finishRecovery" type="button" disabled>Tiếp tục</button></div>`);
     document.getElementById("copyRecovery").onclick = () => navigator.clipboard.writeText(phrase);
     document.getElementById("recoverySaved").onchange = (event) => { document.getElementById("finishRecovery").disabled = !event.target.checked; };
-    document.getElementById("finishRecovery").onclick = async () => { status("Đang mã hóa và xác minh dữ liệu cũ…"); await window.LichVietZkMigration.runMigration(database, session.dek, session.meta.vaultId, { batchSize: 20 }); resolve(session); };
+    document.getElementById("finishRecovery").onclick = async () => { status("Đang mã hóa và xác minh dữ liệu cũ…"); await window.LichVietZkMigration.runMigration(database, session.dek, session.meta.vaultId, { batchSize: 20 }); await finishSession(resolve); };
   }
   function renderDeviceRestore(resolve) {
     shell("Chuyển két từ thiết bị khác", "Chọn file .lichvietzk được tạo từ mục Backup két mã hóa, nhập 24 từ recovery và tạo mật khẩu cho thiết bị này.", `<form id="vaultGateForm"><label for="vaultBackupFile">Backup két mã hóa (.lichvietzk)</label><input id="vaultBackupFile" name="backup" type="file" accept=".lichvietzk,application/json" required><small class="vault-field-help">Không dùng file .ZIP Export data của phiên bản cũ.</small><label for="vaultRecovery">24 từ recovery</label><textarea id="vaultRecovery" name="recovery" rows="5" required></textarea>${passwordFields()}<button type="submit">Khôi phục két</button><button class="vault-link" id="vaultBack" type="button">Quay lại</button></form>`);
@@ -61,27 +68,35 @@
         if (!window.isSecureContext || !window.crypto?.subtle) throw new Error("Android đang mở app qua HTTP LAN nên không cho phép Web Crypto. Hãy dùng HTTPS hoặc USB adb reverse rồi mở http://localhost:3000.");
         status("Đang xác thực backup và recovery…"); const parsed = window.LichVietZkBackup.parseBackup(await file.text());
         const restored = await window.LichVietZkCrypto.restoreFromRecoverySource(parsed, form.recovery.value, form.password.value);
-        await window.LichVietZkBackup.verifyBackup(parsed, restored.dek); await importCipherRecords(parsed.records); await writeMeta(restored.meta);
-        session = restored; resolve(session);
+        await window.LichVietZkBackup.verifyBackup(parsed, restored.dek); await importCipherRecords(parsed.records, restored.meta);
+        session = restored; await finishSession(resolve);
       } catch (error) { status(error.message || "Không khôi phục được két."); button.disabled = false; }
     };
   }
-  async function importCipherRecords(records) {
-    const stores = ["zk_events_v1", "zk_journals_v1", "zk_attachments_v1", "zk_vault_v1"];
+  async function importCipherRecords(records, meta) {
+    const stores = ["zk_events_v1", "zk_journals_v1", "zk_attachments_v1", "zk_vault_v1", "events", "journals", "images"];
     const tx = database.transaction(stores, "readwrite");
-    records.forEach((record) => tx.objectStore(record.kind === "event" ? stores[0] : record.kind === "journal" ? stores[1] : stores[2]).put(record));
+    stores.slice(0, 3).forEach((storeName) => tx.objectStore(storeName).clear());
+    const storeByKind = { event: stores[0], journal: stores[1], attachment: stores[2] };
+    records.forEach((record) => {
+      const storeName = storeByKind[record?.kind];
+      if (!storeName) throw new Error("Backup chứa loại bản ghi không hợp lệ.");
+      tx.objectStore(storeName).put(record);
+    });
+    tx.objectStore("zk_vault_v1").put(meta);
+    stores.slice(4).forEach((storeName) => tx.objectStore(storeName).clear());
     await txDone(tx);
   }
   function renderLogin(meta, resolve) {
     shell(meta.biometric ? "Mở két dữ liệu" : "Nhập mật khẩu", "Dữ liệu chỉ được giải mã trong phiên đang mở khóa.", `<form id="vaultGateForm"><label for="vaultPassword">Mật khẩu két</label><input id="vaultPassword" name="password" type="password" autocomplete="current-password" required autofocus><button type="submit">Mở két</button></form>${meta.biometric ? `<button id="biometricLogin" type="button">Mở bằng sinh trắc học</button>` : ""}<button id="forgotVaultPassword" class="vault-link" type="button">Quên mật khẩu?</button>`);
-    document.getElementById("vaultGateForm").onsubmit = async (event) => { event.preventDefault(); try { status("Đang mở khóa…"); if (!meta.recoveryWrappedDek) { const upgraded = await window.LichVietZkCrypto.upgradeLegacyVaultRecovery(meta, event.currentTarget.password.value); await writeMeta(upgraded.meta); session = { meta: upgraded.meta, dek: upgraded.dek }; renderRecovery(upgraded.phrase, resolve); return; } session = { meta, dek: await window.LichVietZkCrypto.unlockPasswordVault(meta, event.currentTarget.password.value) }; resolve(session); } catch (error) { status(error.message); } };
-    if (meta.biometric) document.getElementById("biometricLogin").onclick = async () => { try { session = { meta, dek: await window.LichVietZkCrypto.unlockBiometric(meta) }; resolve(session); } catch (error) { status(error.message); } };
+    document.getElementById("vaultGateForm").onsubmit = async (event) => { event.preventDefault(); try { status("Đang mở khóa…"); if (!meta.recoveryWrappedDek) { const upgraded = await window.LichVietZkCrypto.upgradeLegacyVaultRecovery(meta, event.currentTarget.password.value); await writeMeta(upgraded.meta); session = { meta: upgraded.meta, dek: upgraded.dek }; renderRecovery(upgraded.phrase, resolve); return; } session = { meta, dek: await window.LichVietZkCrypto.unlockPasswordVault(meta, event.currentTarget.password.value) }; await finishSession(resolve); } catch (error) { status(error.message); } };
+    if (meta.biometric) document.getElementById("biometricLogin").onclick = async () => { try { session = { meta, dek: await window.LichVietZkCrypto.unlockBiometric(meta) }; await finishSession(resolve); } catch (error) { status(error.message); } };
     document.getElementById("forgotVaultPassword").onclick = () => renderForgot(meta, resolve);
   }
   function renderForgot(meta, resolve) {
     shell("Đặt lại mật khẩu bằng recovery", "Nhập đúng 24 từ để bọc lại cùng DEK. Dữ liệu không bị mã hóa lại.", `<form id="vaultGateForm"><label for="vaultRecovery">24 từ recovery</label><textarea id="vaultRecovery" name="recovery" rows="5" required autofocus></textarea>${passwordFields()}<button type="submit">Đặt mật khẩu mới</button><button id="vaultBack" class="vault-link" type="button">Quay lại đăng nhập</button></form>`);
     document.getElementById("vaultBack").onclick = () => renderLogin(meta, resolve);
-    document.getElementById("vaultGateForm").onsubmit = async (event) => { event.preventDefault(); const form = event.currentTarget; try { if (form.password.value !== form.passwordConfirm.value) throw new Error("Hai mật khẩu chưa khớp."); status("Đang xác thực 24 từ…"); const restored = await window.LichVietZkCrypto.restoreWithRecovery(meta, form.recovery.value, form.password.value); await writeMeta(restored.meta); session = restored; resolve(session); } catch (error) { status(error.message); } };
+    document.getElementById("vaultGateForm").onsubmit = async (event) => { event.preventDefault(); const form = event.currentTarget; try { if (form.password.value !== form.passwordConfirm.value) throw new Error("Hai mật khẩu chưa khớp."); status("Đang xác thực 24 từ…"); const restored = await window.LichVietZkCrypto.restoreWithRecovery(meta, form.recovery.value, form.password.value); await writeMeta(restored.meta); session = restored; await finishSession(resolve); } catch (error) { status(error.message); } };
   }
   async function requireSession() {
     database = await window.LichVietData.openDatabase();

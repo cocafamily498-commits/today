@@ -114,6 +114,66 @@
     return request(tx.objectStore(storeName).count());
   }
 
+  async function migratePlaintextSnapshot(db, dek, vaultId) {
+    const sourceSets = await Promise.all(STORE_MAP.map(async (config) => ({
+      config,
+      records: await getBatch(db, config.source, null, Number.MAX_SAFE_INTEGER)
+    })));
+    if (!sourceSets.some((item) => item.records.length)) return null;
+
+    const encryptedSets = [];
+    for (const { config, records } of sourceSets) {
+      const encrypted = [];
+      for (const source of records) {
+        const target = await zk[config.encrypt](dek, vaultId, source, 1);
+        const roundTrip = await zk[config.decrypt](dek, vaultId, target);
+        try {
+          if (zk.canonicalize(comparable(config.source, source)) !== zk.canonicalize(comparable(config.source, roundTrip))) {
+            throw new Error(`${config.source} parity failed for ${source.id}.`);
+          }
+        } finally {
+          if (roundTrip.bytes) roundTrip.bytes.fill(0);
+        }
+        encrypted.push(target);
+      }
+      encryptedSets.push({ config, records: encrypted });
+    }
+
+    const timestamp = new Date().toISOString();
+    const state = {
+      key: MIGRATION_KEY,
+      version: 1,
+      status: "verified",
+      startedAt: timestamp,
+      verifiedAt: timestamp,
+      plaintextRetained: false,
+      plaintextDeletedAt: timestamp,
+      stores: Object.fromEntries(encryptedSets.map(({ config, records }) => [config.source, {
+        migrated: records.length,
+        complete: true
+      }]))
+    };
+    const allStores = [
+      ...STORE_MAP.map((config) => config.source),
+      ...STORE_MAP.map((config) => config.target),
+      "zk_migrations_v1"
+    ];
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(allStores, "readwrite");
+      encryptedSets.forEach(({ config, records }) => {
+        const target = tx.objectStore(config.target);
+        target.clear();
+        records.forEach((record) => target.put(record));
+      });
+      STORE_MAP.forEach((config) => tx.objectStore(config.source).clear());
+      tx.objectStore("zk_migrations_v1").put(state);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error || new Error("Legacy plaintext migration transaction aborted."));
+    });
+    return state;
+  }
+
   async function verifyMigration(db, dek, vaultId) {
     const state = await readState(db);
     for (const config of STORE_MAP) {
@@ -128,16 +188,27 @@
     }
     state.status = "verified";
     state.verifiedAt = new Date().toISOString();
-    state.plaintextRetained = true;
-    await writeState(db, state);
+    state.plaintextRetained = false;
+    state.plaintextDeletedAt = new Date().toISOString();
+    await new Promise((resolve, reject) => {
+      const sourceStores = STORE_MAP.map((config) => config.source);
+      const tx = db.transaction([...sourceStores, "zk_migrations_v1"], "readwrite");
+      sourceStores.forEach((storeName) => tx.objectStore(storeName).clear());
+      tx.objectStore("zk_migrations_v1").put(state);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error || new Error("Plaintext cleanup transaction aborted."));
+    });
     return state;
   }
 
   async function runMigration(db, dek, vaultId, options = {}) {
+    const detected = await migratePlaintextSnapshot(db, dek, vaultId);
+    if (detected) return detected;
     let state = await readState(db);
     while (state.status !== "verified") state = await migrateBatch(db, dek, vaultId, options.batchSize || 25);
     return state;
   }
 
-  return { MIGRATION_KEY, STORE_MAP, readState, migrateBatch, verifyMigration, runMigration, comparable };
+  return { MIGRATION_KEY, STORE_MAP, readState, migrateBatch, verifyMigration, migratePlaintextSnapshot, runMigration, comparable };
 });
