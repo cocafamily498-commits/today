@@ -2,10 +2,18 @@
   "use strict";
   let session = null;
   let database = null;
+  let gateKeydownHandler = null;
 
   const txDone = (tx) => new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error); });
   async function readMeta() { const tx = database.transaction("zk_vault_v1", "readonly"); return new Promise((resolve, reject) => { const request = tx.objectStore("zk_vault_v1").get("meta"); request.onsuccess = () => resolve(request.result || null); request.onerror = () => reject(request.error); }); }
   async function writeMeta(meta) { const tx = database.transaction("zk_vault_v1", "readwrite"); tx.objectStore("zk_vault_v1").put(meta); await txDone(tx); }
+  async function cancelUnfinishedVault() {
+    const stores = ["zk_vault_v1", "zk_events_v1", "zk_journals_v1", "zk_attachments_v1", "zk_migrations_v1"];
+    const tx = database.transaction(stores, "readwrite");
+    stores.forEach((storeName) => tx.objectStore(storeName).clear());
+    await txDone(tx);
+    session = null;
+  }
   async function hasLegacyPlaintext() {
     const stores = ["events", "journals", "images"];
     const tx = database.transaction(stores, "readonly");
@@ -34,8 +42,12 @@
     resolve(session);
   }
 
-  function shell(title, copy, content) {
-    root().innerHTML = `<section class="vault-gate" aria-labelledby="vaultGateTitle"><div class="vault-gate-mark" aria-hidden="true">⌾</div><h1 id="vaultGateTitle">${title}</h1><p>${copy}</p>${content}<p id="vaultGateStatus" class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
+  function shell(title, copy, content, modifier = "") {
+    if (gateKeydownHandler) {
+      document.removeEventListener("keydown", gateKeydownHandler);
+      gateKeydownHandler = null;
+    }
+    root().innerHTML = `<section class="vault-gate${modifier ? ` ${modifier}` : ""}" aria-labelledby="vaultGateTitle"><div class="vault-gate-mark" aria-hidden="true">⌾</div><h1 id="vaultGateTitle">${title}</h1><p>${copy}</p>${content}<p id="vaultGateStatus" class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
   }
   function firstUse(resolve) {
     shell("Bảo vệ dữ liệu của bạn", "Tạo một két mới hoặc mang két đã mã hóa từ thiết bị khác sang.", `<div class="vault-choice-grid"><button id="createVaultChoice" type="button"><strong>Tạo két mới</strong><span>Tạo mật khẩu và nhận 24 từ recovery</span></button><button id="restoreVaultChoice" type="button"><strong>Chuyển từ thiết bị khác</strong><span>Dùng backup mã hóa và 24 từ recovery</span></button></div>`);
@@ -46,9 +58,41 @@
     shell(
       "Dữ liệu của bạn cần được bảo vệ",
       "Ứng dụng phát hiện dữ liệu được tạo bởi phiên bản cũ và chưa được mã hóa. Hãy tạo két để ứng dụng mã hóa, xác minh và bảo vệ dữ liệu hiện có của bạn.",
-      `<button id="confirmLegacyUpgrade" type="button">OK, tạo két bảo mật</button><small class="vault-field-help">Không đóng ứng dụng trong lúc nâng cấp. Dữ liệu cũ chỉ bị xóa sau khi bản mã hóa đã được kiểm tra thành công.</small>`
+      `<div class="vault-legacy-actions"><div class="vault-legacy-notice"><strong>Nâng cấp an toàn</strong><span>Không đóng ứng dụng trong lúc nâng cấp. Dữ liệu cũ chỉ bị xóa sau khi bản mã hóa đã được kiểm tra thành công.</span></div><button id="confirmLegacyUpgrade" type="button">OK, tạo két bảo mật</button></div>`,
+      "vault-gate-legacy"
     );
+    const panel = root().querySelector(".vault-gate-legacy");
+    const close = document.createElement("button");
+    close.className = "vault-gate-close";
+    close.type = "button";
+    close.setAttribute("aria-label", "Thoát ứng dụng");
+    close.title = "Thoát ứng dụng";
+    close.textContent = "×";
+    panel.prepend(close);
+    const exitApp = () => {
+      if (gateKeydownHandler) {
+        document.removeEventListener("keydown", gateKeydownHandler);
+        gateKeydownHandler = null;
+      }
+      window.close();
+      setTimeout(() => renderExitedApp(), 50);
+    };
+    close.onclick = exitApp;
+    gateKeydownHandler = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      exitApp();
+    };
+    document.addEventListener("keydown", gateKeydownHandler);
     document.getElementById("confirmLegacyUpgrade").onclick = () => renderCreate(resolve, { legacyUpgrade: true });
+  }
+  function renderExitedApp() {
+    shell(
+      "Ứng dụng đã thoát",
+      "Dữ liệu của bạn vẫn được giữ nguyên và chưa được ứng dụng mở. Bạn có thể đóng tab hoặc cửa sổ này.",
+      "",
+      "vault-gate-exited"
+    );
   }
   function passwordFields(confirm = true) {
     return `<label for="vaultPassword">Mật khẩu két</label><input id="vaultPassword" name="password" type="password" minlength="8" autocomplete="new-password" required>${confirm ? `<label for="vaultPasswordConfirm">Nhập lại mật khẩu</label><input id="vaultPasswordConfirm" name="passwordConfirm" type="password" minlength="8" autocomplete="new-password" required>` : ""}`;
@@ -59,25 +103,49 @@
     const submitLabel = legacyUpgrade ? "Tạo két và mã hóa dữ liệu" : "Tạo két mới";
     shell(title, "Sau bước này bạn sẽ nhận 24 từ recovery chỉ hiển thị một lần.", `<form id="vaultGateForm">${passwordFields()}<button type="submit">${submitLabel}</button><button class="vault-link" id="vaultBack" type="button">Quay lại</button></form>`);
     const back = document.getElementById("vaultBack");
-    if (legacyUpgrade) back.remove();
-    else back.onclick = () => firstUse(resolve);
+    back.onclick = () => legacyUpgrade ? renderLegacyUpgrade(resolve) : firstUse(resolve);
     document.getElementById("vaultGateForm").onsubmit = async (event) => {
       event.preventDefault(); const form = event.currentTarget; const button = form.querySelector("button[type=submit]"); button.disabled = true;
       try {
         if (form.password.value !== form.passwordConfirm.value) throw new Error("Hai mật khẩu chưa khớp.");
         status("Đang tạo khóa Argon2id trên thiết bị…");
         const created = await window.LichVietZkCrypto.createPasswordVault(form.password.value);
-        session = { meta: created.meta, dek: created.dek }; await writeMeta(created.meta);
-        renderRecovery(created.phrase, resolve);
+        session = { meta: created.meta, dek: created.dek };
+        renderRecovery(created.phrase, resolve, { legacyUpgrade });
       } catch (error) { status(error.message); button.disabled = false; }
     };
   }
-  function renderRecovery(phrase, resolve) {
+  function renderRecovery(phrase, resolve, options = {}) {
     const words = phrase.split(" ").map((word, index) => `<span><b>${String(index + 1).padStart(2, "0")}</b>${word}</span>`).join("");
-    shell("Lưu 24 từ recovery", "Chép và cất ở nơi an toàn. Ứng dụng không lưu cụm từ này và không thể cấp lại.", `<div class="recovery-grid">${words}</div><label class="vault-confirm"><input id="recoverySaved" type="checkbox"> Tôi đã chép và kiểm tra đủ 24 từ</label><div class="vault-row"><button id="copyRecovery" type="button">Sao chép</button><button id="finishRecovery" type="button" disabled>Tiếp tục</button></div>`);
+    shell("Lưu 24 từ recovery", "Chép và cất ở nơi an toàn. Ứng dụng không lưu cụm từ này và không thể cấp lại.", `<div class="recovery-grid">${words}</div><label class="vault-confirm"><input id="recoverySaved" type="checkbox"> Tôi đã chép và kiểm tra đủ 24 từ</label><div class="vault-row"><button id="copyRecovery" type="button">Sao chép</button><button id="finishRecovery" type="button" disabled>Tiếp tục</button></div><button id="recoveryBack" class="vault-link" type="button">Quay lại</button>`);
     document.getElementById("copyRecovery").onclick = () => navigator.clipboard.writeText(phrase);
     document.getElementById("recoverySaved").onchange = (event) => { document.getElementById("finishRecovery").disabled = !event.target.checked; };
-    document.getElementById("finishRecovery").onclick = async () => { status("Đang mã hóa và xác minh dữ liệu cũ…"); await window.LichVietZkMigration.runMigration(database, session.dek, session.meta.vaultId, { batchSize: 20 }); await finishSession(resolve); };
+    document.getElementById("recoveryBack").onclick = async () => {
+      try {
+        status("Đang hủy két chưa hoàn tất…");
+        if (options.previousMeta) {
+          await writeMeta(options.previousMeta);
+          session = null;
+          renderLogin(options.previousMeta, resolve);
+        } else {
+          await cancelUnfinishedVault();
+          if (options.legacyUpgrade) renderLegacyUpgrade(resolve);
+          else firstUse(resolve);
+        }
+      } catch (error) { status(error.message || "Không thể quay lại an toàn."); }
+    };
+    document.getElementById("finishRecovery").onclick = async () => {
+      const button = document.getElementById("finishRecovery");
+      button.disabled = true;
+      try {
+        status("Đang hoàn tất két và bảo vệ dữ liệu…");
+        await writeMeta(session.meta);
+        await finishSession(resolve);
+      } catch (error) {
+        status(error.message || "Không thể hoàn tất két an toàn.");
+        button.disabled = false;
+      }
+    };
   }
   function renderDeviceRestore(resolve) {
     shell("Chuyển két từ thiết bị khác", "Chọn file .lichvietzk được tạo từ mục Backup két mã hóa, nhập 24 từ recovery và tạo mật khẩu cho thiết bị này.", `<form id="vaultGateForm"><label for="vaultBackupFile">Backup két mã hóa (.lichvietzk)</label><input id="vaultBackupFile" name="backup" type="file" accept=".lichvietzk,application/json,application/octet-stream" required><small class="vault-field-help">Ứng dụng xác minh nội dung file; không dùng file .ZIP Export data của phiên bản cũ.</small><label for="vaultRecovery">24 từ recovery</label><textarea id="vaultRecovery" name="recovery" rows="5" required></textarea>${passwordFields()}<button type="submit">Khôi phục két</button><button class="vault-link" id="vaultBack" type="button">Quay lại</button></form>`);
@@ -112,7 +180,7 @@
   }
   function renderLogin(meta, resolve) {
     shell(meta.biometric ? "Mở két dữ liệu" : "Nhập mật khẩu", "Dữ liệu chỉ được giải mã trong phiên đang mở khóa.", `<form id="vaultGateForm"><label for="vaultPassword">Mật khẩu két</label><input id="vaultPassword" name="password" type="password" autocomplete="current-password" required autofocus><button type="submit">Mở két</button></form>${meta.biometric ? `<button id="biometricLogin" type="button">Mở bằng sinh trắc học</button>` : ""}<button id="forgotVaultPassword" class="vault-link" type="button">Quên mật khẩu?</button>`);
-    document.getElementById("vaultGateForm").onsubmit = async (event) => { event.preventDefault(); try { status("Đang mở khóa…"); if (!meta.recoveryWrappedDek) { const upgraded = await window.LichVietZkCrypto.upgradeLegacyVaultRecovery(meta, event.currentTarget.password.value); await writeMeta(upgraded.meta); session = { meta: upgraded.meta, dek: upgraded.dek }; renderRecovery(upgraded.phrase, resolve); return; } session = { meta, dek: await window.LichVietZkCrypto.unlockPasswordVault(meta, event.currentTarget.password.value) }; await finishSession(resolve); } catch (error) { status(error.message); } };
+    document.getElementById("vaultGateForm").onsubmit = async (event) => { event.preventDefault(); try { status("Đang mở khóa…"); if (!meta.recoveryWrappedDek) { const upgraded = await window.LichVietZkCrypto.upgradeLegacyVaultRecovery(meta, event.currentTarget.password.value); session = { meta: upgraded.meta, dek: upgraded.dek }; renderRecovery(upgraded.phrase, resolve, { previousMeta: meta }); return; } session = { meta, dek: await window.LichVietZkCrypto.unlockPasswordVault(meta, event.currentTarget.password.value) }; await finishSession(resolve); } catch (error) { status(error.message); } };
     if (meta.biometric) document.getElementById("biometricLogin").onclick = async () => { try { session = { meta, dek: await window.LichVietZkCrypto.unlockBiometric(meta) }; await finishSession(resolve); } catch (error) { status(error.message); } };
     document.getElementById("forgotVaultPassword").onclick = () => renderForgot(meta, resolve);
   }
@@ -138,7 +206,7 @@
   function setupSystemControls() {
     const change = document.getElementById("systemChangeVaultPassword"); const biometric = document.getElementById("systemBiometricVault"); const encryptedBackup = document.getElementById("systemExportEncryptedVault"); if (!change || !biometric) return;
     biometric.textContent = session.meta.biometric ? "Tắt sinh trắc học" : "Bật sinh trắc học";
-    change.onclick = () => openSettingsDialog("Đổi mật khẩu két", `<label>Mật khẩu hiện tại<input name="current" type="password" required></label>${passwordFields()}`, async (form) => { if (form.password.value !== form.passwordConfirm.value) throw new Error("Hai mật khẩu chưa khớp."); const meta = await window.LichVietZkCrypto.changePassword(session.meta, form.current.value, form.password.value); await writeMeta(meta); session.meta = meta; });
+    change.onclick = () => openSettingsDialog("Đổi mật khẩu két", `<label>Mật khẩu hiện tại<input name="current" type="password" autocomplete="current-password" required></label><label>Mật khẩu mới<input name="password" type="password" minlength="8" autocomplete="new-password" required></label><label>Nhập lại mật khẩu mới<input name="passwordConfirm" type="password" minlength="8" autocomplete="new-password" required></label>`, async (form) => { if (form.password.value !== form.passwordConfirm.value) throw new Error("Hai mật khẩu mới chưa khớp."); const meta = await window.LichVietZkCrypto.changePassword(session.meta, form.current.value, form.password.value); await writeMeta(meta); session.meta = meta; }, { submitLabel: "Đổi mật khẩu", successMessage: "Đã đổi mật khẩu thành công." });
     biometric.onclick = async () => {
       if (session.meta.biometric) { const meta = { ...session.meta }; delete meta.biometric; await writeMeta(meta); session.meta = meta; biometric.textContent = "Bật sinh trắc học"; return; }
       openSettingsDialog("Bật sinh trắc học", `<label>Mật khẩu hiện tại<input name="current" type="password" required></label>`, async (form) => { const meta = await window.LichVietZkCrypto.enrollBiometric(session.meta, form.current.value); await writeMeta(meta); session.meta = meta; biometric.textContent = "Tắt sinh trắc học"; });
@@ -154,10 +222,38 @@
       const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([text], { type: "application/json" })); link.download = `Sotaylichviet-${new Date().toISOString().slice(0, 10)}.lichvietzk`; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
     } catch (error) { openSettingsDialog("Chưa tạo được backup", `<p>${error.message}</p>`, async () => {}); }
   }
-  function openSettingsDialog(title, fields, action) {
-    const dialog = document.createElement("dialog"); dialog.className = "app-info-dialog vault-settings-dialog"; dialog.innerHTML = `<form method="dialog" class="vault-settings-form"><h2>${title}</h2>${fields}<p role="alert"></p><div class="vault-row"><button value="cancel">Hủy</button><button id="vaultSettingsSave" value="default">Lưu</button></div></form>`; document.body.append(dialog);
-    dialog.querySelector("form").onsubmit = async (event) => { event.preventDefault(); try { await action(event.currentTarget); dialog.close(); } catch (error) { dialog.querySelector("p").textContent = error.message; } };
+  function openSettingsDialog(title, fields, action, options = {}) {
+    const dialog = document.createElement("dialog");
+    dialog.className = "vault-settings-dialog";
+    dialog.setAttribute("aria-labelledby", "vaultSettingsTitle");
+    dialog.innerHTML = `<form class="vault-settings-form"><header class="vault-settings-header"><h2 id="vaultSettingsTitle">${title}</h2><button class="vault-settings-close" type="button" formnovalidate aria-label="Đóng" title="Đóng">×</button></header><div class="vault-settings-body"><div class="vault-settings-fields">${fields}</div><p class="vault-settings-status" role="alert" aria-live="polite"></p><div class="vault-settings-actions"><button class="vault-settings-cancel" type="button" formnovalidate>Hủy</button><button class="vault-settings-save" type="submit">${options.submitLabel || "Lưu thay đổi"}</button></div></div></form>`;
+    document.body.append(dialog);
+    const form = dialog.querySelector("form");
+    const save = dialog.querySelector(".vault-settings-save");
+    const close = (event) => {
+      event?.preventDefault();
+      event?.stopPropagation();
+      dialog.close("cancel");
+    };
+    dialog.querySelector(".vault-settings-close").addEventListener("click", close, { capture: true });
+    dialog.querySelector(".vault-settings-cancel").addEventListener("click", close, { capture: true });
+    dialog.addEventListener("cancel", (event) => { event.preventDefault(); dialog.close("cancel"); });
+    form.onsubmit = async (event) => { event.preventDefault(); save.disabled = true; try { await action(form); dialog.close("success"); if (options.successMessage) openVaultMessageDialog(options.successMessage); } catch (error) { dialog.querySelector(".vault-settings-status").textContent = error.message; save.disabled = false; } };
     dialog.onclose = () => dialog.remove(); dialog.showModal();
+    dialog.querySelector("input")?.focus();
+  }
+  function openVaultMessageDialog(message) {
+    const dialog = document.createElement("dialog");
+    dialog.className = "vault-settings-dialog vault-message-dialog";
+    dialog.setAttribute("aria-labelledby", "vaultMessageTitle");
+    dialog.innerHTML = `<div class="vault-settings-form"><header class="vault-settings-header"><h2 id="vaultMessageTitle">Thông báo</h2><button class="vault-settings-close" type="button" aria-label="Đóng" title="Đóng">×</button></header><div class="vault-settings-body"><p class="vault-message-text">${message}</p><button class="vault-message-close" type="button">Đóng</button></div></div>`;
+    document.body.append(dialog);
+    const close = () => dialog.close();
+    dialog.querySelector(".vault-settings-close").onclick = close;
+    dialog.querySelector(".vault-message-close").onclick = close;
+    dialog.onclose = () => dialog.remove();
+    dialog.showModal();
+    dialog.querySelector(".vault-message-close").focus();
   }
   window.LichVietVault = Object.freeze({ requireSession, getSession: () => session, setupSystemControls, lock: () => location.reload() });
 })();

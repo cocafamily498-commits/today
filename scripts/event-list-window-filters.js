@@ -16,7 +16,13 @@ function initializeEventListWindowFilters(targetWindow, openEventCallback = null
   if (form.dataset.filtersReady === "true") return;
   form.dataset.filtersReady = "true";
 
-  const normalizeFilterText = (value) => String(value || "").trim().toLowerCase();
+  const normalizeFilterText = (value) => String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
 
   const setupFilterCombobox = (select) => {
     const root = select.closest("[data-filter-combobox]");
