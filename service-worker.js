@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v205-legacy-encryption";
+const CACHE_NAME = "homnay-pwa-v206-android-backup-picker";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -148,6 +148,7 @@ const APP_SHELL = [
   "/scripts/vault-gate.js?v=7",
   "/scripts/vault-gate.js?v=8",
   "/scripts/vault-gate.js?v=9",
+  "/scripts/vault-gate.js?v=10",
   "/scripts/data/app-data-events.js",
   "/scripts/data/app-data-events.js?v=2",
   "/scripts/data/app-data-events.js?v=3",

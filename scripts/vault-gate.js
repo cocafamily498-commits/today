@@ -57,14 +57,14 @@
     document.getElementById("finishRecovery").onclick = async () => { status("Đang mã hóa và xác minh dữ liệu cũ…"); await window.LichVietZkMigration.runMigration(database, session.dek, session.meta.vaultId, { batchSize: 20 }); await finishSession(resolve); };
   }
   function renderDeviceRestore(resolve) {
-    shell("Chuyển két từ thiết bị khác", "Chọn file .lichvietzk được tạo từ mục Backup két mã hóa, nhập 24 từ recovery và tạo mật khẩu cho thiết bị này.", `<form id="vaultGateForm"><label for="vaultBackupFile">Backup két mã hóa (.lichvietzk)</label><input id="vaultBackupFile" name="backup" type="file" accept=".lichvietzk,application/json" required><small class="vault-field-help">Không dùng file .ZIP Export data của phiên bản cũ.</small><label for="vaultRecovery">24 từ recovery</label><textarea id="vaultRecovery" name="recovery" rows="5" required></textarea>${passwordFields()}<button type="submit">Khôi phục két</button><button class="vault-link" id="vaultBack" type="button">Quay lại</button></form>`);
+    shell("Chuyển két từ thiết bị khác", "Chọn file .lichvietzk được tạo từ mục Backup két mã hóa, nhập 24 từ recovery và tạo mật khẩu cho thiết bị này.", `<form id="vaultGateForm"><label for="vaultBackupFile">Backup két mã hóa (.lichvietzk)</label><input id="vaultBackupFile" name="backup" type="file" accept=".lichvietzk,application/json,application/octet-stream" required><small class="vault-field-help">Ứng dụng xác minh nội dung file; không dùng file .ZIP Export data của phiên bản cũ.</small><label for="vaultRecovery">24 từ recovery</label><textarea id="vaultRecovery" name="recovery" rows="5" required></textarea>${passwordFields()}<button type="submit">Khôi phục két</button><button class="vault-link" id="vaultBack" type="button">Quay lại</button></form>`);
     document.getElementById("vaultBack").onclick = () => firstUse(resolve);
     document.getElementById("vaultGateForm").onsubmit = async (event) => {
       event.preventDefault(); const form = event.currentTarget; const button = form.querySelector("button[type=submit]"); button.disabled = true;
       try {
         if (form.password.value !== form.passwordConfirm.value) throw new Error("Hai mật khẩu chưa khớp.");
-        const file = form.backup.files[0];
-        if (!file || !/\.lichvietzk$/i.test(file.name || "")) throw new Error("Hãy chọn file Backup két mã hóa có đuôi .lichvietzk, không chọn file ZIP backup cũ.");
+        const file = document.getElementById("vaultBackupFile")?.files?.[0];
+        if (!file) throw new Error("Hãy chọn file Backup két mã hóa.");
         if (!window.isSecureContext || !window.crypto?.subtle) throw new Error("Android đang mở app qua HTTP LAN nên không cho phép Web Crypto. Hãy dùng HTTPS hoặc USB adb reverse rồi mở http://localhost:3000.");
         status("Đang xác thực backup và recovery…"); const parsed = window.LichVietZkBackup.parseBackup(await file.text());
         const restored = await window.LichVietZkCrypto.restoreFromRecoverySource(parsed, form.recovery.value, form.password.value);
