@@ -107,13 +107,16 @@
     return response.json();
   }
 
-  async function uploadBackup(blob, fileName) {
+  async function uploadBackup(blob, fileName, options = {}) {
     if (!(blob instanceof Blob) || !blob.size) throw new Error("File sao lưu trống hoặc không hợp lệ.");
     const folder = await getOrCreateBackupFolder();
     const metadata = {
       name: fileName,
       parents: [folder.id],
-      description: "File sao lưu dữ liệu của ứng dụng Sổ tay lịch Việt"
+      description: options.backupType === "encrypted-vault"
+        ? "Backup két mã hóa của ứng dụng Sổ tay lịch Việt"
+        : "File sao lưu dữ liệu của ứng dụng Sổ tay lịch Việt",
+      ...(options.backupType ? { appProperties: { backupType: options.backupType } } : {})
     };
     const session = await driveRequest("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,webViewLink", {
       method: "POST",
@@ -133,10 +136,13 @@
     })).json();
   }
 
-  async function listBackups() {
+  async function listBackups(options = {}) {
     const folder = await getOrCreateBackupFolder();
-    const query = `'${escapeQueryValue(folder.id)}' in parents and trashed = false`;
-    const fields = "files(id,name,size,modifiedTime,webViewLink)";
+    const typeFilter = options.backupType
+      ? ` and appProperties has { key = 'backupType' and value = '${escapeQueryValue(options.backupType)}' }`
+      : "";
+    const query = `'${escapeQueryValue(folder.id)}' in parents and trashed = false${typeFilter}`;
+    const fields = "files(id,name,size,modifiedTime,webViewLink,appProperties)";
     const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&spaces=drive&orderBy=modifiedTime%20desc&pageSize=100&fields=${encodeURIComponent(fields)}`;
     const result = await (await driveRequest(url)).json();
     return (result.files || []).filter((file) => /\.zip$/i.test(file.name || ""));

@@ -327,14 +327,14 @@ function formatGoogleDriveBackupSize(size) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function chooseGoogleDriveBackupFile(files) {
+function chooseGoogleDriveBackupFile(files, options = {}) {
   return new Promise((resolve) => {
     const dialog = document.createElement("dialog");
     dialog.className = "event-backup-dialog";
     dialog.innerHTML = `
       <div class="event-backup-content">
-        <h2>Chọn bản sao lưu trên Google Drive</h2>
-        <p>Các file trong thư mục <strong>Sổ tay lịch Việt</strong>:</p>
+        <h2>${options.title || "Chọn bản sao lưu trên Google Drive"}</h2>
+        <p>${options.description || "Các file trong thư mục <strong>Sổ tay lịch Việt</strong>:"}</p>
         <div data-backup-list></div>
         <div class="event-backup-dialog-actions">
           <button class="event-secondary-button" type="button" data-cancel>Hủy</button>
