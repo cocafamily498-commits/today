@@ -102,6 +102,26 @@ body {
 .vault-gate label { margin-top: 4px; color: #273b50; font-size: .84rem; font-weight: 750; }
 .vault-gate input { width: 100%; min-height: 46px; padding: 10px 12px; font: inherit; border: 1px solid #aebdcb; border-radius: 7px; }
 .vault-gate input:focus { border-color: var(--red-dark); outline: 3px solid rgba(18, 52, 90, .14); }
+.vault-password-field { display: grid; gap: 7px; }
+.vault-password-input { position: relative; }
+.vault-password-input input { padding-right: 50px !important; }
+.vault-password-toggle { position: absolute; top: 50%; right: 5px; width: 38px; min-height: 36px !important; padding: 0; transform: translateY(-50%); color: #33475e !important; font-size: 1.1rem; border: 0; border-radius: 5px; background: transparent !important; cursor: pointer; }
+.vault-password-toggle svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+.vault-password-toggle .vault-password-eye-slash { display: none; }
+.vault-password-toggle.is-visible .vault-password-eye-slash { display: block; }
+.vault-password-toggle:hover, .vault-password-toggle:focus-visible { color: var(--red-dark) !important; background: #eaf0f6 !important; outline: 2px solid rgba(18,52,90,.15); }
+.vault-password-help { margin: 0; color: #566a7f; font-size: .76rem; line-height: 1.4; }
+.vault-password-strength { display: grid; grid-template-columns: minmax(90px, 1fr) auto; gap: 9px; align-items: center; color: #6b7280; font-size: .74rem; font-weight: 750; }
+.vault-password-strength-bar { height: 7px; overflow: hidden; border-radius: 999px; background: #dbe3eb; }
+.vault-password-strength-bar i { display: block; width: 0; height: 100%; border-radius: inherit; background: #94a3b8; transition: width .18s ease, background-color .18s ease; }
+.vault-password-strength[data-level="weak"] { color: #b42318; }
+.vault-password-strength[data-level="weak"] i { width: 25%; background: #dc2626; }
+.vault-password-strength[data-level="medium"] { color: #8a6500; }
+.vault-password-strength[data-level="medium"] i { width: 50%; background: #eab308; }
+.vault-password-strength[data-level="strong"] { color: #177245; }
+.vault-password-strength[data-level="strong"] i { width: 75%; background: #22a06b; }
+.vault-password-strength[data-level="very-strong"] { color: #075985; }
+.vault-password-strength[data-level="very-strong"] i { width: 100%; background: #0284c7; }
 .vault-gate-warning { margin: 8px 0 0; padding: 10px 12px; color: #725500; font-size: .76rem; line-height: 1.45; border-radius: 7px; background: #fff8d8; }
 .vault-gate-status { min-height: 1.25rem; margin: 0; color: #a02b2b; font-size: .8rem; }
 .vault-gate button { min-height: 46px; color: #fff; font: inherit; font-weight: 800; border: 0; border-radius: 7px; background: var(--red-dark); cursor: pointer; }
@@ -139,7 +159,7 @@ body {
 .vault-settings-close:hover, .vault-settings-close:focus-visible { background: rgba(255,255,255,.24); }
 .vault-settings-body { overflow: auto; padding: 24px; background: linear-gradient(180deg, #fff 0%, #f6f8fb 100%); }
 .vault-settings-fields { display: grid; gap: 15px; }
-.vault-settings-fields label { display: grid; gap: 7px; color: #273b50; font-size: .9rem; font-weight: 750; }
+.vault-settings-fields label { color: #273b50; font-size: .9rem; font-weight: 750; }
 .vault-settings-fields input { width: 100%; min-height: 46px; padding: 10px 12px; color: #152a40; font: inherit; border: 1px solid #aebdcb; border-radius: 7px; background: #fff; }
 .vault-settings-fields input:focus { border-color: var(--red-dark); outline: 3px solid rgba(18,52,90,.14); }
 .vault-settings-status { min-height: 1.25rem; margin: 12px 0 0; color: #a02b2b; font-size: .82rem; font-weight: 650; }

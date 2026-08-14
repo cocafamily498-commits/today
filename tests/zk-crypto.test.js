@@ -14,10 +14,16 @@ async function rejects(action, message) {
   const dek = await zk.createSessionDek();
   assert.equal(dek.extractable, false);
   const vaultId = "vault-test";
-  const vault = await zk.createPasswordVault("mat-khau-test-123");
-  const unlocked = await zk.unlockPasswordVault(vault.meta, "mat-khau-test-123");
+  await rejects(() => zk.createPasswordVault("ngan"), "new password shorter than eight characters must fail");
+  const vault = await zk.createPasswordVault("mot cum tu dai de nho");
+  const unlocked = await zk.unlockPasswordVault(vault.meta, "mot cum tu dai de nho");
   assert.equal(unlocked.extractable, false);
   await rejects(() => zk.unlockPasswordVault(vault.meta, "mat-khau-sai"), "wrong vault password must fail");
+  await assert.rejects(
+    () => zk.changePassword(vault.meta, "mat-khau-sai", "ngan", "khong-khop"),
+    /Mật khẩu hiện tại không đúng/,
+    "current password error must take priority over invalid new password"
+  );
   const event = {
     id: "event-1", date: "2026-08-12", month: "2026-08", title: "Bí mật", note: "Nội dung",
     eventType: "other", eventTypeId: "general", calendarLabel: "solar", lunar: null, time: "09:30", allDay: false,

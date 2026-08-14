@@ -35,6 +35,8 @@ copyDirectory(path.join(__dirname, "scripts"), path.join(outputDirectory, "scrip
   ["@scure/bip39", "@scure/bip39"],
   ["@scure/base", "@scure/base"],
   ["@noble/hashes", "@noble/hashes"],
+  ["@zxcvbn-ts/core", "@zxcvbn-ts/core"],
+  ["@zxcvbn-ts/language-common", "@zxcvbn-ts/language-common"],
   ["hash-wasm/dist", "hash-wasm/dist"]
 ].forEach(([source, destination]) => copyDirectory(
   path.join(__dirname, "node_modules", source),

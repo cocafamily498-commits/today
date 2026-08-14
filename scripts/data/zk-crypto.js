@@ -41,6 +41,10 @@
 
   const PASSWORD_KDF = Object.freeze({ name: "Argon2id", timeCost: 3, memoryKiB: 65536, parallelism: 1, saltBytes: 16 });
 
+  function assertNewPassword(password) {
+    if (typeof password !== "string" || password.length < 8) throw new Error("Mật khẩu cần có ít nhất 8 ký tự.");
+  }
+
   async function derivePasswordKek(password, config) {
     assertCrypto();
     if (typeof password !== "string" || password.length < 8) throw new Error("Mật khẩu cần có ít nhất 8 ký tự.");
@@ -85,6 +89,7 @@
 
   async function createPasswordVault(password) {
     assertCrypto();
+    assertNewPassword(password);
     const vaultId = webcrypto.randomUUID();
     const raw = webcrypto.getRandomValues(new Uint8Array(32));
     const passwordKdf = { name: PASSWORD_KDF.name, timeCost: PASSWORD_KDF.timeCost, memoryKiB: PASSWORD_KDF.memoryKiB, parallelism: PASSWORD_KDF.parallelism, salt: webcrypto.getRandomValues(new Uint8Array(16)) };
@@ -108,6 +113,7 @@
     } catch { return false; }
   }
   async function restoreWithRecovery(meta, phrase, newPassword) {
+    assertNewPassword(newPassword);
     const recoveryKek = await deriveRecoveryKek(phrase, meta.recoveryKdf.salt);
     const raw = await openBytes(meta.recoveryWrappedDek, recoveryKek, aad("recovery-wrapped-dek", { vaultId: meta.vaultId }));
     const passwordKdf = { name: "Argon2id", timeCost: 3, memoryKiB: 65536, parallelism: 1, salt: webcrypto.getRandomValues(new Uint8Array(16)) };
@@ -118,6 +124,7 @@
     } finally { raw.fill(0); }
   }
   async function restoreFromRecoverySource(source, phrase, newPassword) {
+    assertNewPassword(newPassword);
     const recoveryKek = await deriveRecoveryKek(phrase, source.recoveryKdf.salt);
     const raw = await openBytes(source.recoveryWrappedDek, recoveryKek, aad("recovery-wrapped-dek", { vaultId: source.vaultId }));
     const passwordKdf = { name: "Argon2id", timeCost: 3, memoryKiB: 65536, parallelism: 1, salt: webcrypto.getRandomValues(new Uint8Array(16)) };
@@ -127,11 +134,18 @@
       return { dek, meta: { key: "meta", version: 1, cryptoSuite: "AES-256-GCM+Argon2id+BIP39-HKDF", vaultId: source.vaultId, passwordKdf, passwordWrappedDek: await seal(raw, passwordKek, aad("password-wrapped-dek", { vaultId: source.vaultId })), recoveryVerifier: { algorithm: "SHA-256", salt: verifierSalt, digest, words: 24 }, recoveryKdf: source.recoveryKdf, recoveryWrappedDek: source.recoveryWrappedDek, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } };
     } finally { raw.fill(0); }
   }
-  async function changePassword(meta, currentPassword, newPassword) {
-    const dekKek = await derivePasswordKek(currentPassword, meta.passwordKdf);
-    const raw = await openBytes(meta.passwordWrappedDek, dekKek, aad("password-wrapped-dek", { vaultId: meta.vaultId }));
+  async function changePassword(meta, currentPassword, newPassword, newPasswordConfirm) {
+    let raw;
+    try {
+      const dekKek = await derivePasswordKek(currentPassword, meta.passwordKdf);
+      raw = await openBytes(meta.passwordWrappedDek, dekKek, aad("password-wrapped-dek", { vaultId: meta.vaultId }));
+    } catch {
+      throw new Error("Mật khẩu hiện tại không đúng.");
+    }
     const passwordKdf = { name: "Argon2id", timeCost: 3, memoryKiB: 65536, parallelism: 1, salt: webcrypto.getRandomValues(new Uint8Array(16)) };
     try {
+      assertNewPassword(newPassword);
+      if (newPasswordConfirm !== undefined && newPassword !== newPasswordConfirm) throw new Error("Hai mật khẩu mới chưa khớp.");
       const newKek = await derivePasswordKek(newPassword, passwordKdf);
       return { ...meta, passwordKdf, passwordWrappedDek: await seal(raw, newKek, aad("password-wrapped-dek", { vaultId: meta.vaultId })), updatedAt: new Date().toISOString() };
     } finally { raw.fill(0); }
