@@ -194,15 +194,41 @@
     setupPasswordControls(root());
   }
   function firstUse(resolve) {
-    shell("Bảo vệ dữ liệu của bạn", "Tạo một két mới hoặc mang két đã mã hóa từ thiết bị khác sang.", `<div class="vault-choice-grid"><button id="createVaultChoice" type="button"><strong>Tạo két mới</strong><span>Tạo mật khẩu và nhận 24 từ recovery</span></button><button id="restoreVaultChoice" type="button"><strong>Chuyển từ thiết bị khác</strong><span>Dùng backup mã hóa và 24 từ recovery</span></button></div>`);
+    shell("Bảo vệ dữ liệu của bạn", "Dữ liệu cá nhân sẽ được <strong>mã hóa ngay trên thiết bị</strong> để chỉ bạn mới có thể truy cập.<br><br>Hãy chọn cách bạn muốn bắt đầu.", `<div class="vault-choice-grid"><button id="createVaultChoice" type="button"><strong>Tạo két mới</strong><span><b class="vault-choice-audience">Dành cho lần đầu thiết lập Két bảo mật.</b>Tạo mật khẩu, nhận <b>24 từ Recovery</b> và mã hóa dữ liệu trên thiết bị này.</span></button><button id="restoreVaultChoice" type="button"><strong>Chuyển từ thiết bị khác</strong><span><b class="vault-choice-audience">Dành cho khi bạn đã có Két bảo mật trước đó.</b>Khôi phục dữ liệu bằng <b>file Backup mã hóa</b> và đúng <b>24 từ Recovery</b>.</span></button><button id="vaultGuideChoice" type="button"><strong>ⓘ Hướng dẫn</strong><span>Tìm hiểu cách hoạt động của Két bảo mật, mật khẩu, 24 từ Recovery, Backup và cách khôi phục dữ liệu.</span></button></div>`);
     document.getElementById("createVaultChoice").onclick = () => renderCreate(resolve);
     document.getElementById("restoreVaultChoice").onclick = () => renderDeviceRestore(resolve);
+    document.getElementById("vaultGuideChoice").onclick = openVaultGettingStartedGuide;
+  }
+
+  function openVaultGettingStartedGuide() {
+    document.getElementById("vaultGettingStartedGuide")?.remove();
+    const dialog = document.createElement("dialog");
+    dialog.id = "vaultGettingStartedGuide";
+    dialog.className = "vault-guide-dialog";
+    dialog.innerHTML = `<article class="vault-guide-content"><header><h2>Hướng dẫn bắt đầu</h2></header><div class="vault-guide-body">
+      <p>Ứng dụng sử dụng <strong>Két bảo mật</strong> để bảo vệ dữ liệu cá nhân của bạn. Dữ liệu trong Két được mã hóa ngay trên thiết bị theo mô hình <strong>Zero-Knowledge</strong>.</p>
+      <p>Điều này có nghĩa là dữ liệu của bạn chỉ có thể được đọc sau khi Két được mở đúng cách. Ứng dụng và nhà phát triển không lưu mật khẩu, 24 từ Recovery hoặc khóa giải mã dữ liệu của bạn.</p>
+      <h2>Tạo két mới</h2><p>Chọn <strong>Tạo két mới</strong> nếu đây là lần đầu bạn thiết lập Két bảo mật trên thiết bị này.</p><p>Ứng dụng sẽ thực hiện các bước sau:</p>
+      <ol><li>Bạn tạo một mật khẩu dùng để mở Két.</li><li>Ứng dụng tạo khóa mã hóa dữ liệu riêng cho Két.</li><li>Bạn được cấp <strong>24 từ Recovery</strong>.</li><li>Dữ liệu hiện có trên thiết bị được chuyển sang dạng mã hóa.</li><li>Từ lần sử dụng tiếp theo, bạn cần mở Két trước khi truy cập dữ liệu cá nhân.</li></ol>
+      <h3>Mật khẩu Két dùng để làm gì?</h3><p>Mật khẩu giúp bạn mở Két nhanh chóng trên thiết bị đang sử dụng.</p><p>Bạn có thể thay đổi mật khẩu sau này mà không cần tạo lại dữ liệu đã mã hóa.</p><p>Nên dùng một mật khẩu hoặc cụm từ:</p><ul><li>đủ dài;</li><li>dễ nhớ đối với bạn nhưng khó đoán đối với người khác;</li><li>không dùng lại mật khẩu của các tài khoản quan trọng khác.</li></ul>
+      <h3>24 từ Recovery dùng để làm gì?</h3><p>24 từ Recovery là <strong>chìa khóa khôi phục cuối cùng</strong> của Két.</p><p>Bạn cần 24 từ này khi:</p><ul><li>quên mật khẩu Két;</li><li>chuyển dữ liệu sang thiết bị khác;</li><li>cài lại ứng dụng hoặc mất dữ liệu cục bộ nhưng vẫn còn file Backup mã hóa.</li></ul><p>Ứng dụng <strong>không lưu và không thể cấp lại</strong> 24 từ Recovery.</p><p><strong>Nếu bạn quên mật khẩu và đồng thời làm mất 24 từ Recovery, dữ liệu đã mã hóa sẽ không thể khôi phục.</strong></p><p>Hãy sao chép đủ 24 từ, giữ đúng thứ tự và cất ở nơi an toàn.</p><p>Không nên:</p><ul><li>chụp ảnh rồi để trong thư viện ảnh không được bảo vệ;</li><li>gửi 24 từ qua email, tin nhắn hoặc mạng xã hội;</li><li>lưu 24 từ cùng một nơi với file Backup mã hóa nếu có thể tránh được;</li><li>cung cấp 24 từ cho bất kỳ ai.</li></ul>
+      <h2>Chuyển từ thiết bị khác</h2><p>Chọn <strong>Chuyển từ thiết bị khác</strong> nếu bạn đã có Két bảo mật trên một thiết bị khác và muốn tiếp tục sử dụng dữ liệu đó trên thiết bị hiện tại.</p><p>Bạn cần chuẩn bị:</p><ul><li><strong>file Backup đã mã hóa</strong> được xuất từ Két cũ;</li><li>đúng <strong>24 từ Recovery</strong> của Két đó.</li></ul><p>Ứng dụng sẽ dùng 24 từ Recovery để khôi phục khóa giải mã của Két và kiểm tra file Backup.</p><p>Nếu dữ liệu hợp lệ, bạn có thể đặt một <strong>mật khẩu mới cho thiết bị hiện tại</strong>.</p><p>Mật khẩu trên thiết bị mới không bắt buộc phải giống mật khẩu cũ. Dữ liệu vẫn thuộc cùng một Két vì khóa mã hóa dữ liệu được khôi phục từ 24 từ Recovery.</p>
+      <h2>Backup dữ liệu</h2><p>Dữ liệu của Két được lưu cục bộ trên thiết bị và không tự động gửi lên cloud.</p><p>Bạn nên định kỳ sử dụng chức năng <strong>Backup dữ liệu</strong> trong <strong>Cài đặt/Hệ thống</strong> để tạo một bản sao lưu mã hóa.</p><p>File Backup vẫn ở trạng thái mã hóa. Người có file Backup nhưng không có khóa khôi phục phù hợp sẽ không thể đọc nội dung bên trong.</p><p>Khi cần sao lưu hoặc chuyển dữ liệu sang thiết bị khác, hãy sử dụng chức năng <strong>Backup dữ liệu trong Cài đặt/Hệ thống</strong>.</p>
+      <h2>Khi quên mật khẩu</h2><p>Nếu quên mật khẩu Két nhưng vẫn còn 24 từ Recovery, bạn có thể:</p><ol><li>chọn chức năng khôi phục;</li><li>nhập đúng 24 từ Recovery;</li><li>khôi phục quyền truy cập dữ liệu;</li><li>đặt mật khẩu mới.</li></ol><p>Ứng dụng không khôi phục lại mật khẩu cũ. Mật khẩu cũ được thay bằng mật khẩu mới do bạn đặt.</p>
+      <h2>Khi nhập dữ liệu</h2><p>Chức năng <strong>Import dữ liệu</strong> thông thường chỉ dành cho Backup thuộc Két hiện tại.</p><p>Nếu file không thể được giải mã hoặc không đúng định dạng mà ứng dụng hỗ trợ, quá trình nhập sẽ không thành công và ứng dụng sẽ thông báo file không tương thích.</p><p>Ứng dụng sẽ không yêu cầu 24 từ Recovery của một Két khác trong chức năng Import thông thường.</p>
+      <h2>Quyền riêng tư</h2><p>Khi Két đang khóa, dữ liệu cá nhân không được hiển thị dưới dạng rõ.</p><p>Đối với các sự kiện được đánh dấu <strong>Riêng tư</strong>, thông báo trên thiết bị chỉ hiển thị nội dung chung như:</p><p><strong>“Bạn có sự kiện mới.”</strong></p><p>Tên sự kiện và nội dung riêng tư sẽ không xuất hiện trực tiếp trên Notification.</p>
+      <h2>Một nguyên tắc quan trọng</h2><p>Hãy xem:</p><ul><li><strong>Mật khẩu</strong> là chìa khóa sử dụng hằng ngày.</li><li><strong>24 từ Recovery</strong> là chìa khóa khôi phục cuối cùng.</li><li><strong>File Backup mã hóa</strong> là bản sao dữ liệu.</li></ul><p>Để khôi phục dữ liệu trên một thiết bị mới, bạn cần giữ an toàn cả <strong>Backup mã hóa</strong> và <strong>24 từ Recovery</strong>.</p><p><strong>Không chia sẻ 24 từ Recovery với bất kỳ ai.</strong></p>
+    </div><footer><button type="button" data-close>Đóng</button></footer></article>`;
+    dialog.querySelector("[data-close]").onclick = () => dialog.close();
+    dialog.addEventListener("close", () => dialog.remove());
+    document.body.append(dialog);
+    dialog.showModal();
   }
   function renderLegacyUpgrade(resolve) {
     shell(
       "Dữ liệu của bạn cần được bảo vệ",
       "Ứng dụng phát hiện dữ liệu được tạo bởi phiên bản cũ và chưa được mã hóa. Hãy tạo két để ứng dụng mã hóa, xác minh và bảo vệ dữ liệu hiện có của bạn.",
-      `<div class="vault-legacy-actions"><div class="vault-legacy-notice"><strong>Nâng cấp an toàn</strong><span>Không đóng ứng dụng trong lúc nâng cấp. Dữ liệu cũ chỉ bị xóa sau khi bản mã hóa đã được kiểm tra thành công.</span></div><button id="confirmLegacyUpgrade" type="button">OK, tạo két bảo mật</button></div>`,
+      `<div class="vault-legacy-actions"><div class="vault-legacy-notice"><strong>Nâng cấp an toàn</strong><span>Không đóng ứng dụng trong lúc nâng cấp. Dữ liệu cũ chỉ bị xóa sau khi bản mã hóa đã được kiểm tra thành công.</span></div><button id="confirmLegacyUpgrade" type="button">Ok, Tạo két mới</button><button id="legacyUpgradeGuide" class="vault-legacy-guide" type="button"><strong>ⓘ Hướng dẫn</strong><span>Tìm hiểu cách hoạt động của Két bảo mật, mật khẩu, 24 từ Recovery, Backup và cách khôi phục dữ liệu.</span></button></div>`,
       "vault-gate-legacy"
     );
     const panel = root().querySelector(".vault-gate-legacy");
@@ -229,6 +255,7 @@
     };
     document.addEventListener("keydown", gateKeydownHandler);
     document.getElementById("confirmLegacyUpgrade").onclick = () => renderCreate(resolve, { legacyUpgrade: true });
+    document.getElementById("legacyUpgradeGuide").onclick = openVaultGettingStartedGuide;
   }
   function renderExitedApp() {
     shell(
@@ -500,11 +527,18 @@
 
   function setupSystemControls() {
     const change = document.getElementById("systemChangeVaultPassword"); const biometric = document.getElementById("systemBiometricVault"); const encryptedBackup = document.getElementById("systemExportEncryptedVault"); if (!change || !biometric) return;
-    biometric.textContent = session.meta.biometric ? "Tắt sinh trắc học" : "Bật sinh trắc học";
+    const biometricLabel = biometric.querySelector("span");
+    const biometricStatus = document.getElementById("systemBiometricStatus");
+    const setBiometricLabel = (enabled) => {
+      biometricLabel.textContent = enabled ? "Tắt" : "Bật";
+      if (biometricStatus) biometricStatus.textContent = enabled ? "Đang bật" : "Đang tắt";
+      biometric.classList.toggle("is-enabled", enabled);
+    };
+    setBiometricLabel(Boolean(session.meta.biometric));
     change.onclick = () => openSettingsDialog("Đổi mật khẩu két", `${passwordInput({ id: "vaultCurrentPassword", name: "current", label: "Mật khẩu hiện tại", autocomplete: "current-password" })}${passwordInput({ id: "vaultNewPassword", name: "password", label: "Mật khẩu mới", autocomplete: "new-password", isNew: true })}${passwordInput({ id: "vaultNewPasswordConfirm", name: "passwordConfirm", label: "Nhập lại mật khẩu mới", autocomplete: "new-password" })}`, async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.changePassword(session.meta, form.current.value, form.password.value, form.passwordConfirm.value)); await writeMeta(meta); session.meta = meta; }, { submitLabel: "Đổi mật khẩu", successMessage: "Đã đổi mật khẩu thành công.", noValidate: true, currentPasswordMeta: session.meta });
     biometric.onclick = async () => {
-      if (session.meta.biometric) { const meta = { ...session.meta }; delete meta.biometric; await writeMeta(meta); session.meta = meta; biometric.textContent = "Bật sinh trắc học"; return; }
-      openSettingsDialog("Bật sinh trắc học", passwordInput({ id: "vaultBiometricPassword", name: "current", label: "Mật khẩu hiện tại", autocomplete: "current-password" }), async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.enrollBiometric(session.meta, form.current.value)); await writeMeta(meta); session.meta = meta; biometric.textContent = "Tắt sinh trắc học"; }, { currentPasswordMeta: session.meta });
+      if (session.meta.biometric) { const meta = { ...session.meta }; delete meta.biometric; await writeMeta(meta); session.meta = meta; setBiometricLabel(false); return; }
+      openSettingsDialog("Bật sinh trắc học", passwordInput({ id: "vaultBiometricPassword", name: "current", label: "Mật khẩu hiện tại", autocomplete: "current-password" }), async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.enrollBiometric(session.meta, form.current.value)); await writeMeta(meta); session.meta = meta; setBiometricLabel(true); }, { currentPasswordMeta: session.meta });
     };
     if (encryptedBackup) encryptedBackup.onclick = exportEncryptedBackup;
   }
@@ -546,9 +580,11 @@
   }
   function openEncryptedBackupDestinationDialog() {
     const dialog = document.createElement("dialog");
-    dialog.className = "event-backup-dialog";
-    dialog.innerHTML = `<div class="event-backup-content"><h2>Backup két mã hóa</h2><p>Chọn nơi lưu file ZIP backup két mã hóa.</p><p data-drive-status role="status" aria-live="polite" hidden></p><div class="event-backup-dialog-actions"><button class="event-secondary-button" type="button" data-cancel>Hủy</button><button class="event-secondary-button" type="button" data-drive>Tải lên Google Drive</button><button class="event-submit" type="button" data-download>Copy file về</button></div></div>`;
+    dialog.className = "event-backup-dialog vault-transfer-dialog";
+    dialog.setAttribute("closedby", "closerequest");
+    dialog.innerHTML = `<div class="event-backup-content"><header class="vault-transfer-header"><h2>Backup két mã hóa</h2><button class="vault-transfer-close" type="button" data-close aria-label="Đóng" title="Đóng">×</button></header><div class="vault-transfer-body"><p>Chọn nơi lưu file ZIP backup két mã hóa.</p><p data-drive-status role="status" aria-live="polite" hidden></p><div class="event-backup-dialog-actions"><button class="event-secondary-button" type="button" data-cancel>Hủy</button><button class="event-secondary-button" type="button" data-drive>Tải lên Google Drive</button><button class="event-submit" type="button" data-download>Copy file về</button></div></div></div>`;
     const close = () => dialog.close();
+    dialog.querySelector("[data-close]").onclick = close;
     dialog.querySelector("[data-cancel]").onclick = close;
     dialog.querySelector("[data-download]").onclick = () => { close(); downloadEncryptedBackup(); };
     dialog.querySelector("[data-drive]").onclick = async (event) => {
@@ -567,7 +603,13 @@
         button.disabled = false;
       }
     };
-    dialog.addEventListener("close", () => dialog.remove(), { once: true });
+    document.body.classList.add("event-dialog-open");
+    dialog.addEventListener("close", () => {
+      dialog.remove();
+      if (!document.querySelector("dialog.event-backup-dialog[open], dialog.vault-settings-dialog[open]")) {
+        document.body.classList.remove("event-dialog-open");
+      }
+    }, { once: true });
     document.body.append(dialog);
     dialog.showModal();
     dialog.querySelector("[data-download]").focus();
@@ -609,6 +651,7 @@
   function openSettingsDialog(title, fields, action, options = {}) {
     const dialog = document.createElement("dialog");
     dialog.className = "vault-settings-dialog";
+    dialog.setAttribute("closedby", "closerequest");
     dialog.setAttribute("aria-labelledby", "vaultSettingsTitle");
     dialog.innerHTML = `<form class="vault-settings-form"${options.noValidate ? " novalidate" : ""}><header class="vault-settings-header"><h2 id="vaultSettingsTitle">${title}</h2><button class="vault-settings-close" type="button" formnovalidate aria-label="Đóng" title="Đóng">×</button></header><div class="vault-settings-body"><div class="vault-settings-fields">${fields}</div><p class="vault-settings-status" role="alert" aria-live="polite"></p><div class="vault-settings-actions"><button class="vault-settings-cancel" type="button" formnovalidate>Hủy</button><button class="vault-settings-save" type="submit">${options.submitLabel || "Đồng ý"}</button></div></div></form>`;
     document.body.append(dialog);
@@ -627,19 +670,33 @@
       watchCurrentPasswordLock(options.currentPasswordMeta, form, (message) => { dialog.querySelector(".vault-settings-status").textContent = message; });
     }
     form.onsubmit = async (event) => { event.preventDefault(); save.disabled = true; try { await action(form); dialog.close("success"); if (options.successMessage) openVaultMessageDialog(options.successMessage); } catch (error) { dialog.querySelector(".vault-settings-status").textContent = error.message; if (error.currentPasswordLocked) watchCurrentPasswordLock(options.currentPasswordMeta, form, (message) => { dialog.querySelector(".vault-settings-status").textContent = message; }); else { form.querySelector('input[autocomplete="current-password"]')?.select(); save.disabled = false; } } };
-    dialog.onclose = () => dialog.remove(); dialog.showModal();
+    document.body.classList.add("event-dialog-open");
+    dialog.onclose = () => {
+      dialog.remove();
+      if (!document.querySelector("dialog.event-backup-dialog[open], dialog.vault-settings-dialog[open]")) {
+        document.body.classList.remove("event-dialog-open");
+      }
+    };
+    dialog.showModal();
     dialog.querySelector("input")?.focus();
   }
   function openVaultMessageDialog(message) {
     const dialog = document.createElement("dialog");
     dialog.className = "vault-settings-dialog vault-message-dialog";
+    dialog.setAttribute("closedby", "closerequest");
     dialog.setAttribute("aria-labelledby", "vaultMessageTitle");
     dialog.innerHTML = `<div class="vault-settings-form"><header class="vault-settings-header"><h2 id="vaultMessageTitle">Thông báo</h2><button class="vault-settings-close" type="button" aria-label="Đóng" title="Đóng">×</button></header><div class="vault-settings-body"><p class="vault-message-text">${message}</p><button class="vault-message-close" type="button">Đóng</button></div></div>`;
     document.body.append(dialog);
     const close = () => dialog.close();
     dialog.querySelector(".vault-settings-close").onclick = close;
     dialog.querySelector(".vault-message-close").onclick = close;
-    dialog.onclose = () => dialog.remove();
+    document.body.classList.add("event-dialog-open");
+    dialog.onclose = () => {
+      dialog.remove();
+      if (!document.querySelector("dialog.event-backup-dialog[open], dialog.vault-settings-dialog[open]")) {
+        document.body.classList.remove("event-dialog-open");
+      }
+    };
     dialog.showModal();
     dialog.querySelector(".vault-message-close").focus();
   }

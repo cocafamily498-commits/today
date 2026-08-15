@@ -11,6 +11,27 @@
   box-shadow: var(--shadow);
 }
 
+.system-configuration { display: grid; gap: 22px; }
+.system-config-section, .system-tools-section { display: grid; gap: 12px; }
+.system-action-card { padding: 16px; border: 1px solid #cad7e5; border-radius: 10px; background: #fff; box-shadow: 0 7px 20px rgba(18, 52, 90, .07); }
+.system-config-section > h2, .system-tools-section > h2 { margin: 0; color: #12345a; font-size: 1rem; text-align: left; }
+.system-config-list { overflow: hidden; border: 1px solid #cad7e5; border-radius: 10px; background: #fff; box-shadow: 0 7px 20px rgba(18, 52, 90, .07); }
+.system-action-card .system-config-list { border-color: #e0e7ef; box-shadow: none; }
+.system-config-row { display: flex; min-height: 76px; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 16px; }
+.system-config-row + .system-config-row { border-top: 1px solid #e0e7ef; }
+.system-config-summary { display: flex; min-width: 0; align-items: center; gap: 13px; }
+.system-config-summary > div { display: grid; gap: 3px; }
+.system-config-summary strong { color: #12345a; }
+.system-config-summary span { color: #607087; font-size: .9rem; }
+.system-reminder-state { margin: 0; color: #12345a; }
+.system-reminder-state strong { font-weight: 800; }
+.system-config-icon { width: 28px; height: 28px; flex: 0 0 28px; fill: none; stroke: #12345a; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.system-config-toggle { min-width: 82px; min-height: 42px; padding: 9px 16px; color: #fff; font: inherit; font-weight: 800; border: 0; border-radius: 7px; background: #087f5b; cursor: pointer; }
+.system-config-toggle.is-enabled { background: #a13232; }
+.system-config-toggle.is-warning { color: #7f1d1d; background: #fff1f2; border: 1px solid #fecdd3; }
+.system-config-toggle:hover, .system-config-toggle:focus-visible { filter: brightness(.92); outline: 3px solid rgba(18, 52, 90, .16); }
+.system-config-toggle:disabled { color: #64748b; background: #e2e8f0; cursor: not-allowed; }
+
 .system-settings-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -33,6 +54,8 @@
   cursor: pointer;
 }
 
+.system-settings-button small { display: block; margin-top: 2px; font-size: .72rem; font-weight: 600; opacity: .82; }
+
 .system-settings-icon {
   width: 24px;
   height: 24px;
@@ -54,11 +77,12 @@
   .system-settings-actions {
     grid-template-columns: 1fr;
   }
+  .system-config-row { padding: 13px; }
+  .system-config-toggle { min-width: 72px; }
 }
 
 .app-topbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: block;
   gap: 5px;
   margin-bottom: 10px;
   padding: 5px;

@@ -96,10 +96,11 @@ function setupApplicationInfo() {
   const button = document.getElementById("appInfoButton");
   const dialog = document.getElementById("appInfoDialog");
   if (!button || !dialog) return;
-  button.addEventListener("click", () => dialog.showModal());
-  dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close();
+  button.addEventListener("click", () => {
+    document.body.classList.add("app-info-modal-open");
+    dialog.showModal();
   });
+  dialog.addEventListener("close", () => document.body.classList.remove("app-info-modal-open"));
 
   const installButton = document.getElementById("systemInstallButton");
   const lockButton = document.getElementById("systemLockApp");

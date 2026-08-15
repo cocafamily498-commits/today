@@ -1,39 +1,68 @@
 <section id="appInfoTab" class="tab-panel app-info-tab" role="tabpanel" aria-labelledby="appInfoTabButton" hidden>
   <article class="app-info-page system-settings-page">
     <header class="app-info-dialog-header">
-      <button id="systemLockApp" class="system-lock-app" type="button" aria-label="Khóa màn hình ứng dụng, phím tắt Control Shift L" title="Khóa màn hình — Ctrl+Shift+L">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z"/></svg>
-      </button>
       <h1>Cài đặt/hệ thống</h1>
     </header>
-    <div class="app-info-dialog-body">
-      <div class="system-settings-actions">
-        <button id="appInfoButton" class="system-settings-button" type="button">
-          <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 10.5v6M12 7.5h.01"/></svg>
-          <span>Thông tin ứng dụng</span>
-        </button>
-        <button id="systemInstallButton" class="system-settings-button" type="button">
-          <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v11H5zM8 20h8M12 7v6m-3-3 3 3 3-3"/></svg>
-          <span>Cài đặt ứng dụng</span>
-        </button>
-        <button id="systemChangeVaultPassword" class="system-settings-button" type="button">
-          <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z"/></svg>
-          <span>Đổi mật khẩu két</span>
-        </button>
-        <button id="systemBiometricVault" class="system-settings-button" type="button">
-          <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4a6 6 0 0 1 8 0M6 7a8 8 0 0 1 12 0M9 9a4 4 0 0 1 6 0v4a7 7 0 0 1-3 6M7 11v2a9 9 0 0 0 2 6"/></svg>
-          <span>Bật sinh trắc học</span>
-        </button>
-        <button id="systemExportEncryptedVault" class="system-settings-button" type="button">
-          <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v9h14v-9M12 16V4m-4 4 4-4 4 4"/></svg>
-          <span>Export data</span>
-        </button>
-        <button id="systemImportButton" class="system-settings-button" type="button">
-          <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v9h14v-9M12 4v12m-4-4 4 4 4-4"/></svg>
-          <span>Import data</span>
-        </button>
-        <input id="systemImportInput" type="file" accept=".zip,application/zip,application/x-zip-compressed" hidden>
-      </div>
+    <div class="app-info-dialog-body system-configuration">
+      <section class="system-tools-section system-action-card" aria-labelledby="systemApplicationTitle">
+        <h2 id="systemApplicationTitle">Ứng dụng</h2>
+        <div class="system-settings-actions">
+          <button id="appInfoButton" class="system-settings-button" type="button">
+            <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 10.5v6M12 7.5h.01"/></svg>
+            <span>Thông tin ứng dụng</span>
+          </button>
+          <button id="systemInstallButton" class="system-settings-button" type="button">
+            <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v11H5zM8 20h8M12 7v6m-3-3 3 3 3-3"/></svg>
+            <span>Cài đặt ứng dụng</span>
+          </button>
+        </div>
+      </section>
+      <section class="system-config-section system-action-card" aria-labelledby="systemConfigTitle">
+        <h2 id="systemConfigTitle">Cấu hình</h2>
+        <div class="system-config-list">
+          <div class="system-config-row">
+            <div class="system-config-summary">
+              <svg class="system-config-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+              <p class="system-reminder-state">Trạng thái cho phép nhắc hệ thống: <strong id="systemReminderStatus">Đang kiểm tra…</strong></p>
+            </div>
+            <button id="systemReminderToggle" class="system-config-toggle event-system-reminder-trigger" type="button"><span data-reminder-action>Bật</span></button>
+          </div>
+          <div class="system-config-row">
+            <div class="system-config-summary">
+              <svg class="system-config-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4a6 6 0 0 1 8 0M6 7a8 8 0 0 1 12 0M9 9a4 4 0 0 1 6 0v4a7 7 0 0 1-3 6M7 11v2a9 9 0 0 0 2 6"/></svg>
+              <p class="system-reminder-state">Trạng thái sinh trắc học: <strong id="systemBiometricStatus">Đang kiểm tra…</strong></p>
+            </div>
+            <button id="systemBiometricVault" class="system-config-toggle" type="button"><span>Bật</span></button>
+          </div>
+        </div>
+      </section>
+      <section class="system-tools-section system-action-card" aria-labelledby="systemSecurityTitle">
+        <h2 id="systemSecurityTitle">Bảo mật</h2>
+        <div class="system-settings-actions">
+          <button id="systemChangeVaultPassword" class="system-settings-button" type="button">
+            <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z"/></svg>
+            <span>Đổi mật khẩu két</span>
+          </button>
+          <button id="systemLockApp" class="system-settings-button" type="button" aria-label="Khóa màn hình ứng dụng, phím tắt Control Shift L" title="Khóa màn hình — Ctrl+Shift+L">
+            <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z"/></svg>
+            <span>Khóa màn hình <small>Ctrl+Shift+L</small></span>
+          </button>
+        </div>
+      </section>
+      <section class="system-tools-section system-action-card" aria-labelledby="systemBackupTitle">
+        <h2 id="systemBackupTitle">Backup dữ liệu</h2>
+        <div class="system-settings-actions">
+          <button id="systemExportEncryptedVault" class="system-settings-button" type="button">
+            <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v9h14v-9M12 16V4m-4 4 4-4 4 4"/></svg>
+            <span>Export data</span>
+          </button>
+          <button id="systemImportButton" class="system-settings-button" type="button">
+            <svg class="system-settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v9h14v-9M12 4v12m-4-4 4 4 4-4"/></svg>
+            <span>Import data</span>
+          </button>
+          <input id="systemImportInput" type="file" accept=".zip,application/zip,application/x-zip-compressed" hidden>
+        </div>
+      </section>
     </div>
   </article>
 </section>

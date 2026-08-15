@@ -1,6 +1,6 @@
 async function loadAppPartials() {
   const root = document.getElementById("appRoot");
-  const partialVersion = "2026-08-12-zk-vault-settings";
+  const partialVersion = "2026-08-15-app-info-v4";
   const partialVersions = {
     "events-tab": "2026-08-02-event-calendar-preview",
     "journals-tab": "2026-08-02-journal-filter-count"

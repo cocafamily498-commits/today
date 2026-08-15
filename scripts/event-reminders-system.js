@@ -4,6 +4,7 @@ const EVENT_PUSH_SYNC_SCHEMA_VERSION = "2";
 const EVENT_PUSH_SYNC_DIRTY_KEY = "homnay.eventPushSyncDirty";
 const EVENT_PUSH_SYNC_SCHEMA_KEY = "homnay.eventPushSyncSchema";
 const EVENT_PUSH_VAPID_CACHE_KEY = "homnay.eventPushVapidPublicKey";
+const EVENT_SYSTEM_REMINDER_ENABLED_KEY = "homnay.eventSystemReminderEnabled";
 const EVENT_PUSH_VAPID_CACHE_TTL = 24 * 60 * 60 * 1000;
 let eventSystemReminderListenersReady = false;
 let eventWebPushRecoveryPromise = null;
@@ -21,12 +22,18 @@ function setupEventSystemReminderControls() {
   buttons.filter((button) => button.dataset.eventSystemReminderReady !== "true").forEach((button) => {
     button.dataset.eventSystemReminderReady = "true";
     button.addEventListener("click", async () => {
+      if (eventSystemRemindersAreEnabled()) {
+        await disableEventSystemReminders();
+        refreshEventSystemReminderControls();
+        return;
+      }
       if ("Notification" in window && Notification.permission === "denied") {
         openNotificationBlockedDialog();
         return;
       }
 
       const permission = await requestEventSystemNotificationPermission();
+      if (permission === "granted") setEventSystemRemindersEnabled(true);
       updateEventSystemReminderButtons(buttons);
       if (permission === "granted") {
         const synced = await syncEventWebPushReminders();
@@ -68,24 +75,60 @@ function updateEventSystemReminderButtons(buttons, webPushSynced = true) {
 }
 
 function updateEventSystemReminderButton(button, webPushSynced = true) {
+  const status = document.getElementById("systemReminderStatus");
+  const action = button.querySelector("[data-reminder-action]") || button;
   if (!("Notification" in window)) {
-    button.textContent = "Không hỗ trợ nhắc hệ thống";
+    action.textContent = "Không hỗ trợ";
+    if (status) status.textContent = "Không được hỗ trợ";
     button.disabled = true;
     button.classList.remove("is-enabled", "is-warning");
     return;
   }
 
   const permission = Notification.permission;
+  const enabled = eventSystemRemindersAreEnabled();
   button.disabled = false;
-  button.classList.toggle("is-enabled", permission === "granted");
+  button.classList.toggle("is-enabled", enabled);
   button.classList.toggle("is-warning", permission === "denied");
-  if (permission === "granted") {
-    button.textContent = webPushSynced ? "Đã bật nhắc hệ thống" : "Chưa cấu hình Web Push";
+  if (permission === "granted" && enabled) {
+    action.textContent = "Tắt";
+    if (status) status.textContent = webPushSynced ? "Đang bật" : "Cần đồng bộ lại";
     button.classList.toggle("is-warning", !webPushSynced);
   } else if (permission === "denied") {
-    button.textContent = "Thông báo bị chặn";
+    action.textContent = "Mở";
+    if (status) status.textContent = "Đang bị trình duyệt chặn";
   } else {
-    button.textContent = "Bật nhắc hệ thống";
+    action.textContent = "Bật";
+    if (status) status.textContent = "Đang tắt";
+  }
+}
+
+function eventSystemRemindersAreEnabled() {
+  if (!("Notification" in window) || Notification.permission !== "granted") return false;
+  try {
+    return localStorage.getItem(EVENT_SYSTEM_REMINDER_ENABLED_KEY) !== "false";
+  } catch (error) {
+    return true;
+  }
+}
+
+function setEventSystemRemindersEnabled(enabled) {
+  try {
+    localStorage.setItem(EVENT_SYSTEM_REMINDER_ENABLED_KEY, enabled ? "true" : "false");
+  } catch (error) {
+    // The current browser session can still continue when storage is unavailable.
+  }
+}
+
+async function disableEventSystemReminders() {
+  setEventSystemRemindersEnabled(false);
+  try {
+    const registration = await getReadyServiceWorkerRegistration();
+    if (!registration || !registration.pushManager) return;
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) await subscription.unsubscribe();
+  } catch (error) {
+    console.error("disable web push reminders failed", error);
   }
 }
 
@@ -181,6 +224,7 @@ function needsEventWebPushRecovery() {
 }
 
 function recoverEventWebPushReminders() {
+  if (!eventSystemRemindersAreEnabled()) return Promise.resolve(true);
   if (!needsEventWebPushRecovery()) return Promise.resolve(true);
   if (eventWebPushRecoveryPromise) return eventWebPushRecoveryPromise;
   eventWebPushRecoveryPromise = syncEventWebPushReminders()
@@ -280,6 +324,7 @@ async function syncEventWebPushReminderPayloads(options = {}) {
 function canUseEventWebPushReminderSync() {
   return ("Notification" in window)
     && Notification.permission === "granted"
+    && eventSystemRemindersAreEnabled()
     && Boolean(window.LichVietData)
     && ("serviceWorker" in navigator)
     && ("PushManager" in window);

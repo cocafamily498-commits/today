@@ -207,6 +207,7 @@ function parseEventBackupJson(files, name) {
 function openEventBackupMessageDialog(title, message, buttonLabel = "Đóng") {
   const dialog = document.createElement("dialog");
   dialog.className = "event-backup-dialog";
+  dialog.setAttribute("closedby", "closerequest");
   dialog.innerHTML = `
     <div class="event-backup-content">
       <h2></h2>
@@ -219,7 +220,13 @@ function openEventBackupMessageDialog(title, message, buttonLabel = "Đóng") {
   dialog.querySelector("p").textContent = message;
   dialog.querySelector("button").textContent = buttonLabel;
   dialog.querySelector("button").addEventListener("click", () => dialog.close());
-  dialog.addEventListener("close", () => dialog.remove(), { once: true });
+  document.body.classList.add("event-dialog-open");
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+    if (!document.querySelector("dialog.event-backup-dialog[open], dialog.vault-settings-dialog[open]")) {
+      document.body.classList.remove("event-dialog-open");
+    }
+  }, { once: true });
   document.body.append(dialog);
   dialog.showModal();
 }
@@ -251,15 +258,21 @@ function parseEncryptedEventBackupZip(files) {
 
 function openBackupImportSourceDialog(fileInput) {
   const dialog = document.createElement("dialog");
-  dialog.className = "event-backup-dialog";
+  dialog.className = "event-backup-dialog vault-transfer-dialog";
+  dialog.setAttribute("closedby", "closerequest");
   dialog.innerHTML = `
     <div class="event-backup-content">
-      <h2>Khôi phục dữ liệu</h2>
-      <p>Chọn nơi chứa file sao lưu cần khôi phục.</p>
-      <div class="event-backup-dialog-actions">
-        <button class="event-secondary-button" type="button" data-cancel>Hủy</button>
-        <button class="event-secondary-button" type="button" data-drive>Google Drive</button>
-        <button class="event-submit" type="button" data-file>File trên thiết bị</button>
+      <header class="vault-transfer-header">
+        <h2>Khôi phục dữ liệu</h2>
+        <button class="vault-transfer-close" type="button" data-close aria-label="Đóng" title="Đóng">×</button>
+      </header>
+      <div class="vault-transfer-body">
+        <p>Chọn nơi chứa file sao lưu cần khôi phục.</p>
+        <div class="event-backup-dialog-actions">
+          <button class="event-secondary-button" type="button" data-cancel>Hủy</button>
+          <button class="event-secondary-button" type="button" data-drive>Google Drive</button>
+          <button class="event-submit" type="button" data-file>File trên thiết bị</button>
+        </div>
       </div>
     </div>`;
   const finish = (source) => {
@@ -267,10 +280,17 @@ function openBackupImportSourceDialog(fileInput) {
     if (source === "file") fileInput.click();
     if (source === "drive") importEventBackupFromGoogleDrive();
   };
+  dialog.querySelector("[data-close]").addEventListener("click", () => dialog.close());
   dialog.querySelector("[data-cancel]").addEventListener("click", () => dialog.close());
   dialog.querySelector("[data-file]").addEventListener("click", () => finish("file"));
   dialog.querySelector("[data-drive]").addEventListener("click", () => finish("drive"));
-  dialog.addEventListener("close", () => dialog.remove(), { once: true });
+  document.body.classList.add("event-dialog-open");
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+    if (!document.querySelector("dialog.event-backup-dialog[open], dialog.vault-settings-dialog[open]")) {
+      document.body.classList.remove("event-dialog-open");
+    }
+  }, { once: true });
   document.body.append(dialog);
   dialog.showModal();
 }
