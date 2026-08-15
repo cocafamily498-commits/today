@@ -24,6 +24,18 @@ async function rejects(action, message) {
     /Mật khẩu không đúng/,
     "current-password verification must not apply the new-password minimum length rule"
   );
+  const damagedRecoveryMeta = structuredClone(vault.meta);
+  new Uint8Array(damagedRecoveryMeta.recoveryWrappedDek.ciphertext)[0] ^= 1;
+  await assert.rejects(
+    () => zk.restoreWithRecovery(damagedRecoveryMeta, vault.phrase, "mat khau moi hop le"),
+    /24 từ Recovery không đúng/,
+    "recovery decryption failures must not expose Web Crypto errors"
+  );
+  await assert.rejects(
+    () => zk.restoreWithRecovery(vault.meta, "khong phai cum recovery hop le", "mat khau moi hop le"),
+    /24 từ Recovery không đúng/,
+    "invalid recovery phrases must use the same friendly error"
+  );
   await assert.rejects(
     () => zk.changePassword(vault.meta, "mat-khau-sai", "ngan", "khong-khop"),
     /Mật khẩu hiện tại không đúng/,

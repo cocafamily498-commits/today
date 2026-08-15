@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v245-modal-lock-shortcut";
+const CACHE_NAME = "homnay-pwa-v246-friendly-recovery-error";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -172,6 +172,7 @@ const APP_SHELL = [
   "/scripts/data/zk-crypto.js?v=9",
   "/scripts/data/zk-crypto.js?v=10",
   "/scripts/data/zk-crypto.js?v=11",
+  "/scripts/data/zk-crypto.js?v=12",
   "/scripts/data/zk-migration.js?v=1",
   "/scripts/data/zk-migration.js?v=2",
   "/scripts/data/zk-migration.js?v=3",

@@ -112,10 +112,17 @@
       candidate.fill(0); return different === 0;
     } catch { return false; }
   }
+  async function openRecoveryDekBytes(source, phrase) {
+    try {
+      const recoveryKek = await deriveRecoveryKek(phrase, source.recoveryKdf.salt);
+      return await openBytes(source.recoveryWrappedDek, recoveryKek, aad("recovery-wrapped-dek", { vaultId: source.vaultId }));
+    } catch {
+      throw new Error("24 từ Recovery không đúng.");
+    }
+  }
   async function restoreWithRecovery(meta, phrase, newPassword) {
     assertNewPassword(newPassword);
-    const recoveryKek = await deriveRecoveryKek(phrase, meta.recoveryKdf.salt);
-    const raw = await openBytes(meta.recoveryWrappedDek, recoveryKek, aad("recovery-wrapped-dek", { vaultId: meta.vaultId }));
+    const raw = await openRecoveryDekBytes(meta, phrase);
     const passwordKdf = { name: "Argon2id", timeCost: 3, memoryKiB: 65536, parallelism: 1, salt: webcrypto.getRandomValues(new Uint8Array(16)) };
     try {
       const [dek, passwordKek] = await Promise.all([importDek(raw), derivePasswordKek(newPassword, passwordKdf)]);
@@ -125,8 +132,7 @@
   }
   async function restoreFromRecoverySource(source, phrase, newPassword) {
     assertNewPassword(newPassword);
-    const recoveryKek = await deriveRecoveryKek(phrase, source.recoveryKdf.salt);
-    const raw = await openBytes(source.recoveryWrappedDek, recoveryKek, aad("recovery-wrapped-dek", { vaultId: source.vaultId }));
+    const raw = await openRecoveryDekBytes(source, phrase);
     const passwordKdf = { name: "Argon2id", timeCost: 3, memoryKiB: 65536, parallelism: 1, salt: webcrypto.getRandomValues(new Uint8Array(16)) };
     const verifierSalt = webcrypto.getRandomValues(new Uint8Array(16));
     try {
