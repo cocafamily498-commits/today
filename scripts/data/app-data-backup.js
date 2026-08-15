@@ -2,37 +2,8 @@
   "use strict";
 
   const parts = window.LichVietDataParts;
-  const { getAllFromStore, replaceStoreData, blobToDataUrl, dataUrlToBlob, nowIso, generateId, getMonthFromDate, setAppMeta,
+  const { replaceStoreData, dataUrlToBlob, nowIso, generateId, getMonthFromDate, setAppMeta,
     clearEventsReadCache } = parts;
-
-  async function exportBackup() {
-    const [events, journals, images, reminderDismissals, settings, appMeta] = await Promise.all([
-      getAllFromStore("events"),
-      getAllFromStore("journals"),
-      getAllFromStore("images"),
-      getAllFromStore("reminderDismissals"),
-      getAllFromStore("settings"),
-      getAllFromStore("appMeta")
-    ]);
-    const portableImages = await Promise.all(images.map(async (image) => ({
-      ...image,
-      blob: image.blob ? await blobToDataUrl(image.blob) : null
-    })));
-  
-    return {
-      manifest: {
-        format: "lichviet-backup",
-        version: 1,
-        exportedAt: nowIso()
-      },
-      events,
-      journals,
-      images: portableImages,
-      reminderDismissals,
-      settings,
-      appMeta
-    };
-  }
   
   async function importBackup(backup) {
     if (!backup || !backup.manifest || backup.manifest.format !== "lichviet-backup") {
@@ -65,5 +36,5 @@
   }
   
 
-  Object.assign(parts, { exportBackup, importBackup });
+  Object.assign(parts, { importBackup });
 })();

@@ -20,6 +20,11 @@ async function rejects(action, message) {
   assert.equal(unlocked.extractable, false);
   await rejects(() => zk.unlockPasswordVault(vault.meta, "mat-khau-sai"), "wrong vault password must fail");
   await assert.rejects(
+    () => zk.unlockPasswordVault(vault.meta, "ngan"),
+    /Mật khẩu không đúng/,
+    "current-password verification must not apply the new-password minimum length rule"
+  );
+  await assert.rejects(
     () => zk.changePassword(vault.meta, "mat-khau-sai", "ngan", "khong-khop"),
     /Mật khẩu hiện tại không đúng/,
     "current password error must take priority over invalid new password"

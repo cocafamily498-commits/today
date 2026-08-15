@@ -47,7 +47,7 @@
 
   async function derivePasswordKek(password, config) {
     assertCrypto();
-    if (typeof password !== "string" || password.length < 8) throw new Error("Mật khẩu cần có ít nhất 8 ký tự.");
+    if (typeof password !== "string") throw new Error("Mật khẩu không hợp lệ.");
     if (config && config.name === "PBKDF2-SHA-256") {
       if (!Number.isInteger(config.iterations) || config.iterations < 310000 || config.iterations > 2000000 || !(config.salt instanceof Uint8Array) || config.salt.byteLength !== 16) throw new Error("Thông số KDF không hợp lệ hoặc vượt giới hạn.");
       const material = await webcrypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]);
@@ -164,7 +164,9 @@
   async function enrollBiometric(meta, password) {
     if (!await supportsBiometric()) throw new Error("Thiết bị hoặc trình duyệt chưa hỗ trợ sinh trắc học PRF.");
     const passwordKek = await derivePasswordKek(password, meta.passwordKdf);
-    const raw = await openBytes(meta.passwordWrappedDek, passwordKek, aad("password-wrapped-dek", { vaultId: meta.vaultId }));
+    let raw;
+    try { raw = await openBytes(meta.passwordWrappedDek, passwordKek, aad("password-wrapped-dek", { vaultId: meta.vaultId })); }
+    catch { throw new Error("Mật khẩu hiện tại không đúng."); }
     const prfSalt = webcrypto.getRandomValues(new Uint8Array(32));
     try {
       const credential = await root.navigator.credentials.create({ publicKey: { challenge: webcrypto.getRandomValues(new Uint8Array(32)), rp: { name: "Sổ tay Lịch Việt" }, user: { id: encoder.encode(meta.vaultId), name: meta.vaultId, displayName: "Két dữ liệu local" }, pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { authenticatorAttachment: "platform", residentKey: "required", requireResidentKey: true, userVerification: "required" }, attestation: "none", timeout: 60000, extensions: { prf: { eval: { first: prfSalt } } } } });
@@ -203,7 +205,9 @@
   async function upgradeLegacyVaultRecovery(meta, password) {
     if (meta.recoveryWrappedDek) return { meta, dek: await unlockPasswordVault(meta, password), phrase: null };
     const passwordKek = await derivePasswordKek(password, meta.passwordKdf);
-    const raw = await openBytes(meta.passwordWrappedDek, passwordKek, aad("password-wrapped-dek", { vaultId: meta.vaultId }));
+    let raw;
+    try { raw = await openBytes(meta.passwordWrappedDek, passwordKek, aad("password-wrapped-dek", { vaultId: meta.vaultId })); }
+    catch { throw new Error("Mật khẩu không đúng."); }
     const library = await bip39(); const phrase = library.generateMnemonic(library.wordlist, 256);
     const verifierSalt = webcrypto.getRandomValues(new Uint8Array(16)); const wrapSalt = webcrypto.getRandomValues(new Uint8Array(16));
     const passwordKdf = { name: "Argon2id", timeCost: 3, memoryKiB: 65536, parallelism: 1, salt: webcrypto.getRandomValues(new Uint8Array(16)) };

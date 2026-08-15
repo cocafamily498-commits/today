@@ -158,6 +158,34 @@
     await transactionDone(tx);
   }
 
+  async function importEncryptedBackup(backup, sourceDek) {
+    if (!backup || typeof backup.vaultId !== "string" || !Array.isArray(backup.records)) {
+      throw new Error("File backup két mã hóa không hợp lệ.");
+    }
+    await window.LichVietZkBackup.verifyBackup(backup, sourceDek);
+    const plaintext = {
+      manifest: { format: "lichviet-backup", version: 1, exportedAt: backup.exportedAt || new Date().toISOString() },
+      events: [], journals: [], images: [], reminderDismissals: [], appMeta: [],
+      settings: backup.eventGroups == null ? [] : [{ key: "eventGroups", value: backup.eventGroups, updatedAt: new Date().toISOString() }]
+    };
+    const attachmentBytes = [];
+    try {
+      for (const record of backup.records) {
+        if (record.deleted === true) continue;
+        if (record.kind === "event") plaintext.events.push(await cryptoApi().decryptEvent(sourceDek, backup.vaultId, record));
+        else if (record.kind === "journal") plaintext.journals.push(await cryptoApi().decryptJournal(sourceDek, backup.vaultId, record));
+        else if (record.kind === "attachment") {
+          const opened = await cryptoApi().decryptAttachment(sourceDek, backup.vaultId, record);
+          attachmentBytes.push(opened.bytes);
+          plaintext.images.push({ ...opened, bytes: undefined, blob: new Blob([opened.bytes], { type: opened.mimeType }) });
+        } else throw new Error(`Backup chứa loại bản ghi không được hỗ trợ: ${record.kind}.`);
+      }
+      await importBackup(plaintext);
+    } finally {
+      attachmentBytes.forEach((bytes) => bytes.fill(0));
+    }
+  }
+
   function activate(database, vaultSession) {
     db = database;
     session = vaultSession;
@@ -165,7 +193,7 @@
     Object.assign(window.LichVietData, {
       createEvent, updateEvent, deleteEvent, getEvent, getAllEvents, getEventsByDate, getEventsByMonth, clearEventsReadCache() {},
       createJournal, updateJournal, getJournal, getJournalsByDate, deleteJournal, upsertJournalByDate, getJournalByDate, getAllJournals, deleteJournalByDate,
-      saveJournalImage, getImage, deleteImage, importBackup
+      saveJournalImage, getImage, deleteImage, importBackup, importEncryptedBackup
     });
     active = true;
   }

@@ -102,12 +102,18 @@ function setupApplicationInfo() {
   });
 
   const installButton = document.getElementById("systemInstallButton");
-  const exportButton = document.getElementById("systemExportButton");
+  const lockButton = document.getElementById("systemLockApp");
   const importButton = document.getElementById("systemImportButton");
   const importInput = document.getElementById("systemImportInput");
 
   if (installButton) installButton.addEventListener("click", handleInstallClick);
-  if (exportButton) exportButton.addEventListener("click", openBackupExplanationDialog);
+  if (lockButton) lockButton.addEventListener("click", () => window.LichVietVault?.lock());
+  document.addEventListener("keydown", (event) => {
+    if (event.repeat || !window.matchMedia("(min-width: 768px)").matches) return;
+    if (!event.ctrlKey || !event.shiftKey || event.altKey || event.metaKey || event.key.toLowerCase() !== "l") return;
+    event.preventDefault();
+    window.LichVietVault?.lock();
+  }, true);
   if (importButton && importInput) {
     importButton.addEventListener("click", () => importInput.click());
     importInput.addEventListener("change", async () => {

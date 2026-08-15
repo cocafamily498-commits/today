@@ -4,6 +4,9 @@
   let database = null;
   let gateKeydownHandler = null;
   let passwordEstimator = null;
+  const MAX_CURRENT_PASSWORD_ATTEMPTS = 5;
+  const CURRENT_PASSWORD_LOCK_MS = 10 * 60 * 1000;
+  const passwordAttemptFallback = new Map();
 
   const txDone = (tx) => new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error); });
   async function readMeta() { const tx = database.transaction("zk_vault_v1", "readonly"); return new Promise((resolve, reject) => { const request = tx.objectStore("zk_vault_v1").get("meta"); request.onsuccess = () => resolve(request.result || null); request.onerror = () => reject(request.error); }); }
@@ -35,6 +38,92 @@
   }
   const root = () => document.getElementById("appRoot");
   const status = (message = "") => { const node = document.getElementById("vaultGateStatus"); if (node) node.textContent = message; };
+  const passwordAttemptKey = (meta) => `lichviet:vault-password-attempts:${meta.vaultId}`;
+  function normalizePasswordAttemptState(value) {
+    if (!value || typeof value !== "object") return { attempts: 0, lockedUntil: 0 };
+    const attempts = Math.min(MAX_CURRENT_PASSWORD_ATTEMPTS, Math.max(0, Number(value.attempts) || 0));
+    const lockedUntil = Number(value.lockedUntil) || 0;
+    if (lockedUntil && lockedUntil <= Date.now()) return { attempts: 0, lockedUntil: 0 };
+    return { attempts, lockedUntil };
+  }
+  function currentPasswordAttemptState(meta) {
+    try {
+      const stored = localStorage.getItem(passwordAttemptKey(meta));
+      if (!stored) return normalizePasswordAttemptState(passwordAttemptFallback.get(meta.vaultId));
+      // Số thuần là dữ liệu từ bản cũ từng khóa vĩnh viễn; cho phép thử lại ngay.
+      if (!stored.trim().startsWith("{")) {
+        localStorage.removeItem(passwordAttemptKey(meta));
+        return { attempts: 0, lockedUntil: 0 };
+      }
+      const state = normalizePasswordAttemptState(JSON.parse(stored));
+      if (!state.attempts && !state.lockedUntil) localStorage.removeItem(passwordAttemptKey(meta));
+      return state;
+    } catch { return normalizePasswordAttemptState(passwordAttemptFallback.get(meta.vaultId)); }
+  }
+  function setCurrentPasswordAttemptState(meta, state) {
+    const normalized = normalizePasswordAttemptState(state);
+    passwordAttemptFallback.set(meta.vaultId, normalized);
+    try {
+      if (normalized.attempts || normalized.lockedUntil) localStorage.setItem(passwordAttemptKey(meta), JSON.stringify(normalized));
+      else localStorage.removeItem(passwordAttemptKey(meta));
+    } catch { /* Bộ đếm dự phòng vẫn có hiệu lực trong phiên hiện tại. */ }
+    return normalized;
+  }
+  const clearCurrentPasswordAttempts = (meta) => setCurrentPasswordAttemptState(meta, { attempts: 0, lockedUntil: 0 });
+  const currentPasswordRemaining = (meta) => MAX_CURRENT_PASSWORD_ATTEMPTS - currentPasswordAttemptState(meta).attempts;
+  const currentPasswordLocked = (meta) => currentPasswordAttemptState(meta).lockedUntil > Date.now();
+  function currentPasswordLockMessage(meta) {
+    const seconds = Math.max(0, Math.ceil((currentPasswordAttemptState(meta).lockedUntil - Date.now()) / 1000));
+    const minutes = Math.floor(seconds / 60);
+    return `Bạn đã nhập sai mật khẩu 5 lần. Vui lòng thử lại sau ${minutes}:${String(seconds % 60).padStart(2, "0")}.`;
+  }
+  function currentPasswordFailure(meta) {
+    const previous = currentPasswordAttemptState(meta);
+    const attempts = Math.min(MAX_CURRENT_PASSWORD_ATTEMPTS, previous.attempts + 1);
+    const remaining = MAX_CURRENT_PASSWORD_ATTEMPTS - attempts;
+    setCurrentPasswordAttemptState(meta, { attempts, lockedUntil: remaining === 0 ? Date.now() + CURRENT_PASSWORD_LOCK_MS : 0 });
+    const error = new Error(remaining > 0
+      ? `Mật khẩu không đúng. Bạn còn ${remaining} lần thử.`
+      : currentPasswordLockMessage(meta));
+    error.currentPasswordLocked = remaining === 0;
+    return error;
+  }
+  function disableCurrentPasswordForm(form) {
+    form.querySelectorAll('input[autocomplete="current-password"], .vault-password-toggle, button[type="submit"]').forEach((control) => { control.disabled = true; });
+  }
+  function enableCurrentPasswordForm(form) {
+    form.querySelectorAll('input[autocomplete="current-password"], .vault-password-toggle, button[type="submit"]').forEach((control) => { control.disabled = false; });
+  }
+  function watchCurrentPasswordLock(meta, form, showMessage) {
+    const update = () => {
+      if (!form.isConnected) { clearInterval(timer); return; }
+      if (currentPasswordLocked(meta)) { disableCurrentPasswordForm(form); showMessage(currentPasswordLockMessage(meta)); return; }
+      clearCurrentPasswordAttempts(meta);
+      enableCurrentPasswordForm(form);
+      showMessage("Bạn có thể thử nhập mật khẩu lại.");
+      form.querySelector('input[autocomplete="current-password"]')?.focus();
+      clearInterval(timer);
+    };
+    const timer = setInterval(update, 1000);
+    update();
+  }
+  async function runCurrentPasswordAction(meta, form, action) {
+    if (currentPasswordLocked(meta)) {
+      disableCurrentPasswordForm(form);
+      const error = new Error(currentPasswordLockMessage(meta));
+      error.currentPasswordLocked = true;
+      throw error;
+    }
+    try {
+      const result = await action();
+      clearCurrentPasswordAttempts(meta);
+      return result;
+    } catch (error) {
+      if (/mật khẩu (hiện tại )?không đúng/i.test(error?.message || "")) throw currentPasswordFailure(meta);
+      clearCurrentPasswordAttempts(meta);
+      throw error;
+    }
+  }
   function getPasswordEstimator() {
     if (passwordEstimator) return passwordEstimator;
     const core = window.zxcvbnts?.core;
@@ -86,10 +175,12 @@
       update();
     });
   }
-  async function finishSession(resolve) {
+  async function finishSession(resolve, options = {}) {
     if (!session?.dek || !window.LichVietZkRepository) throw new Error("Không thể kích hoạt kho dữ liệu mã hóa.");
-    status("Đang kiểm tra dữ liệu local cũ…");
-    await window.LichVietZkMigration.runMigration(database, session.dek, session.meta.vaultId, { batchSize: 20 });
+    if (options.migrateLegacy === true) {
+      status("Đang mã hóa dữ liệu cũ…");
+      await window.LichVietZkMigration.runMigration(database, session.dek, session.meta.vaultId, { batchSize: 20 });
+    }
     window.LichVietZkRepository.activate(database, session);
     resolve(session);
   }
@@ -99,7 +190,7 @@
       document.removeEventListener("keydown", gateKeydownHandler);
       gateKeydownHandler = null;
     }
-    root().innerHTML = `<section class="vault-gate${modifier ? ` ${modifier}` : ""}" aria-labelledby="vaultGateTitle"><div class="vault-gate-mark" aria-hidden="true">⌾</div><h1 id="vaultGateTitle">${title}</h1><p>${copy}</p>${content}<p id="vaultGateStatus" class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
+    root().innerHTML = `<section class="vault-gate${modifier ? ` ${modifier}` : ""}" aria-labelledby="vaultGateTitle"><div class="vault-gate-mark" aria-hidden="true">⌾</div><h1 id="vaultGateTitle">${title}</h1>${copy ? `<p>${copy}</p>` : ""}${content}<p id="vaultGateStatus" class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
     setupPasswordControls(root());
   }
   function firstUse(resolve) {
@@ -147,8 +238,8 @@
       "vault-gate-exited"
     );
   }
-  function passwordFields(confirm = true) {
-    return `${passwordInput({ id: "vaultPassword", name: "password", label: "Mật khẩu két", autocomplete: "new-password", isNew: true })}${confirm ? passwordInput({ id: "vaultPasswordConfirm", name: "passwordConfirm", label: "Nhập lại mật khẩu", autocomplete: "new-password" }) : ""}`;
+  function passwordFields(confirm = true, labels = {}) {
+    return `${passwordInput({ id: "vaultPassword", name: "password", label: labels.password || "Mật khẩu két", autocomplete: "new-password", isNew: true })}${confirm ? passwordInput({ id: "vaultPasswordConfirm", name: "passwordConfirm", label: labels.confirm || "Nhập lại mật khẩu", autocomplete: "new-password" }) : ""}`;
   }
   function renderCreate(resolve, options = {}) {
     const legacyUpgrade = options.legacyUpgrade === true;
@@ -169,9 +260,43 @@
     };
   }
   function renderRecovery(phrase, resolve, options = {}) {
-    const words = phrase.split(" ").map((word, index) => `<span><b>${String(index + 1).padStart(2, "0")}</b>${word}</span>`).join("");
-    shell("Lưu 24 từ recovery", "Chép và cất ở nơi an toàn. Ứng dụng không lưu cụm từ này và không thể cấp lại.", `<div class="recovery-grid">${words}</div><label class="vault-confirm"><input id="recoverySaved" type="checkbox"> Tôi đã chép và kiểm tra đủ 24 từ</label><div class="vault-row"><button id="copyRecovery" type="button">Sao chép</button><button id="finishRecovery" type="button" disabled>Tiếp tục</button></div><button id="recoveryBack" class="vault-link" type="button">Quay lại</button>`);
-    document.getElementById("copyRecovery").onclick = () => navigator.clipboard.writeText(phrase);
+    shell("Lưu 24 từ recovery", `<span class="vault-recovery-warning"><strong>Hãy sao chép và cất 24 từ dưới đây ở nơi an toàn.</strong> Ứng dụng không lưu và không thể cấp lại cụm từ Recovery này.<br><br><strong>Nếu bạn quên mật khẩu và đồng thời làm mất 24 từ Recovery, dữ liệu đã mã hóa sẽ không thể khôi phục bằng bất kỳ cách nào.</strong><br><br>24 từ Recovery chính là chìa khóa cuối cùng để khôi phục dữ liệu của bạn.</span>`, `<div class="vault-recovery-alert-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 6 59 54H5L32 6Z"/><path d="M32 22v16"/><circle cx="32" cy="46" r="2"/></svg></div><section class="recovery-card" aria-labelledby="recoveryCardTitle"><h2 id="recoveryCardTitle">24 từ Recovery</h2><p class="recovery-phrase">${phrase}</p></section><label class="vault-confirm"><input id="recoverySaved" type="checkbox"> Tôi đã chép và kiểm tra đủ 24 từ</label><div class="vault-row"><button id="copyRecovery" type="button">Sao chép</button><button id="finishRecovery" type="button" disabled>Tiếp tục</button></div><button id="recoveryBack" class="vault-link" type="button">Quay lại</button>`, "vault-gate-recovery");
+    let copyTooltipTimer = null;
+    let copyTooltip = null;
+    document.getElementById("copyRecovery").onclick = async (event) => {
+      const button = event.currentTarget;
+      try {
+        await navigator.clipboard.writeText(phrase);
+      } catch {
+        const fallback = document.createElement("textarea");
+        fallback.value = phrase;
+        fallback.setAttribute("readonly", "");
+        fallback.style.position = "fixed";
+        fallback.style.opacity = "0";
+        document.body.append(fallback);
+        fallback.select();
+        const copied = document.execCommand("copy");
+        fallback.remove();
+        if (!copied) { status("Không thể sao chép vào Clipboard."); return; }
+      }
+      button.setAttribute("aria-label", "Đã copy vào Clipboard");
+      copyTooltip?.remove();
+      clearTimeout(copyTooltipTimer);
+      const rect = button.getBoundingClientRect();
+      copyTooltip = document.createElement("div");
+      copyTooltip.className = "vault-copy-tooltip";
+      copyTooltip.setAttribute("role", "status");
+      copyTooltip.textContent = "Đã copy vào Clipboard";
+      copyTooltip.style.left = `${rect.left + rect.width / 2}px`;
+      copyTooltip.style.top = `${rect.top - 10}px`;
+      document.body.append(copyTooltip);
+      requestAnimationFrame(() => copyTooltip?.classList.add("is-visible"));
+      copyTooltipTimer = setTimeout(() => {
+        copyTooltip?.classList.remove("is-visible");
+        setTimeout(() => { copyTooltip?.remove(); copyTooltip = null; }, 180);
+        button.setAttribute("aria-label", "Sao chép 24 từ recovery");
+      }, 2200);
+    };
     document.getElementById("recoverySaved").onchange = (event) => { document.getElementById("finishRecovery").disabled = !event.target.checked; };
     document.getElementById("recoveryBack").onclick = async () => {
       try {
@@ -193,7 +318,7 @@
       try {
         status("Đang hoàn tất két và bảo vệ dữ liệu…");
         await writeMeta(session.meta);
-        await finishSession(resolve);
+        await finishSession(resolve, { migrateLegacy: options.legacyUpgrade === true });
       } catch (error) {
         status(error.message || "Không thể hoàn tất két an toàn.");
         button.disabled = false;
@@ -319,23 +444,33 @@
     await txDone(tx);
   }
   function renderLogin(meta, resolve) {
-    shell(meta.biometric ? "Mở két dữ liệu" : "Nhập mật khẩu", "Dữ liệu chỉ được giải mã trong phiên đang mở khóa.", `<form id="vaultGateForm">${passwordInput({ id: "vaultPassword", name: "password", label: "Mật khẩu két", autocomplete: "current-password", autofocus: true })}<button type="submit">Mở két</button></form>${meta.biometric ? `<button id="biometricLogin" type="button">Mở bằng sinh trắc học</button>` : ""}<button id="forgotVaultPassword" class="vault-link" type="button">Quên mật khẩu?</button>`);
-    document.getElementById("vaultGateForm").onsubmit = async (event) => {
+    shell(meta.biometric ? "Mở két dữ liệu" : "Nhập mật khẩu", "", `<form id="vaultGateForm">${passwordInput({ id: "vaultPassword", name: "password", label: "Mật khẩu két", autocomplete: "current-password", autofocus: true })}<button type="submit">Mở két</button></form>${meta.biometric ? `<button id="biometricLogin" type="button">Mở bằng sinh trắc học</button>` : ""}<button id="forgotVaultPassword" class="vault-link" type="button">Quên mật khẩu?</button>`);
+    const loginForm = document.getElementById("vaultGateForm");
+    if (currentPasswordLocked(meta)) {
+      disableCurrentPasswordForm(loginForm);
+      watchCurrentPasswordLock(meta, loginForm, status);
+    }
+    loginForm.onsubmit = async (event) => {
       event.preventDefault();
+      const form = event.currentTarget;
+      const submit = form.querySelector('button[type="submit"]');
+      submit.disabled = true;
       status("Đang mở khóa…");
-      const password = event.currentTarget.password.value;
+      const password = form.password.value;
       if (!meta.recoveryWrappedDek) {
         try {
-          const upgraded = await window.LichVietZkCrypto.upgradeLegacyVaultRecovery(meta, password);
+          const upgraded = await runCurrentPasswordAction(meta, form, () => window.LichVietZkCrypto.upgradeLegacyVaultRecovery(meta, password));
           session = { meta: upgraded.meta, dek: upgraded.dek };
           renderRecovery(upgraded.phrase, resolve, { previousMeta: meta });
-        } catch { status("Mật khẩu không đúng."); }
+        } catch (error) { form.password.value = ""; status(error.message); if (error.currentPasswordLocked) watchCurrentPasswordLock(meta, form, status); else { submit.disabled = false; form.password.focus(); } }
         return;
       }
       try {
-        session = { meta, dek: await window.LichVietZkCrypto.unlockPasswordVault(meta, password) };
-      } catch {
-        status("Mật khẩu không đúng.");
+        session = { meta, dek: await runCurrentPasswordAction(meta, form, () => window.LichVietZkCrypto.unlockPasswordVault(meta, password)) };
+      } catch (error) {
+        form.password.value = "";
+        status(error.message);
+        if (error.currentPasswordLocked) watchCurrentPasswordLock(meta, form, status); else { submit.disabled = false; form.password.focus(); }
         return;
       }
       try { await finishSession(resolve); }
@@ -345,9 +480,9 @@
     document.getElementById("forgotVaultPassword").onclick = () => renderForgot(meta, resolve);
   }
   function renderForgot(meta, resolve) {
-    shell("Đặt lại mật khẩu bằng recovery", "Nhập đúng 24 từ để bọc lại cùng DEK. Dữ liệu không bị mã hóa lại.", `<form id="vaultGateForm"><label for="vaultRecovery">24 từ recovery</label><textarea id="vaultRecovery" name="recovery" rows="5" required autofocus></textarea>${passwordFields()}<button type="submit">Đặt mật khẩu mới</button><button id="vaultBack" class="vault-link" type="button">Quay lại đăng nhập</button></form>`);
+    shell("Khôi phục mật khẩu bằng 24 từ Recovery", "Nhập đúng 24 từ Recovery đã được cấp khi tạo két. Sau khi xác minh thành công, bạn có thể đặt một mật khẩu mới để tiếp tục sử dụng dữ liệu của mình.", `<form id="vaultGateForm"><label for="vaultRecovery">24 từ Recovery</label><textarea id="vaultRecovery" name="recovery" rows="5" required autofocus></textarea>${passwordFields(true, { password: "Mật khẩu mới", confirm: "Nhập lại mật khẩu mới" })}<button type="submit">Đặt mật khẩu mới</button><button id="vaultBack" class="vault-link" type="button">Quay lại đăng nhập</button></form>`);
     document.getElementById("vaultBack").onclick = () => renderLogin(meta, resolve);
-    document.getElementById("vaultGateForm").onsubmit = async (event) => { event.preventDefault(); const form = event.currentTarget; try { if (form.password.value !== form.passwordConfirm.value) throw new Error("Hai mật khẩu chưa khớp."); status("Đang xác thực 24 từ…"); const restored = await window.LichVietZkCrypto.restoreWithRecovery(meta, form.recovery.value, form.password.value); await writeMeta(restored.meta); session = restored; await finishSession(resolve); } catch (error) { status(error.message); } };
+    document.getElementById("vaultGateForm").onsubmit = async (event) => { event.preventDefault(); const form = event.currentTarget; try { if (form.password.value !== form.passwordConfirm.value) throw new Error("Hai mật khẩu chưa khớp."); status("Đang xác thực 24 từ…"); const restored = await window.LichVietZkCrypto.restoreWithRecovery(meta, form.recovery.value, form.password.value); await writeMeta(restored.meta); clearCurrentPasswordAttempts(meta); session = restored; await finishSession(resolve); } catch (error) { status(error.message); } };
   }
   async function requireSession() {
     database = await window.LichVietData.openDatabase();
@@ -366,10 +501,10 @@
   function setupSystemControls() {
     const change = document.getElementById("systemChangeVaultPassword"); const biometric = document.getElementById("systemBiometricVault"); const encryptedBackup = document.getElementById("systemExportEncryptedVault"); if (!change || !biometric) return;
     biometric.textContent = session.meta.biometric ? "Tắt sinh trắc học" : "Bật sinh trắc học";
-    change.onclick = () => openSettingsDialog("Đổi mật khẩu két", `${passwordInput({ id: "vaultCurrentPassword", name: "current", label: "Mật khẩu hiện tại", autocomplete: "current-password" })}${passwordInput({ id: "vaultNewPassword", name: "password", label: "Mật khẩu mới", autocomplete: "new-password", isNew: true })}${passwordInput({ id: "vaultNewPasswordConfirm", name: "passwordConfirm", label: "Nhập lại mật khẩu mới", autocomplete: "new-password" })}`, async (form) => { const meta = await window.LichVietZkCrypto.changePassword(session.meta, form.current.value, form.password.value, form.passwordConfirm.value); await writeMeta(meta); session.meta = meta; }, { submitLabel: "Đổi mật khẩu", successMessage: "Đã đổi mật khẩu thành công.", noValidate: true });
+    change.onclick = () => openSettingsDialog("Đổi mật khẩu két", `${passwordInput({ id: "vaultCurrentPassword", name: "current", label: "Mật khẩu hiện tại", autocomplete: "current-password" })}${passwordInput({ id: "vaultNewPassword", name: "password", label: "Mật khẩu mới", autocomplete: "new-password", isNew: true })}${passwordInput({ id: "vaultNewPasswordConfirm", name: "passwordConfirm", label: "Nhập lại mật khẩu mới", autocomplete: "new-password" })}`, async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.changePassword(session.meta, form.current.value, form.password.value, form.passwordConfirm.value)); await writeMeta(meta); session.meta = meta; }, { submitLabel: "Đổi mật khẩu", successMessage: "Đã đổi mật khẩu thành công.", noValidate: true, currentPasswordMeta: session.meta });
     biometric.onclick = async () => {
       if (session.meta.biometric) { const meta = { ...session.meta }; delete meta.biometric; await writeMeta(meta); session.meta = meta; biometric.textContent = "Bật sinh trắc học"; return; }
-      openSettingsDialog("Bật sinh trắc học", passwordInput({ id: "vaultBiometricPassword", name: "current", label: "Mật khẩu hiện tại", autocomplete: "current-password" }), async (form) => { const meta = await window.LichVietZkCrypto.enrollBiometric(session.meta, form.current.value); await writeMeta(meta); session.meta = meta; biometric.textContent = "Tắt sinh trắc học"; });
+      openSettingsDialog("Bật sinh trắc học", passwordInput({ id: "vaultBiometricPassword", name: "current", label: "Mật khẩu hiện tại", autocomplete: "current-password" }), async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.enrollBiometric(session.meta, form.current.value)); await writeMeta(meta); session.meta = meta; biometric.textContent = "Tắt sinh trắc học"; }, { currentPasswordMeta: session.meta });
     };
     if (encryptedBackup) encryptedBackup.onclick = exportEncryptedBackup;
   }
@@ -475,7 +610,7 @@
     const dialog = document.createElement("dialog");
     dialog.className = "vault-settings-dialog";
     dialog.setAttribute("aria-labelledby", "vaultSettingsTitle");
-    dialog.innerHTML = `<form class="vault-settings-form"${options.noValidate ? " novalidate" : ""}><header class="vault-settings-header"><h2 id="vaultSettingsTitle">${title}</h2><button class="vault-settings-close" type="button" formnovalidate aria-label="Đóng" title="Đóng">×</button></header><div class="vault-settings-body"><div class="vault-settings-fields">${fields}</div><p class="vault-settings-status" role="alert" aria-live="polite"></p><div class="vault-settings-actions"><button class="vault-settings-cancel" type="button" formnovalidate>Hủy</button><button class="vault-settings-save" type="submit">${options.submitLabel || "Lưu thay đổi"}</button></div></div></form>`;
+    dialog.innerHTML = `<form class="vault-settings-form"${options.noValidate ? " novalidate" : ""}><header class="vault-settings-header"><h2 id="vaultSettingsTitle">${title}</h2><button class="vault-settings-close" type="button" formnovalidate aria-label="Đóng" title="Đóng">×</button></header><div class="vault-settings-body"><div class="vault-settings-fields">${fields}</div><p class="vault-settings-status" role="alert" aria-live="polite"></p><div class="vault-settings-actions"><button class="vault-settings-cancel" type="button" formnovalidate>Hủy</button><button class="vault-settings-save" type="submit">${options.submitLabel || "Đồng ý"}</button></div></div></form>`;
     document.body.append(dialog);
     setupPasswordControls(dialog);
     const form = dialog.querySelector("form");
@@ -488,7 +623,10 @@
     dialog.querySelector(".vault-settings-close").addEventListener("click", close, { capture: true });
     dialog.querySelector(".vault-settings-cancel").addEventListener("click", close, { capture: true });
     dialog.addEventListener("cancel", (event) => { event.preventDefault(); dialog.close("cancel"); });
-    form.onsubmit = async (event) => { event.preventDefault(); save.disabled = true; try { await action(form); dialog.close("success"); if (options.successMessage) openVaultMessageDialog(options.successMessage); } catch (error) { dialog.querySelector(".vault-settings-status").textContent = error.message; save.disabled = false; } };
+    if (options.currentPasswordMeta && currentPasswordLocked(options.currentPasswordMeta)) {
+      watchCurrentPasswordLock(options.currentPasswordMeta, form, (message) => { dialog.querySelector(".vault-settings-status").textContent = message; });
+    }
+    form.onsubmit = async (event) => { event.preventDefault(); save.disabled = true; try { await action(form); dialog.close("success"); if (options.successMessage) openVaultMessageDialog(options.successMessage); } catch (error) { dialog.querySelector(".vault-settings-status").textContent = error.message; if (error.currentPasswordLocked) watchCurrentPasswordLock(options.currentPasswordMeta, form, (message) => { dialog.querySelector(".vault-settings-status").textContent = message; }); else { form.querySelector('input[autocomplete="current-password"]')?.select(); save.disabled = false; } } };
     dialog.onclose = () => dialog.remove(); dialog.showModal();
     dialog.querySelector("input")?.focus();
   }
@@ -505,5 +643,48 @@
     dialog.showModal();
     dialog.querySelector(".vault-message-close").focus();
   }
-  window.LichVietVault = Object.freeze({ requireSession, getSession: () => session, setupSystemControls, lock: () => location.reload() });
+  function softLock() {
+    if (!session?.meta || document.querySelector(".vault-soft-lock-overlay")) return;
+    const app = root();
+    const previousFocus = document.activeElement;
+    const overlay = document.createElement("dialog");
+    overlay.className = "vault-soft-lock-overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-labelledby", "softLockTitle");
+    overlay.innerHTML = `<section class="vault-gate vault-soft-lock-panel"><div class="vault-gate-mark" aria-hidden="true">⌾</div><h1 id="softLockTitle">Ứng dụng đã khóa</h1><p>Nhập mật khẩu két để tiếp tục phiên đang làm việc.</p><form>${passwordInput({ id: "softLockPassword", name: "password", label: "Mật khẩu két", autocomplete: "current-password", autofocus: true })}<button type="submit">Mở khóa</button></form><p class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
+    document.body.append(overlay);
+    overlay.addEventListener("cancel", (event) => event.preventDefault());
+    overlay.showModal();
+    document.body.classList.add("vault-soft-locked");
+    app.inert = true;
+    app.setAttribute("aria-hidden", "true");
+    setupPasswordControls(overlay);
+    const form = overlay.querySelector("form");
+    const lockStatus = overlay.querySelector(".vault-gate-status");
+    const showLockStatus = (message) => { lockStatus.textContent = message; };
+    if (currentPasswordLocked(session.meta)) watchCurrentPasswordLock(session.meta, form, showLockStatus);
+    form.onsubmit = async (event) => {
+      event.preventDefault();
+      const submit = form.querySelector('button[type="submit"]');
+      submit.disabled = true;
+      showLockStatus("Đang mở khóa…");
+      try {
+        await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.unlockPasswordVault(session.meta, form.password.value));
+        overlay.close();
+        overlay.remove();
+        document.body.classList.remove("vault-soft-locked");
+        app.inert = false;
+        app.removeAttribute("aria-hidden");
+        previousFocus?.focus?.();
+      } catch (error) {
+        form.password.value = "";
+        showLockStatus(error.message);
+        if (error.currentPasswordLocked) watchCurrentPasswordLock(session.meta, form, showLockStatus);
+        else { submit.disabled = false; form.password.focus(); }
+      }
+    };
+    form.password.focus();
+  }
+  window.LichVietVault = Object.freeze({ requireSession, getSession: () => session, setupSystemControls, lock: softLock });
 })();

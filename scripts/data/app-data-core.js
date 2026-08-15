@@ -182,23 +182,10 @@
     });
   }
   
-  async function getAllFromStore(storeName) {
-    return withStore(storeName, "readonly", (store) => requestToPromise(store.getAll()));
-  }
-  
   async function replaceStoreData(storeName, records) {
     await withStore(storeName, "readwrite", (store) => {
       store.clear();
       records.forEach((record) => store.put(record));
-    });
-  }
-  
-  function blobToDataUrl(blob) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(blob);
     });
   }
   
@@ -218,6 +205,6 @@
   Object.assign(parts, {
     DB_NAME, DB_VERSION, EVENT_TYPES, CALENDARS, REPEAT_FREQUENCIES, DEFAULT_REMINDER_TIME,
     openDatabase, withStore, requestToPromise, generateId, nowIso, assertDate, getMonthFromDate,
-    getAllFromIndex, getAllFromStore, replaceStoreData, blobToDataUrl, dataUrlToBlob
+    getAllFromIndex, replaceStoreData, dataUrlToBlob
   });
 })();
