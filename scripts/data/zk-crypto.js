@@ -175,10 +175,17 @@
       return true;
     } catch { return false; }
   }
-  const biometricSupportMessage = () => "Trình duyệt chưa hỗ trợ WebAuthn PRF. Trên iPhone/iPad, hãy cập nhật lên iOS/iPadOS 18 trở lên và dùng Safari.";
+  const biometricSupportMessage = () => "Trình duyệt chưa hỗ trợ tính năng mở nhanh an toàn. Trên iPhone/iPad, hãy cập nhật lên iOS/iPadOS 18 trở lên và dùng Safari.";
+  function biometricOperationError(error) {
+    if (error?.name === "NotAllowedError" || error?.name === "AbortError") return new Error("Xác thực bằng khóa màn hình đã bị hủy hoặc hết thời gian. Hãy thử lại.");
+    if (error?.name === "SecurityError") return new Error("Không thể dùng khóa màn hình trên kết nối hoặc tên miền hiện tại.");
+    return error instanceof Error ? error : new Error("Không thể xác thực bằng khóa màn hình thiết bị.");
+  }
   function prfResult(credential) { return credential.getClientExtensionResults()?.prf?.results?.first; }
   async function biometricPrf(credentialId, salt) {
-    const credential = await root.navigator.credentials.get({ publicKey: { challenge: webcrypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{ type: "public-key", id: credentialId }], userVerification: "required", timeout: 60000, extensions: { prf: { eval: { first: salt } } } } });
+    let credential;
+    try { credential = await root.navigator.credentials.get({ publicKey: { challenge: webcrypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{ type: "public-key", id: credentialId }], userVerification: "required", timeout: 60000, extensions: { prf: { eval: { first: salt } } } } }); }
+    catch (error) { throw biometricOperationError(error); }
     const output = credential && prfResult(credential);
     if (!output || output.byteLength !== 32) throw new Error(biometricSupportMessage());
     return new Uint8Array(output);
@@ -191,7 +198,9 @@
     catch { throw new Error("Mật khẩu hiện tại không đúng."); }
     finally { if (verifiedDek) verifiedDek.fill(0); }
     const prfSalt = webcrypto.getRandomValues(new Uint8Array(32));
-    const credential = await root.navigator.credentials.create({ publicKey: { challenge: webcrypto.getRandomValues(new Uint8Array(32)), rp: { name: "Sổ tay Lịch Việt" }, user: { id: encoder.encode(meta.vaultId), name: meta.vaultId, displayName: "Két dữ liệu local" }, pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { authenticatorAttachment: "platform", residentKey: "required", requireResidentKey: true, userVerification: "required" }, attestation: "none", timeout: 60000, extensions: { prf: { eval: { first: prfSalt } } } } });
+    let credential;
+    try { credential = await root.navigator.credentials.create({ publicKey: { challenge: webcrypto.getRandomValues(new Uint8Array(32)), rp: { name: "Sổ tay Lịch Việt" }, user: { id: encoder.encode(meta.vaultId), name: meta.vaultId, displayName: "Két dữ liệu local" }, pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { authenticatorAttachment: "platform", residentKey: "required", requireResidentKey: true, userVerification: "required" }, attestation: "none", timeout: 60000, extensions: { prf: { eval: { first: prfSalt } } } } }); }
+    catch (error) { throw biometricOperationError(error); }
     if (!credential) throw new Error("Không tạo được khóa sinh trắc học.");
     const credentialId = new Uint8Array(credential.rawId);
     let output = prfResult(credential);

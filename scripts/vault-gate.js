@@ -190,7 +190,7 @@
       document.removeEventListener("keydown", gateKeydownHandler);
       gateKeydownHandler = null;
     }
-    root().innerHTML = `<section class="vault-gate${modifier ? ` ${modifier}` : ""}" aria-labelledby="vaultGateTitle"><div class="vault-gate-mark" aria-hidden="true">⌾</div><h1 id="vaultGateTitle">${title}</h1>${copy ? `<p>${copy}</p>` : ""}${content}<p id="vaultGateStatus" class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
+    root().innerHTML = `<section class="vault-gate${modifier ? ` ${modifier}` : ""}" aria-labelledby="vaultGateTitle"><div class="vault-gate-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="16" cy="20" r="8"/><path d="M22 26 38 42M31 35l5-5M36 40l5-5"/></svg></div><h1 id="vaultGateTitle">${title}</h1>${copy ? `<p>${copy}</p>` : ""}${content}<p id="vaultGateStatus" class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
     setupPasswordControls(root());
   }
   function firstUse(resolve) {
@@ -205,12 +205,13 @@
     const dialog = document.createElement("dialog");
     dialog.id = "vaultGettingStartedGuide";
     dialog.className = "vault-guide-dialog";
-    dialog.innerHTML = `<article class="vault-guide-content"><header><h2>Hướng dẫn bắt đầu</h2></header><div class="vault-guide-body">
+    dialog.innerHTML = `<article class="vault-guide-content"><header><h2>Hướng dẫn sử dụng Két bảo mật</h2></header><div class="vault-guide-body">
       <p>Ứng dụng sử dụng <strong>Két bảo mật</strong> để bảo vệ dữ liệu cá nhân của bạn. Dữ liệu trong Két được mã hóa ngay trên thiết bị theo mô hình <strong>Zero-Knowledge</strong>.</p>
       <p>Điều này có nghĩa là dữ liệu của bạn chỉ có thể được đọc sau khi Két được mở đúng cách. Ứng dụng và nhà phát triển không lưu mật khẩu, 24 từ Recovery hoặc khóa giải mã dữ liệu của bạn.</p>
       <h2>Tạo két mới</h2><p>Chọn <strong>Tạo két mới</strong> nếu đây là lần đầu bạn thiết lập Két bảo mật trên thiết bị này.</p><p>Ứng dụng sẽ thực hiện các bước sau:</p>
       <ol><li>Bạn tạo một mật khẩu dùng để mở Két.</li><li>Ứng dụng tạo khóa mã hóa dữ liệu riêng cho Két.</li><li>Bạn được cấp <strong>24 từ Recovery</strong>.</li><li>Dữ liệu hiện có trên thiết bị được chuyển sang dạng mã hóa.</li><li>Từ lần sử dụng tiếp theo, bạn cần mở Két trước khi truy cập dữ liệu cá nhân.</li></ol>
       <h3>Mật khẩu Két dùng để làm gì?</h3><p>Mật khẩu giúp bạn mở Két nhanh chóng trên thiết bị đang sử dụng.</p><p>Bạn có thể thay đổi mật khẩu sau này mà không cần tạo lại dữ liệu đã mã hóa.</p><p>Nên dùng một mật khẩu hoặc cụm từ:</p><ul><li>đủ dài;</li><li>dễ nhớ đối với bạn nhưng khó đoán đối với người khác;</li><li>không dùng lại mật khẩu của các tài khoản quan trọng khác.</li></ul>
+      <h2>Mở nhanh bằng khóa màn hình thiết bị</h2><p>Sau khi mở Két bằng mật khẩu, bạn có thể vào <strong>Cài đặt ứng dụng → Cấu hình</strong> và bật <strong>Mở nhanh bằng khóa màn hình thiết bị</strong>.</p><p>Khi tính năng này được bật, bạn có thể dùng vân tay, khuôn mặt, PIN, hình vẽ hoặc mật mã do hệ điều hành cung cấp để mở nhanh ứng dụng.</p><ol><li>Chọn <strong>Bật</strong> tại mục mở nhanh.</li><li>Nhập <strong>mật khẩu Két hiện tại</strong> trong cửa sổ của ứng dụng.</li><li>Chọn <strong>Tiếp tục đến khóa màn hình</strong>.</li><li>Xác thực trong cửa sổ của hệ điều hành.</li><li>Ở lần đăng nhập hoặc khi ứng dụng tự khóa, chọn <strong>Dùng khóa màn hình thiết bị</strong>.</li></ol><p><strong>Lưu ý:</strong> Nếu cửa sổ hệ điều hành yêu cầu PIN, hình vẽ hoặc mật mã, hãy nhập mã mở khóa thiết bị — <strong>không nhập mật khẩu Két</strong>.</p><p>Tính năng này chỉ bảo vệ và điền mật khẩu Két; nó không thay thế mật khẩu Két hoặc 24 từ Recovery. Sau khi đổi hay khôi phục mật khẩu Két, bạn cần bật lại mở nhanh. Tùy chọn chỉ xuất hiện trên trình duyệt và thiết bị tương thích.</p>
       <h3>24 từ Recovery dùng để làm gì?</h3><p>24 từ Recovery là <strong>chìa khóa khôi phục cuối cùng</strong> của Két.</p><p>Bạn cần 24 từ này khi:</p><ul><li>quên mật khẩu Két;</li><li>chuyển dữ liệu sang thiết bị khác;</li><li>cài lại ứng dụng hoặc mất dữ liệu cục bộ nhưng vẫn còn file Backup mã hóa.</li></ul><p>Ứng dụng <strong>không lưu và không thể cấp lại</strong> 24 từ Recovery.</p><p><strong>Nếu bạn quên mật khẩu và đồng thời làm mất 24 từ Recovery, dữ liệu đã mã hóa sẽ không thể khôi phục.</strong></p><p>Hãy sao chép đủ 24 từ, giữ đúng thứ tự và cất ở nơi an toàn.</p><p>Không nên:</p><ul><li>chụp ảnh rồi để trong thư viện ảnh không được bảo vệ;</li><li>gửi 24 từ qua email, tin nhắn hoặc mạng xã hội;</li><li>lưu 24 từ cùng một nơi với file Backup mã hóa nếu có thể tránh được;</li><li>cung cấp 24 từ cho bất kỳ ai.</li></ul>
       <h2>Chuyển từ thiết bị khác</h2><p>Chọn <strong>Chuyển từ thiết bị khác</strong> nếu bạn đã có Két bảo mật trên một thiết bị khác và muốn tiếp tục sử dụng dữ liệu đó trên thiết bị hiện tại.</p><p>Bạn cần chuẩn bị:</p><ul><li><strong>file Backup đã mã hóa</strong> được xuất từ Két cũ;</li><li>đúng <strong>24 từ Recovery</strong> của Két đó.</li></ul><p>Ứng dụng sẽ dùng 24 từ Recovery để khôi phục khóa giải mã của Két và kiểm tra file Backup.</p><p>Nếu dữ liệu hợp lệ, bạn có thể đặt một <strong>mật khẩu mới cho thiết bị hiện tại</strong>.</p><p>Mật khẩu trên thiết bị mới không bắt buộc phải giống mật khẩu cũ. Dữ liệu vẫn thuộc cùng một Két vì khóa mã hóa dữ liệu được khôi phục từ 24 từ Recovery.</p>
       <h2>Backup dữ liệu</h2><p>Dữ liệu của Két được lưu cục bộ trên thiết bị và không tự động gửi lên cloud.</p><p>Bạn nên định kỳ sử dụng chức năng <strong>Backup dữ liệu</strong> trong <strong>Cài đặt/Hệ thống</strong> để tạo một bản sao lưu mã hóa.</p><p>File Backup vẫn ở trạng thái mã hóa. Người có file Backup nhưng không có khóa khôi phục phù hợp sẽ không thể đọc nội dung bên trong.</p><p>Khi cần sao lưu hoặc chuyển dữ liệu sang thiết bị khác, hãy sử dụng chức năng <strong>Backup dữ liệu trong Cài đặt/Hệ thống</strong>.</p>
@@ -228,7 +229,7 @@
     shell(
       "Dữ liệu của bạn cần được bảo vệ",
       "Ứng dụng phát hiện dữ liệu được tạo bởi phiên bản cũ và chưa được mã hóa. Hãy tạo két để ứng dụng mã hóa, xác minh và bảo vệ dữ liệu hiện có của bạn.",
-      `<div class="vault-legacy-actions"><div class="vault-legacy-notice"><strong>Nâng cấp an toàn</strong><span>Không đóng ứng dụng trong lúc nâng cấp. Dữ liệu cũ chỉ bị xóa sau khi bản mã hóa đã được kiểm tra thành công.</span></div><button id="confirmLegacyUpgrade" type="button">Ok, Tạo két mới</button><button id="legacyUpgradeGuide" class="vault-legacy-guide" type="button"><strong>ⓘ Hướng dẫn</strong><span>Tìm hiểu cách hoạt động của Két bảo mật, mật khẩu, 24 từ Recovery, Backup và cách khôi phục dữ liệu.</span></button></div>`,
+      `<div class="vault-legacy-actions"><div class="vault-legacy-notice"><strong>Nâng cấp an toàn</strong><span>Vui lòng giữ ứng dụng mở trong lúc nâng cấp. Dữ liệu của bạn được giữ nguyên và chỉ chuyển sang trạng thái được bảo vệ sau khi bản mã hóa đã được kiểm tra thành công.</span></div><button id="confirmLegacyUpgrade" type="button">Ok, Bảo vệ dữ liệu</button><button id="legacyUpgradeGuide" class="vault-legacy-guide" type="button"><strong>ⓘ Hướng dẫn</strong><span>Tìm hiểu cách hoạt động của Két bảo mật, mật khẩu, 24 từ Recovery, Backup và cách khôi phục dữ liệu.</span></button></div>`,
       "vault-gate-legacy"
     );
     const panel = root().querySelector(".vault-gate-legacy");
@@ -546,10 +547,10 @@
     biometric.onclick = async () => {
       if (session.meta.biometric) { const meta = { ...session.meta }; delete meta.biometric; await writeMeta(meta); session.meta = meta; setBiometricLabel(false); return; }
       if (!await window.LichVietZkCrypto.supportsBiometric()) {
-        openVaultMessageDialog("Trình duyệt chưa hỗ trợ WebAuthn PRF. Trên iPhone/iPad, hãy cập nhật lên iOS/iPadOS 18 trở lên và dùng Safari.");
+        openVaultMessageDialog("Trình duyệt chưa hỗ trợ tính năng mở nhanh an toàn. Trên iPhone/iPad, hãy cập nhật lên iOS/iPadOS 18 trở lên và dùng Safari.");
         return;
       }
-      openSettingsDialog("Bật mở nhanh bằng khóa màn hình", `<p class="vault-field-help">Bước này cần mật khẩu két. Ở màn hình Android kế tiếp, nếu chọn “Dùng mật mã”, hãy nhập PIN, hình vẽ hoặc mật mã mở khóa điện thoại — không nhập mật khẩu két.</p>${passwordInput({ id: "vaultBiometricPassword", name: "current", label: "Mật khẩu két hiện tại", autocomplete: "current-password" })}`, async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.enrollBiometric(session.meta, form.current.value)); await writeMeta(meta); session.meta = meta; setBiometricLabel(true); }, { submitLabel: "Tiếp tục đến khóa màn hình", currentPasswordMeta: session.meta });
+      openSettingsDialog("Bật mở nhanh bằng khóa màn hình", `<p class="vault-field-help">Bước này cần mật khẩu két. Ở màn hình hệ điều hành kế tiếp, nếu chọn dùng PIN, hình vẽ hoặc mật mã, hãy nhập mã mở khóa thiết bị — không nhập mật khẩu két.</p>${passwordInput({ id: "vaultBiometricPassword", name: "current", label: "Mật khẩu két hiện tại", autocomplete: "current-password" })}`, async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.enrollBiometric(session.meta, form.current.value)); await writeMeta(meta); session.meta = meta; setBiometricLabel(true); }, { submitLabel: "Tiếp tục đến khóa màn hình", currentPasswordMeta: session.meta });
     };
     if (encryptedBackup) encryptedBackup.onclick = exportEncryptedBackup;
   }
@@ -721,7 +722,7 @@
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
     overlay.setAttribute("aria-labelledby", "softLockTitle");
-    overlay.innerHTML = `<section class="vault-gate vault-soft-lock-panel"><div class="vault-gate-mark" aria-hidden="true">⌾</div><h1 id="softLockTitle">Ứng dụng đã khóa</h1><p>${biometricEnabled ? "Dùng khóa màn hình thiết bị hoặc nhập mật khẩu két để tiếp tục phiên đang làm việc." : "Nhập mật khẩu két để tiếp tục phiên đang làm việc."}</p><form>${passwordInput({ id: "softLockPassword", name: "password", label: "Mật khẩu két", autocomplete: "current-password", autofocus: !biometricEnabled })}<button type="submit">Mở khóa</button></form>${biometricEnabled ? `<button id="softLockBiometric" type="button">Dùng khóa màn hình thiết bị</button><small class="vault-field-help">Mã Android yêu cầu là mã mở khóa điện thoại, không phải mật khẩu két.</small>` : ""}<p class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
+    overlay.innerHTML = `<section class="vault-gate vault-soft-lock-panel"><div class="vault-gate-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="16" cy="20" r="8"/><path d="M22 26 38 42M31 35l5-5M36 40l5-5"/></svg></div><h1 id="softLockTitle">Ứng dụng đã khóa</h1><p>${biometricEnabled ? "Dùng khóa màn hình thiết bị hoặc nhập mật khẩu két để tiếp tục phiên đang làm việc." : "Nhập mật khẩu két để tiếp tục phiên đang làm việc."}</p><form>${passwordInput({ id: "softLockPassword", name: "password", label: "Mật khẩu két", autocomplete: "current-password", autofocus: !biometricEnabled })}<button type="submit">Mở khóa</button></form>${biometricEnabled ? `<button id="softLockBiometric" type="button">Dùng khóa màn hình thiết bị</button><small class="vault-field-help">Mã Android yêu cầu là mã mở khóa điện thoại, không phải mật khẩu két.</small>` : ""}<p class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
     document.body.append(overlay);
     overlay.addEventListener("cancel", (event) => event.preventDefault());
     overlay.showModal();
@@ -773,5 +774,5 @@
       biometric.focus();
     } else form.password.focus();
   }
-  window.LichVietVault = Object.freeze({ requireSession, getSession: () => session, setupSystemControls, lock: softLock });
+  window.LichVietVault = Object.freeze({ requireSession, getSession: () => session, setupSystemControls, lock: softLock, openGuide: openVaultGettingStartedGuide });
 })();

@@ -104,11 +104,13 @@ function setupApplicationInfo() {
 
   const installButton = document.getElementById("systemInstallButton");
   const lockButton = document.getElementById("systemLockApp");
+  const vaultGuideButton = document.getElementById("appInfoVaultGuide");
   const importButton = document.getElementById("systemImportButton");
   const importInput = document.getElementById("systemImportInput");
 
   if (installButton) installButton.addEventListener("click", handleInstallClick);
   if (lockButton) lockButton.addEventListener("click", () => window.LichVietVault?.lock());
+  if (vaultGuideButton) vaultGuideButton.addEventListener("click", () => window.LichVietVault?.openGuide());
   document.addEventListener("keydown", (event) => {
     if (event.repeat || !window.matchMedia("(min-width: 768px)").matches) return;
     if (!event.ctrlKey || !event.shiftKey || event.altKey || event.metaKey || event.key.toLowerCase() !== "l") return;

@@ -95,7 +95,8 @@ body {
   background: #fff;
   box-shadow: var(--shadow);
 }
-.vault-gate-mark { color: var(--red-dark); font-size: 2.7rem; text-align: center; }
+.vault-gate-mark { display: grid; color: var(--red-dark); place-items: center; }
+.vault-gate-mark svg { width: 46px; height: 46px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .vault-gate h1 { margin: 4px 0 10px; color: var(--red-dark); font-size: 1.45rem; text-align: center; }
 .vault-gate > p { margin: 0 0 24px; color: var(--muted); line-height: 1.55; text-align: center; }
 .vault-recovery-warning {
@@ -197,6 +198,10 @@ body {
 .vault-link { color: var(--red-dark) !important; background: transparent !important; text-decoration: underline; }
 .vault-gate textarea { width: 100%; padding: 10px 12px; font: inherit; border: 1px solid #aebdcb; border-radius: 7px; resize: vertical; }
 .vault-field-help { margin: -4px 0 5px; color: #725500; font-size: .74rem; line-height: 1.4; }
+.vault-gate > #biometricLogin,
+.vault-gate > #softLockBiometric { display: block; width: 100%; margin-top: 10px; padding: 10px 14px; white-space: normal; }
+.vault-gate > #biometricLogin + .vault-field-help,
+.vault-gate > #softLockBiometric + .vault-field-help { display: block; margin: 7px 0 12px; text-align: left; }
 .vault-backup-field { display: grid; gap: 9px; }
 .vault-backup-label { color: #273b50; font-size: .84rem; font-weight: 750; }
 .vault-backup-sources { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -222,6 +227,7 @@ body {
 .recovery-phrase { margin: 0; color: #273b50; font: inherit; line-height: 1.75; overflow-wrap: anywhere; }
 .vault-confirm { display: flex !important; align-items: center; gap: 8px; }
 .vault-confirm input { width: auto; min-height: auto; }
+.vault-gate-recovery .vault-confirm { margin-bottom: 16px; }
 .vault-row { display: flex; gap: 10px; }
 .vault-row > * { flex: 1; }
 .vault-recovery-alert-icon { display: none; }
@@ -426,6 +432,27 @@ body.app-info-modal-open { overflow: hidden; }
   border-radius: 4px;
   background: #edf3f8;
   font-size: .78rem;
+}
+
+.app-info-learn-more {
+  display: block;
+  min-height: 38px;
+  margin: 16px 0 0 auto;
+  padding: 8px 15px;
+  color: var(--red-dark);
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 800;
+  border: 1px solid #b8c7d8;
+  border-radius: 6px;
+  background: #f7fafc;
+  cursor: pointer;
+}
+
+.app-info-learn-more:hover,
+.app-info-learn-more:focus-visible {
+  background: #eaf0f6;
+  outline: 2px solid rgba(18, 52, 90, .14);
 }
 
 .app-info-close {
