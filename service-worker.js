@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v255-vault-getting-started-guide";
+const CACHE_NAME = "homnay-pwa-v259-device-lock-copy";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -182,6 +182,8 @@ const APP_SHELL = [
   "/scripts/data/zk-crypto.js?v=10",
   "/scripts/data/zk-crypto.js?v=11",
   "/scripts/data/zk-crypto.js?v=12",
+  "/scripts/data/zk-crypto.js?v=13",
+  "/scripts/data/zk-crypto.js?v=14",
   "/scripts/data/zk-migration.js?v=1",
   "/scripts/data/zk-migration.js?v=2",
   "/scripts/data/zk-migration.js?v=3",
@@ -242,6 +244,10 @@ const APP_SHELL = [
   "/scripts/vault-gate.js?v=48",
   "/scripts/vault-gate.js?v=49",
   "/scripts/vault-gate.js?v=50",
+  "/scripts/vault-gate.js?v=51",
+  "/scripts/vault-gate.js?v=52",
+  "/scripts/vault-gate.js?v=53",
+  "/scripts/vault-gate.js?v=54",
   "/node_modules/@zxcvbn-ts/core/dist/zxcvbn-ts.js",
   "/node_modules/@zxcvbn-ts/language-common/dist/zxcvbn-ts.js",
   "/scripts/data/app-data-events.js",

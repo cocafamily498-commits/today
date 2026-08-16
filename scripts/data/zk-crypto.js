@@ -127,7 +127,9 @@
     try {
       const [dek, passwordKek] = await Promise.all([importDek(raw), derivePasswordKek(newPassword, passwordKdf)]);
       const passwordWrappedDek = await seal(raw, passwordKek, aad("password-wrapped-dek", { vaultId: meta.vaultId }));
-      return { dek, meta: { ...meta, passwordKdf, passwordWrappedDek, updatedAt: new Date().toISOString() } };
+      const restoredMeta = { ...meta, passwordKdf, passwordWrappedDek, updatedAt: new Date().toISOString() };
+      delete restoredMeta.biometric;
+      return { dek, meta: restoredMeta };
     } finally { raw.fill(0); }
   }
   async function restoreFromRecoverySource(source, phrase, newPassword) {
@@ -153,47 +155,62 @@
       assertNewPassword(newPassword);
       if (newPasswordConfirm !== undefined && newPassword !== newPasswordConfirm) throw new Error("Hai mật khẩu mới chưa khớp.");
       const newKek = await derivePasswordKek(newPassword, passwordKdf);
-      return { ...meta, passwordKdf, passwordWrappedDek: await seal(raw, newKek, aad("password-wrapped-dek", { vaultId: meta.vaultId })), updatedAt: new Date().toISOString() };
+      const changedMeta = { ...meta, passwordKdf, passwordWrappedDek: await seal(raw, newKek, aad("password-wrapped-dek", { vaultId: meta.vaultId })), updatedAt: new Date().toISOString() };
+      // The biometric wrapper protects the old password, so changing the password
+      // deliberately disables it until the user enrolls again.
+      delete changedMeta.biometric;
+      return changedMeta;
     } finally { raw.fill(0); }
   }
   async function supportsBiometric() {
     if (!root.isSecureContext || !root.PublicKeyCredential || !root.navigator?.credentials) return false;
-    try { return await root.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); } catch { return false; }
+    try {
+      if (!await root.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) return false;
+      if (typeof root.PublicKeyCredential.getClientCapabilities === "function") {
+        const capabilities = await root.PublicKeyCredential.getClientCapabilities();
+        return capabilities?.["extension:prf"] === true;
+      }
+      // Older clients cannot advertise extension support, so enrollment remains
+      // the final capability probe.
+      return true;
+    } catch { return false; }
   }
+  const biometricSupportMessage = () => "Trình duyệt chưa hỗ trợ WebAuthn PRF. Trên iPhone/iPad, hãy cập nhật lên iOS/iPadOS 18 trở lên và dùng Safari.";
   function prfResult(credential) { return credential.getClientExtensionResults()?.prf?.results?.first; }
   async function biometricPrf(credentialId, salt) {
     const credential = await root.navigator.credentials.get({ publicKey: { challenge: webcrypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{ type: "public-key", id: credentialId }], userVerification: "required", timeout: 60000, extensions: { prf: { eval: { first: salt } } } } });
     const output = credential && prfResult(credential);
-    if (!output || output.byteLength !== 32) throw new Error("Thiết bị không hỗ trợ WebAuthn PRF.");
+    if (!output || output.byteLength !== 32) throw new Error(biometricSupportMessage());
     return new Uint8Array(output);
   }
   async function enrollBiometric(meta, password) {
-    if (!await supportsBiometric()) throw new Error("Thiết bị hoặc trình duyệt chưa hỗ trợ sinh trắc học PRF.");
+    if (!await supportsBiometric()) throw new Error(biometricSupportMessage());
     const passwordKek = await derivePasswordKek(password, meta.passwordKdf);
-    let raw;
-    try { raw = await openBytes(meta.passwordWrappedDek, passwordKek, aad("password-wrapped-dek", { vaultId: meta.vaultId })); }
+    let verifiedDek;
+    try { verifiedDek = await openBytes(meta.passwordWrappedDek, passwordKek, aad("password-wrapped-dek", { vaultId: meta.vaultId })); }
     catch { throw new Error("Mật khẩu hiện tại không đúng."); }
+    finally { if (verifiedDek) verifiedDek.fill(0); }
     const prfSalt = webcrypto.getRandomValues(new Uint8Array(32));
-    try {
-      const credential = await root.navigator.credentials.create({ publicKey: { challenge: webcrypto.getRandomValues(new Uint8Array(32)), rp: { name: "Sổ tay Lịch Việt" }, user: { id: encoder.encode(meta.vaultId), name: meta.vaultId, displayName: "Két dữ liệu local" }, pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { authenticatorAttachment: "platform", residentKey: "required", requireResidentKey: true, userVerification: "required" }, attestation: "none", timeout: 60000, extensions: { prf: { eval: { first: prfSalt } } } } });
-      if (!credential) throw new Error("Không tạo được khóa sinh trắc học.");
-      const credentialId = new Uint8Array(credential.rawId);
-      let output = prfResult(credential);
-      output = output ? new Uint8Array(output) : await biometricPrf(credentialId, prfSalt);
-      try {
-        const kek = await importDek(output);
-        return { ...meta, biometric: { version: 1, credentialId, prfSalt, wrappedDek: await seal(raw, kek, aad("biometric-wrapped-dek", { vaultId: meta.vaultId })) }, updatedAt: new Date().toISOString() };
-      } finally { output.fill(0); }
-    } finally { raw.fill(0); }
-  }
-  async function unlockBiometric(meta) {
-    if (!meta.biometric) throw new Error("Két chưa bật sinh trắc học.");
-    const output = await biometricPrf(meta.biometric.credentialId, meta.biometric.prfSalt);
+    const credential = await root.navigator.credentials.create({ publicKey: { challenge: webcrypto.getRandomValues(new Uint8Array(32)), rp: { name: "Sổ tay Lịch Việt" }, user: { id: encoder.encode(meta.vaultId), name: meta.vaultId, displayName: "Két dữ liệu local" }, pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }], authenticatorSelection: { authenticatorAttachment: "platform", residentKey: "required", requireResidentKey: true, userVerification: "required" }, attestation: "none", timeout: 60000, extensions: { prf: { eval: { first: prfSalt } } } } });
+    if (!credential) throw new Error("Không tạo được khóa sinh trắc học.");
+    const credentialId = new Uint8Array(credential.rawId);
+    let output = prfResult(credential);
+    output = output ? new Uint8Array(output) : await biometricPrf(credentialId, prfSalt);
+    const passwordBytes = encoder.encode(password);
     try {
       const kek = await importDek(output);
-      const raw = await openBytes(meta.biometric.wrappedDek, kek, aad("biometric-wrapped-dek", { vaultId: meta.vaultId }));
-      try { return await importDek(raw); } finally { raw.fill(0); }
-    } finally { output.fill(0); }
+      return { ...meta, biometric: { version: 2, credentialId, prfSalt, wrappedPassword: await seal(passwordBytes, kek, aad("biometric-wrapped-password", { vaultId: meta.vaultId })) }, updatedAt: new Date().toISOString() };
+    } finally { output.fill(0); passwordBytes.fill(0); }
+  }
+  async function unlockBiometric(meta) {
+    if (!meta.biometric || meta.biometric.version !== 2 || !meta.biometric.wrappedPassword) throw new Error("Sinh trắc học cần được bật lại bằng mật khẩu hiện tại.");
+    const output = await biometricPrf(meta.biometric.credentialId, meta.biometric.prfSalt);
+    let passwordBytes;
+    try {
+      const kek = await importDek(output);
+      passwordBytes = await openBytes(meta.biometric.wrappedPassword, kek, aad("biometric-wrapped-password", { vaultId: meta.vaultId }));
+      return await unlockPasswordVault(meta, decoder.decode(passwordBytes));
+    } finally { output.fill(0); if (passwordBytes) passwordBytes.fill(0); }
   }
 
   async function unlockPasswordVault(meta, password) {

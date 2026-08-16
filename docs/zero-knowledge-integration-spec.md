@@ -90,7 +90,8 @@ Prototype dùng WebAuthn platform authenticator và extension PRF:
 - `residentKey: required`
 - `authenticatorAttachment: platform`
 - PRF output 32 byte được import thành AES-GCM KEK non-extractable.
-- KEK này bọc cùng DEK thành `biometric.wrappedDek`.
+- KEK này chỉ bọc mật khẩu thiết bị thành `biometric.wrappedPassword`.
+- Sau khi sinh trắc học mở được mật khẩu, hệ thống vẫn phải dẫn xuất Password KEK và mở `passwordWrappedDek`; sinh trắc học không có wrapper DEK riêng.
 
 Sinh trắc học không thay thế mật khẩu/recovery. Nó là wrapper theo thiết bị. Phải có HTTPS/secure context và fallback mật khẩu. Không được giả định mọi Android, WebView, Safari hoặc Windows Hello đều hỗ trợ PRF. Nếu native app, ưu tiên Android Keystore/iOS Keychain với user authentication thay vì ép dùng WebAuthn trong WebView.
 
@@ -127,10 +128,10 @@ type VaultMeta = {
   };
   recoveryWrappedDek?: CipherBox;
   biometric?: {
-    version: 1;
+    version: 2;
     credentialId: Uint8Array;
     prfSalt: Uint8Array;
-    wrappedDek: CipherBox;
+    wrappedPassword: CipherBox;
   };
 };
 ```
@@ -144,7 +145,7 @@ AAD của prototype:
 ```text
 Password wrapper: sotay:v1:password-wrapped-dek:{vaultId}
 Recovery wrapper: sotay:v1:recovery-wrapped-dek:{vaultId}
-Biometric wrapper: sotay:v1:biometric-wrapped-dek:{vaultId}
+Biometric password wrapper: sotay:v1:biometric-wrapped-password:{vaultId}
 Backup manifest:  sotay:v1:backup-manifest:{vaultId}
 Record summary:   sotay:v1:summary:{vaultId}:{recordId}:{revision}
 Record body:      sotay:v1:body:{vaultId}:{recordId}:{revision}
@@ -386,12 +387,13 @@ Nếu chưa có backup, nhập 24 từ một mình không kết nối được v
 ### 7.7 Bật sinh trắc học
 
 1. Yêu cầu mật khẩu hiện tại trong input `type=password`.
-2. Mở password wrapper để xác minh và lấy DEK raw ngắn hạn.
+2. Mở password wrapper chỉ để xác minh mật khẩu hiện tại, rồi xóa DEK raw ngay.
 3. Tạo platform credential có user verification và PRF.
 4. Dùng PRF output làm Biometric KEK.
-5. Bọc DEK; lưu credential ID, PRF salt và wrapper.
+5. Bọc mật khẩu hiện tại; lưu credential ID, PRF salt và wrapper. Không tạo wrapper DEK cho sinh trắc học.
 6. Xóa raw buffers.
-7. Khi mở app, ưu tiên gọi biometric; hủy/thất bại thì hiện form mật khẩu.
+7. Khi mở app, biometric chỉ mở mật khẩu; mật khẩu đó vẫn phải mở `passwordWrappedDek` qua luồng Password KEK. Hủy/thất bại thì hiện form mật khẩu.
+8. Đổi hoặc khôi phục mật khẩu phải xóa cấu hình sinh trắc học và yêu cầu bật lại.
 
 Không gọi mọi lỗi WebAuthn là “sai mật khẩu”. Phân biệt mật khẩu sai, người dùng cancel, authenticator lockout, thiếu PRF và lỗi nền tảng.
 

@@ -24,6 +24,10 @@ async function rejects(action, message) {
     /Mật khẩu không đúng/,
     "current-password verification must not apply the new-password minimum length rule"
   );
+  const metaWithLegacyBiometric = { ...vault.meta, biometric: { version: 1, wrappedDek: {} } };
+  const changed = await zk.changePassword(metaWithLegacyBiometric, "mot cum tu dai de nho", "mot cum tu moi rat dai", "mot cum tu moi rat dai");
+  assert.equal(changed.biometric, undefined, "changing password must invalidate biometric password protection");
+  await zk.unlockPasswordVault(changed, "mot cum tu moi rat dai");
   const damagedRecoveryMeta = structuredClone(vault.meta);
   new Uint8Array(damagedRecoveryMeta.recoveryWrappedDek.ciphertext)[0] ^= 1;
   await assert.rejects(
