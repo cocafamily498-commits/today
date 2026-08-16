@@ -385,11 +385,20 @@ main {
 }
 
 .app-info-dialog-body {
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 24px 28px 26px;
   background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+}
+
+.app-info-dialog-footer {
+  flex: 0 0 auto;
+  padding: 14px 24px;
+  text-align: center;
+  border-top: 1px solid #d7e0ea;
+  background: #f6f8fb;
 }
 
 body.app-info-modal-open { overflow: hidden; }
@@ -459,7 +468,7 @@ body.app-info-modal-open { overflow: hidden; }
   display: block;
   min-width: 112px;
   min-height: 42px;
-  margin: 22px auto 0;
+  margin: 0 auto;
   color: #fff;
   font: inherit;
   font-size: .82rem;
