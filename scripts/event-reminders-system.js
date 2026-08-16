@@ -156,10 +156,10 @@ function openNotificationBlockedDialog() {
   dialog.innerHTML = `
     <div class="app-install-dialog-content">
       <h2>Thông báo đang bị chặn</h2>
-      <p>Android/Chrome đã chặn quyền thông báo cho app này, nên ứng dụng không thể tự bật lại bằng nút trong web.</p>
+      <p>Trình duyệt hoặc hệ điều hành đã chặn quyền thông báo cho ứng dụng, nên ứng dụng không thể tự bật lại quyền này.</p>
       <p>Trạng thái trình duyệt đang trả về: ${escapeHtml(Notification.permission)}. ${escapeHtml(secureText)}</p>
-      <p>Trên Chrome Android: bấm biểu tượng ổ khóa hoặc chữ thông tin cạnh thanh địa chỉ, vào Quyền trang web, chọn Thông báo, rồi chuyển sang Cho phép.</p>
-      <p>Nếu đang mở bằng app đã cài: nhấn giữ biểu tượng app, chọn Thông tin ứng dụng, vào Thông báo, rồi bật Cho phép thông báo.</p>
+      <p>Hãy mở phần thông tin hoặc cài đặt quyền của trang web trong trình duyệt, chọn Thông báo rồi chuyển sang Cho phép.</p>
+      <p>Nếu đang mở bằng ứng dụng đã cài, hãy vào cài đặt thông báo của ứng dụng trên thiết bị và bật quyền thông báo.</p>
       <div class="event-backup-dialog-actions">
         <button class="event-secondary-button" type="button" data-action="close">Đóng</button>
         <button class="event-submit" type="button" data-action="recheck">Kiểm tra lại</button>

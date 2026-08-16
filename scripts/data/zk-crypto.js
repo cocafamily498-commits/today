@@ -175,7 +175,7 @@
       return true;
     } catch { return false; }
   }
-  const biometricSupportMessage = () => "Trình duyệt chưa hỗ trợ tính năng mở nhanh an toàn. Trên iPhone/iPad, hãy cập nhật lên iOS/iPadOS 18 trở lên và dùng Safari.";
+  const biometricSupportMessage = () => "Thiết bị hoặc trình duyệt hiện tại chưa hỗ trợ tính năng mở nhanh bằng khóa màn hình. Bạn vẫn có thể mở Két bằng mật khẩu.";
   function biometricOperationError(error) {
     if (error?.name === "NotAllowedError" || error?.name === "AbortError") return new Error("Xác thực bằng khóa màn hình đã bị hủy hoặc hết thời gian. Hãy thử lại.");
     if (error?.name === "SecurityError") return new Error("Không thể dùng khóa màn hình trên kết nối hoặc tên miền hiện tại.");

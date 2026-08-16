@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v264-friendly-device-lock-copy";
+const CACHE_NAME = "homnay-pwa-v266-generic-platform-messages";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -256,6 +256,7 @@ const APP_SHELL = [
   "/scripts/vault-gate.js?v=56",
   "/scripts/vault-gate.js?v=57",
   "/scripts/vault-gate.js?v=58",
+  "/scripts/vault-gate.js?v=59",
   "/node_modules/@zxcvbn-ts/core/dist/zxcvbn-ts.js",
   "/node_modules/@zxcvbn-ts/language-common/dist/zxcvbn-ts.js",
   "/scripts/data/app-data-events.js",
@@ -1002,7 +1003,12 @@ const APP_SHELL = [
   "/partials/app-info-tab.html?v=2026-07-26-journal-title-required",
   "/partials/event-dialog.html?v=2026-07-26-journal-title-required",
   "/partials/journal-dialog.html?v=2026-07-26-journal-title-required",
-  "/partials/app-info-dialog.html?v=2026-07-26-journal-title-required"
+  "/partials/app-info-dialog.html?v=2026-07-26-journal-title-required",
+  "/scripts/data/zk-crypto.js?v=17",
+  "/scripts/vault-gate.js?v=60",
+  "/scripts/event-reminders-system.js?v=10",
+  "/scripts/journal-dialog.js?v=22",
+  "/scripts/pwa-install.js?v=5"
 ];
 
 // APP_SHELL keeps historical entries for compatibility, but installing every

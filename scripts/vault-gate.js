@@ -408,7 +408,7 @@
         const file = selectedBackupFile;
         if (!file) throw new Error("Hãy chọn file ZIP backup két mã hóa.");
         if (!/\.zip$/i.test(file.name || "")) throw new Error("Chỉ chấp nhận file ZIP backup két mã hóa.");
-        if (!window.isSecureContext || !window.crypto?.subtle) throw new Error("Android đang mở app qua HTTP LAN nên không cho phép Web Crypto. Hãy dùng HTTPS hoặc USB adb reverse rồi mở http://localhost:3000.");
+        if (!window.isSecureContext || !window.crypto?.subtle) throw new Error("Kết nối hiện tại chưa đáp ứng yêu cầu bảo mật để xử lý dữ liệu mã hóa. Hãy mở ứng dụng bằng HTTPS hoặc qua localhost rồi thử lại.");
         progress = openEventBackupProgressDialog("Đang khôi phục két", "Đang đọc file ZIP backup…");
         await waitForEventBackupProgressPaint();
         progress.update(15, "Đang kiểm tra cấu trúc ZIP…");
@@ -474,7 +474,7 @@
   function hasBiometricPasswordProtection(meta) { return meta?.biometric?.version === 2 && Boolean(meta.biometric.wrappedPassword); }
   function renderLogin(meta, resolve) {
     const biometricEnabled = hasBiometricPasswordProtection(meta);
-    shell(biometricEnabled ? "Mở két dữ liệu" : "Nhập mật khẩu", "", `<form id="vaultGateForm">${passwordInput({ id: "vaultPassword", name: "password", label: "Mật khẩu két", autocomplete: "current-password", autofocus: true })}<button type="submit">Mở két</button></form>${biometricEnabled ? `<button id="biometricLogin" type="button">Dùng khóa màn hình thiết bị</button><small class="vault-field-help">Nếu Android yêu cầu mã PIN, hình vẽ hoặc mật mã, hãy nhập mã mở khóa điện thoại — không phải mật khẩu két.</small>` : ""}<button id="forgotVaultPassword" class="vault-link" type="button">Quên mật khẩu?</button>`);
+    shell(biometricEnabled ? "Mở két dữ liệu" : "Nhập mật khẩu", "", `<form id="vaultGateForm">${passwordInput({ id: "vaultPassword", name: "password", label: "Mật khẩu két", autocomplete: "current-password", autofocus: true })}<button type="submit">Mở két</button></form>${biometricEnabled ? `<button id="biometricLogin" type="button">Dùng khóa màn hình thiết bị</button><small class="vault-field-help">Nếu được yêu cầu nhập PIN, hình vẽ hoặc mật mã, hãy dùng mã mở khóa thiết bị — không phải mật khẩu két.</small>` : ""}<button id="forgotVaultPassword" class="vault-link" type="button">Quên mật khẩu?</button>`);
     const loginForm = document.getElementById("vaultGateForm");
     if (currentPasswordLocked(meta)) {
       disableCurrentPasswordForm(loginForm);
@@ -547,7 +547,7 @@
     biometric.onclick = async () => {
       if (session.meta.biometric) { const meta = { ...session.meta }; delete meta.biometric; await writeMeta(meta); session.meta = meta; setBiometricLabel(false); return; }
       if (!await window.LichVietZkCrypto.supportsBiometric()) {
-        openVaultMessageDialog("Trình duyệt chưa hỗ trợ tính năng mở nhanh an toàn. Trên iPhone/iPad, hãy cập nhật lên iOS/iPadOS 18 trở lên và dùng Safari.");
+        openVaultMessageDialog("Thiết bị hoặc trình duyệt hiện tại chưa hỗ trợ tính năng mở nhanh bằng khóa màn hình. Bạn vẫn có thể mở Két bằng mật khẩu.");
         return;
       }
       openSettingsDialog("Bật mở nhanh bằng khóa màn hình", `<p class="vault-field-help">Bước này cần mật khẩu két. Ở màn hình hệ điều hành kế tiếp, nếu chọn dùng PIN, hình vẽ hoặc mật mã, hãy nhập mã mở khóa thiết bị — không nhập mật khẩu két.</p>${passwordInput({ id: "vaultBiometricPassword", name: "current", label: "Mật khẩu két hiện tại", autocomplete: "current-password" })}`, async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.enrollBiometric(session.meta, form.current.value)); await writeMeta(meta); session.meta = meta; setBiometricLabel(true); }, { submitLabel: "Tiếp tục đến khóa màn hình", currentPasswordMeta: session.meta });
@@ -722,7 +722,7 @@
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
     overlay.setAttribute("aria-labelledby", "softLockTitle");
-    overlay.innerHTML = `<section class="vault-gate vault-soft-lock-panel"><div class="vault-gate-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="16" cy="20" r="8"/><path d="M22 26 38 42M31 35l5-5M36 40l5-5"/></svg></div><h1 id="softLockTitle">Ứng dụng đã khóa</h1><p>${biometricEnabled ? "Dùng khóa màn hình thiết bị hoặc nhập mật khẩu két để tiếp tục phiên đang làm việc." : "Nhập mật khẩu két để tiếp tục phiên đang làm việc."}</p><form>${passwordInput({ id: "softLockPassword", name: "password", label: "Mật khẩu két", autocomplete: "current-password", autofocus: !biometricEnabled })}<button type="submit">Mở khóa</button></form>${biometricEnabled ? `<button id="softLockBiometric" type="button">Dùng khóa màn hình thiết bị</button><small class="vault-field-help">Mã Android yêu cầu là mã mở khóa điện thoại, không phải mật khẩu két.</small>` : ""}<p class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
+    overlay.innerHTML = `<section class="vault-gate vault-soft-lock-panel"><div class="vault-gate-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="16" cy="20" r="8"/><path d="M22 26 38 42M31 35l5-5M36 40l5-5"/></svg></div><h1 id="softLockTitle">Ứng dụng đã khóa</h1><p>${biometricEnabled ? "Dùng khóa màn hình thiết bị hoặc nhập mật khẩu két để tiếp tục phiên đang làm việc." : "Nhập mật khẩu két để tiếp tục phiên đang làm việc."}</p><form>${passwordInput({ id: "softLockPassword", name: "password", label: "Mật khẩu két", autocomplete: "current-password", autofocus: !biometricEnabled })}<button type="submit">Mở khóa</button></form>${biometricEnabled ? `<button id="softLockBiometric" type="button">Dùng khóa màn hình thiết bị</button><small class="vault-field-help">Nếu được yêu cầu nhập PIN, hình vẽ hoặc mật mã, hãy dùng mã mở khóa thiết bị — không phải mật khẩu két.</small>` : ""}<p class="vault-gate-status" role="alert" aria-live="polite"></p></section>`;
     document.body.append(overlay);
     overlay.addEventListener("cancel", (event) => event.preventDefault());
     overlay.showModal();
