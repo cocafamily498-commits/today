@@ -86,10 +86,21 @@ function getPushStore() {
   return getStore(PUSH_STORE_NAME);
 }
 
-function getSubscriptionKey(subscription) {
+function normalizePushAppId(value) {
+  try {
+    const url = new URL(String(value || ""));
+    if (!/^https?:$/.test(url.protocol)) return "";
+    return url.origin.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+function getSubscriptionKey(subscription, appId = "") {
   const endpoint = subscription && subscription.endpoint;
   if (!endpoint) throw new Error("Subscription endpoint is required.");
-  return crypto.createHash("sha256").update(endpoint).digest("hex");
+  const normalizedAppId = normalizePushAppId(appId);
+  return crypto.createHash("sha256").update(normalizedAppId ? `${normalizedAppId}\n${endpoint}` : endpoint).digest("hex");
 }
 
 function sanitizeReminder(reminder) {
@@ -127,6 +138,7 @@ module.exports = {
   configureWebPush,
   getPushStore,
   getSubscriptionKey,
+  normalizePushAppId,
   getVapidConfig,
   jsonResponse,
   optionsResponse,

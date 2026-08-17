@@ -1,6 +1,7 @@
 const {
   getPushStore,
   getSubscriptionKey,
+  normalizePushAppId,
   jsonResponse,
   optionsResponse,
   parseJsonBody,
@@ -20,14 +21,16 @@ exports.handler = async (event) => {
   try {
     const input = parseJsonBody(event);
     const subscription = input.subscription;
+    const appId = normalizePushAppId(input.appId);
     const reminders = sanitizeReminders(input.reminders);
-    const key = getSubscriptionKey(subscription);
+    const key = getSubscriptionKey(subscription, appId);
     const store = getPushStore();
     const replaceEventIds = sanitizeReplaceEventIds(input.replaceEventIds);
     const existing = await store.get(key, { type: "json" }).catch(() => null);
     const storedReminders = mergeReminders(existing && existing.reminders, reminders, replaceEventIds);
     const record = {
       key,
+      appId,
       subscription,
       reminders: storedReminders,
       schemaVersion: PUSH_JOB_SCHEMA_VERSION,
