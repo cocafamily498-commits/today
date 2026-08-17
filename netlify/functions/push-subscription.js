@@ -41,14 +41,29 @@ exports.handler = async (event) => {
 
     await syncReminderJobs(key, storedReminders, replaceEventIds);
     await store.setJSON(key, record);
-    if (legacyKey !== key) await removeLegacySubscription(store, legacyKey);
+    await removeObsoleteSubscriptions(store, key, appId, legacyKey);
     return jsonResponse({ ok: true, reminders: storedReminders.length, schemaVersion: PUSH_JOB_SCHEMA_VERSION });
   } catch (error) {
     return jsonResponse({ error: error.message || "Could not save push subscription." }, 400);
   }
 };
 
-async function removeLegacySubscription(store, subscriptionKey) {
+async function removeObsoleteSubscriptions(store, activeKey, appId, legacyKey) {
+  const listed = await store.list().catch(() => ({ blobs: [] }));
+  const obsoleteKeys = new Set();
+  if (legacyKey !== activeKey) obsoleteKeys.add(legacyKey);
+
+  await Promise.all((listed.blobs || []).map(async (item) => {
+    if (!item.key || item.key === activeKey) return;
+    const record = await store.get(item.key, { type: "json" }).catch(() => null);
+    const recordAppId = normalizePushAppId(record && record.appId);
+    if (!recordAppId || (appId && recordAppId === appId)) obsoleteKeys.add(item.key);
+  }));
+
+  await Promise.all([...obsoleteKeys].map((subscriptionKey) => removeSubscriptionAndJobs(store, subscriptionKey)));
+}
+
+async function removeSubscriptionAndJobs(store, subscriptionKey) {
   const jobStore = getPushJobStore();
   const manifestKey = getManifestKey(subscriptionKey);
   const manifest = await jobStore.get(manifestKey, { type: "json" }).catch(() => null);
