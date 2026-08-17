@@ -1,6 +1,6 @@
 const EVENT_SYSTEM_REMINDER_CHECK_INTERVAL = 60 * 1000;
 const EVENT_PUSH_REMINDER_DAYS_AHEAD = 370;
-const EVENT_PUSH_SYNC_SCHEMA_VERSION = "2";
+const EVENT_PUSH_SYNC_SCHEMA_VERSION = "4";
 const EVENT_PUSH_SYNC_DIRTY_KEY = "homnay.eventPushSyncDirty";
 const EVENT_PUSH_SYNC_SCHEMA_KEY = "homnay.eventPushSyncSchema";
 const EVENT_PUSH_VAPID_CACHE_KEY = "homnay.eventPushVapidPublicKey";
@@ -305,7 +305,7 @@ async function syncEventWebPushReminderPayloads(options = {}) {
     const reminders = Array.isArray(options.reminders)
       ? options.reminders
       : await buildEventPushReminderPayloads();
-    const payload = { subscription, reminders };
+    const payload = { appId: location.origin, subscription, reminders };
     if (Array.isArray(options.replaceEventIds)) {
       payload.replaceEventIds = options.replaceEventIds;
     }

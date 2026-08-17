@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v266-generic-platform-messages";
+const CACHE_NAME = "homnay-pwa-v268-event-title-notifications";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -1007,6 +1007,9 @@ const APP_SHELL = [
   "/scripts/data/zk-crypto.js?v=17",
   "/scripts/vault-gate.js?v=60",
   "/scripts/event-reminders-system.js?v=10",
+  "/scripts/event-reminders-system.js?v=11",
+  "/scripts/event-reminders-system.js?v=12",
+  "/scripts/event-reminders-push.js?v=7",
   "/scripts/journal-dialog.js?v=22",
   "/scripts/pwa-install.js?v=5"
 ];
