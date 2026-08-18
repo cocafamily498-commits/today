@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v273-push-persisted-sync";
+const CACHE_NAME = "homnay-pwa-v274-push-main-flow";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -1014,9 +1014,11 @@ const APP_SHELL = [
   "/scripts/event-reminders-system.js?v=15",
   "/scripts/event-reminders-system.js?v=16",
   "/scripts/event-reminders-system.js?v=17",
+  "/scripts/event-reminders-system.js?v=18",
   "/scripts/event-reminders-push.js?v=7",
   "/scripts/event-reminders-push.js?v=8",
   "/scripts/event-reminders-push.js?v=9",
+  "/scripts/event-reminders-push.js?v=10",
   "/scripts/journal-dialog.js?v=22",
   "/scripts/pwa-install.js?v=5"
 ];

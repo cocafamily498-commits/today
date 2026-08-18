@@ -23,7 +23,7 @@ async function buildEventPushReminderPayloadsForEvents(events) {
 
         const occurrenceAt = getEventOccurrenceDateTimeInVietnamTimeZone(event, occurrenceDate);
         const activeReminderAt = getActiveEventPushReminderTime(event.id, reminderId, occurrenceDate, reminderAt, occurrenceAt, now);
-        if (!activeReminderAt || activeReminderAt.getTime() < now - EVENT_PUSH_REMINDER_DELIVERY_GRACE) continue;
+        if (!activeReminderAt || activeReminderAt.getTime() < now - EVENT_SYSTEM_REMINDER_CHECK_INTERVAL) continue;
 
         const id = `${event.id}:${reminderId}:${occurrenceDate}`;
         reminders.push(buildEventPushReminderPayload(event, occurrenceDate, activeReminderAt, id));
@@ -73,7 +73,7 @@ function getActiveEventPushReminderTime(eventId, reminderId, occurrenceDate, con
     ? getEventReminderSnoozedUntil(eventId, reminderId, occurrenceDate)
     : null;
   if (snoozedUntil && snoozedUntil.getTime() > nowMs) return snoozedUntil;
-  if (configuredReminderAt.getTime() >= nowMs - EVENT_PUSH_REMINDER_DELIVERY_GRACE) return configuredReminderAt;
+  if (configuredReminderAt.getTime() >= nowMs - EVENT_SYSTEM_REMINDER_CHECK_INTERVAL) return configuredReminderAt;
   return getNextEventAutoReminderTime(new Date(nowMs), occurrenceAt);
 }
 
