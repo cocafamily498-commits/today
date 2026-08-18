@@ -117,7 +117,7 @@ function isEventOccurrenceOnDate(event, dateValue) {
   const repeat = event.repeat || { frequency: "none", calendar: event.calendarLabel || "solar", interval: 1 };
   const interval = Math.max(1, Number.parseInt(repeat.interval, 10) || 1);
 
-  if (repeat.frequency === "none") return event.date === dateValue;
+  if (repeat.frequency === "none") return formatDateValue(base.year, base.month, base.day) === dateValue;
   if (repeat.frequency === "daily") return getDaysFromDateValue(base, dateValue) % interval === 0;
   if (repeat.frequency === "weekly") return getDaysFromDateValue(base, dateValue) % (7 * interval) === 0;
   if (repeat.frequency === "monthly") {
