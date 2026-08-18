@@ -38,13 +38,14 @@ async function buildEventPushReminderPayloadsForEvents(events) {
 
 function buildEventPushReminderPayload(event, occurrenceDate, reminderAt, id) {
   const occurrenceAt = getEventOccurrenceDateTimeInVietnamTimeZone(event, occurrenceDate);
+  const appTag = window.location.hostname.toLowerCase().replace(/[^a-z0-9.-]/g, "-");
   const eventTitle = String(event.title || "").trim() || "Sự kiện sắp diễn ra";
   return {
     id,
     reminderAt: reminderAt.toISOString(),
     title: eventTitle,
     body: getEventPushReminderBody(occurrenceAt, reminderAt),
-    tag: `lichviet-event-${event.id}-${occurrenceDate}`,
+    tag: `lichviet-${appTag}-event-${event.id}-${occurrenceDate}`,
     url: `${window.location.origin}${window.location.pathname}#eventsTab`,
     icon: "/icons/app-icon-lichviet-calendar-192.png",
     badge: "/icons/app-icon-lichviet-calendar-192.png",

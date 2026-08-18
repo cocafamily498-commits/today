@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v270-push-stale-cleanup";
+const CACHE_NAME = "homnay-pwa-v271-push-app-tags";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -1011,7 +1011,9 @@ const APP_SHELL = [
   "/scripts/event-reminders-system.js?v=12",
   "/scripts/event-reminders-system.js?v=13",
   "/scripts/event-reminders-system.js?v=14",
+  "/scripts/event-reminders-system.js?v=15",
   "/scripts/event-reminders-push.js?v=7",
+  "/scripts/event-reminders-push.js?v=8",
   "/scripts/journal-dialog.js?v=22",
   "/scripts/pwa-install.js?v=5"
 ];

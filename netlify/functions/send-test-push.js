@@ -24,10 +24,11 @@ exports.handler = async (event) => {
     }
 
     const messageId = `test-${Date.now()}`;
+    const appTag = getAppTag(input.appId);
     const payload = {
       title: "Sổ tay lịch Việt",
       body: "Thông báo test được gửi từ Netlify Function.",
-      tag: "lichviet-test-push",
+      tag: `lichviet-${appTag}-test-push`,
       url: "/#eventsTab",
       icon: "/icons/app-icon-lichviet-calendar-192.png",
       badge: "/icons/app-icon-lichviet-calendar-192.png",
@@ -52,3 +53,11 @@ exports.handler = async (event) => {
     }, statusCode === 404 || statusCode === 410 ? 410 : 502);
   }
 };
+
+function getAppTag(appId) {
+  try {
+    return new URL(String(appId || "")).hostname.toLowerCase().replace(/[^a-z0-9.-]/g, "-") || "unknown-app";
+  } catch (error) {
+    return "unknown-app";
+  }
+}

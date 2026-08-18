@@ -368,7 +368,7 @@ async function sendEventWebPushTestNotification() {
     const response = await fetch(getEventPushApiUrl("/api/send-test-push"), {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ subscription })
+      body: JSON.stringify({ appId: location.origin, subscription })
     });
     const data = await response.json().catch(() => ({}));
     return { ok: response.ok && data.ok === true, httpStatus: response.status, ...data };
