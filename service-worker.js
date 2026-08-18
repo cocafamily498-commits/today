@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v278-direct-single-event-reminder";
+const CACHE_NAME = "homnay-pwa-v279-normalize-encrypted-events";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -198,6 +198,7 @@ const APP_SHELL = [
   "/scripts/data/zk-repository.js?v=1",
   "/scripts/data/zk-repository.js?v=2",
   "/scripts/data/zk-repository.js?v=3",
+  "/scripts/data/zk-repository.js?v=4",
   "/scripts/vault-gate.js?v=1",
   "/scripts/vault-gate.js?v=2",
   "/scripts/vault-gate.js?v=3",
@@ -262,6 +263,7 @@ const APP_SHELL = [
   "/scripts/data/app-data-events.js",
   "/scripts/data/app-data-events.js?v=2",
   "/scripts/data/app-data-events.js?v=3",
+  "/scripts/data/app-data-events.js?v=4",
   "/scripts/data/app-data-journals.js",
   "/scripts/data/app-data-backup.js",
   "/app-data.js",

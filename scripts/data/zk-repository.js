@@ -44,7 +44,7 @@
   }
 
   async function createEvent(input) {
-    const source = { ...input, id: input.id || id("event"), createdAt: input.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const source = window.LichVietDataParts.normalizeEvent({ ...input, id: input.id || id("event") });
     const record = await cryptoApi().encryptEvent(session.dek, session.meta.vaultId, source, 1);
     await put("zk_events_v1", record);
     return decryptEvent(record);
@@ -53,7 +53,7 @@
     const current = await get("zk_events_v1", eventId);
     if (!current) throw new Error("Không tìm thấy sự kiện.");
     const plaintext = await decryptEvent(current);
-    const source = { ...plaintext, ...changes, id: eventId, updatedAt: new Date().toISOString() };
+    const source = window.LichVietDataParts.normalizeEvent({ ...changes, id: eventId }, plaintext);
     const record = await cryptoApi().encryptEvent(session.dek, session.meta.vaultId, source, current.revision + 1);
     await put("zk_events_v1", record);
     return decryptEvent(record);
