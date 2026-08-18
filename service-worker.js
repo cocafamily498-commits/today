@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v277-live-reminder-check";
+const CACHE_NAME = "homnay-pwa-v278-direct-single-event-reminder";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -1020,6 +1020,7 @@ const APP_SHELL = [
   "/scripts/event-reminders-push.js?v=9",
   "/scripts/event-reminders-push.js?v=10",
   "/scripts/event-reminders-push.js?v=11",
+  "/scripts/event-reminders-push.js?v=12",
   "/scripts/event-model.js?v=9",
   "/scripts/event-schedule.js?v=3",
   "/scripts/event-today-reminders.js?v=9",

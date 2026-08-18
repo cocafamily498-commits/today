@@ -95,6 +95,15 @@ function getNextEventAutoReminderTime(now, occurrenceAt) {
 
 function getUpcomingEventOccurrenceDates(event, daysAhead) {
   if (!event || !event.date) return [];
+  const repeat = event.repeat || { frequency: "none" };
+  if (repeat.frequency === "none") {
+    const base = parseDateValue(event.date);
+    if (!base) return [];
+    const dateValue = formatDateValue(base.year, base.month, base.day);
+    const todayValue = toDateInputValue(getVietnamToday());
+    const daysFromToday = getDaysFromDateValue(parseDateValue(todayValue), dateValue);
+    return daysFromToday >= 0 && daysFromToday <= daysAhead ? [dateValue] : [];
+  }
   const dates = [];
   const today = getVietnamToday();
   const start = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
