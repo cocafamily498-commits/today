@@ -1,7 +1,7 @@
 const EVENT_SYSTEM_REMINDER_CHECK_INTERVAL = 60 * 1000;
 const EVENT_PUSH_REMINDER_DELIVERY_GRACE = 10 * 60 * 1000;
 const EVENT_PUSH_REMINDER_DAYS_AHEAD = 370;
-const EVENT_PUSH_SYNC_SCHEMA_VERSION = "7";
+const EVENT_PUSH_SYNC_SCHEMA_VERSION = "8";
 const EVENT_PUSH_SYNC_DIRTY_KEY = "homnay.eventPushSyncDirty";
 const EVENT_PUSH_SYNC_SCHEMA_KEY = "homnay.eventPushSyncSchema";
 const EVENT_PUSH_VAPID_CACHE_KEY = "homnay.eventPushVapidPublicKey";
@@ -304,7 +304,7 @@ function queueEventWebPushReminderSync(promiseFactory) {
 }
 
 function queueEventWebPushReminderSyncForEvent(event) {
-  queueEventWebPushReminderSync(() => syncEventWebPushRemindersForEvent(event));
+  queueEventWebPushReminderSync(() => syncEventWebPushReminderPayloads());
 }
 
 function queueRemoveEventWebPushReminders(eventId) {
