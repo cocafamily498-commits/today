@@ -137,7 +137,7 @@
   }
   function passwordInput({ id, name, label, autocomplete, isNew = false, autofocus = false }) {
     const requirements = isNew ? `<p class="vault-password-help" id="${id}Help">Tối thiểu 8 ký tự. Nên dùng một cụm từ dài, riêng biệt và khó đoán.</p><div class="vault-password-strength" data-password-strength-for="${id}" data-level="empty" role="status" aria-live="polite"><span class="vault-password-strength-bar"><i></i></span><span class="vault-password-strength-label">Chưa nhập mật khẩu</span></div>` : "";
-    return `<div class="vault-password-field"><label for="${id}">${label}</label><div class="vault-password-input"><input id="${id}" name="${name}" type="password"${isNew ? ` minlength="8" aria-describedby="${id}Help"` : ""} autocomplete="${autocomplete}" required${autofocus ? " autofocus" : ""}><button class="vault-password-toggle" type="button" aria-label="Hiện mật khẩu" title="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="vault-password-eye-slash" d="m4 4 16 16"/></svg></button></div>${requirements}</div>`;
+    return `<div class="vault-password-field"><label for="${id}">${label}</label><div class="vault-password-input"><input id="${id}" name="${name}" type="password"${isNew ? ` minlength="8" aria-describedby="${id}Help"` : ""} autocomplete="${autocomplete}" autocapitalize="none" autocorrect="off" spellcheck="false" required${autofocus ? " autofocus" : ""}><button class="vault-password-toggle" type="button" aria-label="Hiện mật khẩu" title="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="vault-password-eye-slash" d="m4 4 16 16"/></svg></button></div>${requirements}</div>`;
   }
   function passwordStrength(password) {
     if (!password) return { level: "empty", label: "Chưa nhập mật khẩu" };
@@ -267,7 +267,7 @@
     );
   }
   function passwordFields(confirm = true, labels = {}) {
-    return `${passwordInput({ id: "vaultPassword", name: "password", label: labels.password || "Mật khẩu két", autocomplete: "new-password", isNew: true })}${confirm ? passwordInput({ id: "vaultPasswordConfirm", name: "passwordConfirm", label: labels.confirm || "Nhập lại mật khẩu", autocomplete: "new-password" }) : ""}`;
+    return `${passwordInput({ id: "vaultPassword", name: "password", label: labels.password || "Mật khẩu két", autocomplete: "off", isNew: true })}${confirm ? passwordInput({ id: "vaultPasswordConfirm", name: "passwordConfirm", label: labels.confirm || "Nhập lại mật khẩu", autocomplete: "off" }) : ""}`;
   }
   function renderCreate(resolve, options = {}) {
     const legacyUpgrade = options.legacyUpgrade === true;
@@ -543,7 +543,7 @@
       biometric.classList.toggle("is-enabled", enabled);
     };
     setBiometricLabel(hasBiometricPasswordProtection(session.meta));
-    change.onclick = () => openSettingsDialog("Đổi mật khẩu két", `${passwordInput({ id: "vaultCurrentPassword", name: "current", label: "Mật khẩu hiện tại", autocomplete: "current-password" })}${passwordInput({ id: "vaultNewPassword", name: "password", label: "Mật khẩu mới", autocomplete: "new-password", isNew: true })}${passwordInput({ id: "vaultNewPasswordConfirm", name: "passwordConfirm", label: "Nhập lại mật khẩu mới", autocomplete: "new-password" })}`, async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.changePassword(session.meta, form.current.value, form.password.value, form.passwordConfirm.value)); await writeMeta(meta); session.meta = meta; setBiometricLabel(false); }, { submitLabel: "Đổi mật khẩu", successMessage: "Đã đổi mật khẩu thành công. Hãy bật lại mở nhanh bằng khóa màn hình thiết bị để bảo vệ mật khẩu mới.", noValidate: true, currentPasswordMeta: session.meta });
+    change.onclick = () => openSettingsDialog("Đổi mật khẩu két", `${passwordInput({ id: "vaultCurrentPassword", name: "current", label: "Mật khẩu hiện tại", autocomplete: "current-password" })}${passwordInput({ id: "vaultNewPassword", name: "password", label: "Mật khẩu mới", autocomplete: "off", isNew: true })}${passwordInput({ id: "vaultNewPasswordConfirm", name: "passwordConfirm", label: "Nhập lại mật khẩu mới", autocomplete: "off" })}`, async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.changePassword(session.meta, form.current.value, form.password.value, form.passwordConfirm.value)); await writeMeta(meta); session.meta = meta; setBiometricLabel(false); }, { submitLabel: "Đổi mật khẩu", successMessage: "Đã đổi mật khẩu thành công. Hãy bật lại mở nhanh bằng khóa màn hình thiết bị để bảo vệ mật khẩu mới.", noValidate: true, currentPasswordMeta: session.meta });
     biometric.onclick = async () => {
       if (session.meta.biometric) { const meta = { ...session.meta }; delete meta.biometric; await writeMeta(meta); session.meta = meta; setBiometricLabel(false); return; }
       const biometricSupport = await window.LichVietZkCrypto.getBiometricSupport();
