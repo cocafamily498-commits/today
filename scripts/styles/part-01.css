@@ -157,6 +157,8 @@ body {
 .vault-password-input { position: relative; }
 .vault-password-input input { padding-right: 50px !important; }
 .vault-password-toggle { position: absolute; top: 50%; right: 5px; width: 38px; min-height: 36px !important; padding: 0; transform: translateY(-50%); color: #33475e !important; font-size: 1.1rem; border: 0; border-radius: 5px; background: transparent !important; cursor: pointer; }
+.vault-password-input input.vault-ios-secure-text { -webkit-text-security: disc; }
+.vault-password-input input.vault-ios-secure-text.is-password-visible { -webkit-text-security: none; }
 .vault-password-toggle svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
 .vault-password-toggle .vault-password-eye-slash { display: none; }
 .vault-password-toggle.is-visible .vault-password-eye-slash { display: block; }
