@@ -162,18 +162,51 @@
       return changedMeta;
     } finally { raw.fill(0); }
   }
-  async function supportsBiometric() {
-    if (!root.isSecureContext || !root.PublicKeyCredential || !root.navigator?.credentials) return false;
+  function biometricRuntimeContext() {
+    const standalone = root.matchMedia?.("(display-mode: standalone)")?.matches || root.navigator?.standalone === true;
+    return {
+      hostname: root.location?.hostname || "không xác định",
+      mode: standalone ? "Ứng dụng Màn hình chính" : "trình duyệt",
+      userAgent: root.navigator?.userAgent || "không xác định"
+    };
+  }
+
+  async function getBiometricSupport() {
+    const context = biometricRuntimeContext();
+    if (!root.isSecureContext) {
+      return { supported: false, code: "insecure-context", message: "Trang chưa chạy trong ngữ cảnh HTTPS an toàn.", context };
+    }
+    if (!root.PublicKeyCredential || !root.navigator?.credentials) {
+      return { supported: false, code: "webauthn-unavailable", message: "WebAuthn không khả dụng trong trình duyệt hiện tại.", context };
+    }
+    if (typeof root.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable !== "function") {
+      return { supported: false, code: "platform-check-unavailable", message: "Trình duyệt không cung cấp phép kiểm tra khóa màn hình hệ thống.", context };
+    }
     try {
-      if (!await root.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) return false;
+      if (!await root.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) {
+        return { supported: false, code: "platform-authenticator-unavailable", message: "iOS không báo có khóa màn hình dùng được cho WebAuthn. Hãy kiểm tra mật mã, Face ID, Tự động điền mật khẩu và Chuỗi khóa iCloud.", context };
+      }
       if (typeof root.PublicKeyCredential.getClientCapabilities === "function") {
         const capabilities = await root.PublicKeyCredential.getClientCapabilities();
-        return capabilities?.["extension:prf"] === true;
+        if (capabilities?.["extension:prf"] !== true) {
+          return { supported: false, code: "prf-unavailable", message: "Safari/WebKit hiện tại không báo hỗ trợ WebAuthn PRF, tính năng cần để bảo vệ mật khẩu Két.", context };
+        }
       }
       // Older clients cannot advertise extension support, so enrollment remains
       // the final capability probe.
-      return true;
-    } catch { return false; }
+      return { supported: true, code: "supported", message: "Thiết bị hỗ trợ mở nhanh bằng khóa màn hình.", context };
+    } catch (error) {
+      return {
+        supported: false,
+        code: "capability-check-failed",
+        message: `WebKit không hoàn tất được phép kiểm tra khóa màn hình (${error?.name || "Error"}).`,
+        context
+      };
+    }
+  }
+
+  async function supportsBiometric() {
+    return (await getBiometricSupport()).supported;
   }
   const biometricSupportMessage = () => "Thiết bị hoặc trình duyệt hiện tại chưa hỗ trợ tính năng mở nhanh bằng khóa màn hình. Bạn vẫn có thể mở Két bằng mật khẩu.";
   function biometricOperationError(error) {
@@ -376,5 +409,5 @@
     return { ...meta, id: record.id, bytes };
   }
 
-  return { SCHEMA_VERSION, PASSWORD_KDF, canonicalize, aad, importDek, createSessionDek, createPasswordVault, unlockPasswordVault, upgradeLegacyVaultRecovery, verifyRecoveryPhrase, restoreWithRecovery, restoreFromRecoverySource, changePassword, supportsBiometric, enrollBiometric, unlockBiometric, seal, openBytes, openJson, eventSchedule, authenticateSchedule, verifySchedule, encryptEvent, decryptEvent, encryptJournal, decryptJournal, encryptAttachment, decryptAttachment };
+  return { SCHEMA_VERSION, PASSWORD_KDF, canonicalize, aad, importDek, createSessionDek, createPasswordVault, unlockPasswordVault, upgradeLegacyVaultRecovery, verifyRecoveryPhrase, restoreWithRecovery, restoreFromRecoverySource, changePassword, getBiometricSupport, supportsBiometric, enrollBiometric, unlockBiometric, seal, openBytes, openJson, eventSchedule, authenticateSchedule, verifySchedule, encryptEvent, decryptEvent, encryptJournal, decryptJournal, encryptAttachment, decryptAttachment };
 });
