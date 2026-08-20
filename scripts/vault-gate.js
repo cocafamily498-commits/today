@@ -547,12 +547,15 @@
     biometric.onclick = async () => {
       if (session.meta.biometric) { const meta = { ...session.meta }; delete meta.biometric; await writeMeta(meta); session.meta = meta; setBiometricLabel(false); return; }
       const biometricSupport = await window.LichVietZkCrypto.getBiometricSupport();
-      if (!biometricSupport.supported) {
+      if (!biometricSupport.supported && !biometricSupport.canAttempt) {
         const context = biometricSupport.context || {};
         openVaultMessageDialog(`<strong>${biometricSupport.message}</strong><br><br>Mã kiểm tra: <code>${biometricSupport.code}</code><br>Ngữ cảnh: ${context.mode || "không xác định"}<br>Hostname: <code>${context.hostname || "không xác định"}</code><br><br>Bạn vẫn có thể mở Két bằng mật khẩu.`);
         return;
       }
-      openSettingsDialog("Bật mở nhanh bằng khóa màn hình", `<p class="vault-field-help">Bước này cần mật khẩu két. Ở màn hình hệ điều hành kế tiếp, nếu chọn dùng PIN, hình vẽ hoặc mật mã, hãy nhập mã mở khóa thiết bị — không nhập mật khẩu két.</p>${passwordInput({ id: "vaultBiometricPassword", name: "current", label: "Mật khẩu két hiện tại", autocomplete: "current-password" })}`, async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.enrollBiometric(session.meta, form.current.value)); await writeMeta(meta); session.meta = meta; setBiometricLabel(true); }, { submitLabel: "Tiếp tục đến khóa màn hình", currentPasswordMeta: session.meta });
+      const compatibilityNotice = biometricSupport.canAttempt
+        ? `<p class="vault-field-help"><strong>Chế độ tương thích:</strong> WebKit chưa xác nhận PRF, vì vậy ứng dụng sẽ kiểm tra trực tiếp khi bạn tiếp tục. Nếu iOS không trả về khóa hợp lệ, Két vẫn an toàn và tiếp tục mở được bằng mật khẩu.</p>`
+        : "";
+      openSettingsDialog("Bật mở nhanh bằng khóa màn hình", `${compatibilityNotice}<p class="vault-field-help">Bước này cần mật khẩu két. Ở màn hình hệ điều hành kế tiếp, nếu chọn dùng PIN, hình vẽ hoặc mật mã, hãy nhập mã mở khóa thiết bị — không nhập mật khẩu két.</p>${passwordInput({ id: "vaultBiometricPassword", name: "current", label: "Mật khẩu két hiện tại", autocomplete: "current-password" })}`, async (form) => { const meta = await runCurrentPasswordAction(session.meta, form, () => window.LichVietZkCrypto.enrollBiometric(session.meta, form.current.value)); await writeMeta(meta); session.meta = meta; setBiometricLabel(true); }, { submitLabel: "Tiếp tục đến khóa màn hình", currentPasswordMeta: session.meta });
     };
     if (encryptedBackup) encryptedBackup.onclick = exportEncryptedBackup;
   }

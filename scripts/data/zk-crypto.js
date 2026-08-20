@@ -189,7 +189,13 @@
       if (typeof root.PublicKeyCredential.getClientCapabilities === "function") {
         const capabilities = await root.PublicKeyCredential.getClientCapabilities();
         if (capabilities?.["extension:prf"] !== true) {
-          return { supported: false, code: "prf-unavailable", message: "Safari/WebKit hiện tại không báo hỗ trợ WebAuthn PRF, tính năng cần để bảo vệ mật khẩu Két.", context };
+          return {
+            supported: false,
+            canAttempt: true,
+            code: "prf-unconfirmed",
+            message: "Safari/WebKit chưa xác nhận hỗ trợ WebAuthn PRF. Ứng dụng sẽ kiểm tra bằng thao tác khóa màn hình thực tế.",
+            context
+          };
         }
       }
       // Older clients cannot advertise extension support, so enrollment remains
@@ -224,7 +230,8 @@
     return new Uint8Array(output);
   }
   async function enrollBiometric(meta, password) {
-    if (!await supportsBiometric()) throw new Error(biometricSupportMessage());
+    const support = await getBiometricSupport();
+    if (!support.supported && !support.canAttempt) throw new Error(support.message || biometricSupportMessage());
     const passwordKek = await derivePasswordKek(password, meta.passwordKdf);
     let verifiedDek;
     try { verifiedDek = await openBytes(meta.passwordWrappedDek, passwordKek, aad("password-wrapped-dek", { vaultId: meta.vaultId })); }
