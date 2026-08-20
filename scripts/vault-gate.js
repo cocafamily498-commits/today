@@ -135,9 +135,15 @@
     });
     return passwordEstimator;
   }
+  function isIosPasswordAutofill() {
+    const userAgent = window.navigator?.userAgent || "";
+    return /iPhone|iPad|iPod/i.test(userAgent)
+      || (/Macintosh/i.test(userAgent) && Number(window.navigator?.maxTouchPoints) > 1);
+  }
   function passwordInput({ id, name, label, autocomplete, isNew = false, autofocus = false }) {
     const requirements = isNew ? `<p class="vault-password-help" id="${id}Help">Tối thiểu 8 ký tự. Nên dùng một cụm từ dài, riêng biệt và khó đoán.</p><div class="vault-password-strength" data-password-strength-for="${id}" data-level="empty" role="status" aria-live="polite"><span class="vault-password-strength-bar"><i></i></span><span class="vault-password-strength-label">Chưa nhập mật khẩu</span></div>` : "";
-    return `<div class="vault-password-field"><label for="${id}">${label}</label><div class="vault-password-input"><input id="${id}" name="${name}" type="password"${isNew ? ` minlength="8" aria-describedby="${id}Help"` : ""} autocomplete="${autocomplete}" autocapitalize="none" autocorrect="off" spellcheck="false" required${autofocus ? " autofocus" : ""}><button class="vault-password-toggle" type="button" aria-label="Hiện mật khẩu" title="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="vault-password-eye-slash" d="m4 4 16 16"/></svg></button></div>${requirements}</div>`;
+    const effectiveAutocomplete = autocomplete === "off" && isIosPasswordAutofill() ? "one-time-code" : autocomplete;
+    return `<div class="vault-password-field"><label for="${id}">${label}</label><div class="vault-password-input"><input id="${id}" name="${name}" type="password"${isNew ? ` minlength="8" aria-describedby="${id}Help"` : ""} autocomplete="${effectiveAutocomplete}" autocapitalize="none" autocorrect="off" spellcheck="false" required${autofocus ? " autofocus" : ""}><button class="vault-password-toggle" type="button" aria-label="Hiện mật khẩu" title="Hiện mật khẩu" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="vault-password-eye-slash" d="m4 4 16 16"/></svg></button></div>${requirements}</div>`;
   }
   function passwordStrength(password) {
     if (!password) return { level: "empty", label: "Chưa nhập mật khẩu" };

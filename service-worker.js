@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v282-password-autofill";
+const CACHE_NAME = "homnay-pwa-v283-ios-strong-password";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -1007,7 +1007,7 @@ const APP_SHELL = [
   "/partials/journal-dialog.html?v=2026-07-26-journal-title-required",
   "/partials/app-info-dialog.html?v=2026-07-26-journal-title-required",
   "/scripts/data/zk-crypto.js?v=19",
-  "/scripts/vault-gate.js?v=63",
+  "/scripts/vault-gate.js?v=64",
   "/scripts/event-reminders-system.js?v=10",
   "/scripts/event-reminders-system.js?v=11",
   "/scripts/event-reminders-system.js?v=12",
