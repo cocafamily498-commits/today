@@ -74,6 +74,21 @@
 }
 
 @media (max-width: 520px) {
+  .app-info-tab,
+  .app-info-page,
+  .app-info-dialog-body,
+  .system-configuration,
+  .system-action-card,
+  .system-config-list,
+  .system-config-row,
+  .system-settings-actions,
+  .system-settings-button,
+  .system-config-toggle {
+    touch-action: pan-y;
+  }
+  .app-info-page {
+    overflow: visible;
+  }
   .system-settings-actions {
     grid-template-columns: 1fr;
   }

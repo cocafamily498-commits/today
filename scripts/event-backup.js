@@ -350,7 +350,13 @@ async function importEventBackupFromGoogleDrive() {
   try {
     if (!window.LichVietGoogleDrive) throw new Error("Chức năng Google Drive chưa sẵn sàng.");
     await window.LichVietGoogleDrive.authorize();
+    progress = openEventBackupProgressDialog("Đang mở Google Drive", "Đã xác thực. Đang tải danh sách bản sao lưu...");
+    await waitForEventBackupProgressPaint();
+    progress.update(35, "Đang tìm thư mục Sổ tay lịch Việt...");
     const files = await window.LichVietGoogleDrive.listBackups();
+    progress.update(100, "Đã tải danh sách bản sao lưu.");
+    progress.close();
+    progress = null;
     if (!files.length) throw new Error("Chưa có file sao lưu trong thư mục Sổ tay lịch Việt.");
     const selected = await chooseGoogleDriveBackupFile(files);
     if (!selected) return;

@@ -377,7 +377,13 @@
         if (!window.LichVietGoogleDrive) throw new Error("Chức năng Google Drive chưa sẵn sàng.");
         status("Đang kết nối với Google Drive…");
         await window.LichVietGoogleDrive.authorize();
+        progress = openEventBackupProgressDialog("Đang mở Google Drive", "Đã xác thực. Đang tải danh sách backup két mã hóa...");
+        await waitForEventBackupProgressPaint();
+        progress.update(35, "Đang tìm thư mục Sổ tay lịch Việt...");
         const files = await window.LichVietGoogleDrive.listBackups({ backupType: "encrypted-vault" });
+        progress.update(100, "Đã tải danh sách backup két mã hóa.");
+        progress.close();
+        progress = null;
         if (!files.length) throw new Error("Chưa có backup két mã hóa trên Google Drive.");
         const selected = await chooseGoogleDriveBackupFile(files, {
           title: "Chọn backup két mã hóa",
