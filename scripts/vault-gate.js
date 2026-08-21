@@ -536,6 +536,7 @@
       if (!discarded && meta) renderLogin(meta, resolve);
       else if (legacyPlaintext) renderLegacyUpgrade(resolve);
       else firstUse(resolve);
+      document.dispatchEvent(new CustomEvent("lichviet:vault-gate-visible"));
     });
   }
 

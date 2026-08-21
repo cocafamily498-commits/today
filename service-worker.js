@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v290-fast-start";
+const CACHE_NAME = "homnay-pwa-v292-vault-partial-preload";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -993,7 +993,12 @@ const APP_SHELL = [
   "/scripts/partials-loader.js?v=29",
   "/scripts/partials-loader.js?v=30",
   "/scripts/partials-loader.js?v=31",
+  "/scripts/partials-loader.js?v=32",
   "/scripts/startup.js?v=7",
+  "/scripts/startup.js?v=8",
+  "/scripts/vault-bootstrap.js?v=1",
+  "/scripts/vault-bootstrap.js?v=2",
+  "/scripts/vault-gate.js?v=68",
   "/partials/tabs.html?v=2026-08-21-fast-start-v1",
   "/partials/today-tab.html?v=2026-08-21-fast-start-v1",
   "/partials/converter-tab.html?v=2026-08-21-fast-start-v1",

@@ -13,6 +13,7 @@ const DEFERRED_APP_PARTIALS = [
   "journal-dialog",
   "app-info-dialog"
 ];
+let initialAppPartialsPromise = null;
 
 async function fetchAppPartials(names) {
   return Promise.all(names.map(async (name) => {
@@ -30,9 +31,20 @@ function setDeferredTabsDisabled(disabled) {
   });
 }
 
+function preloadInitialAppPartials() {
+  if (!initialAppPartialsPromise) {
+    initialAppPartialsPromise = fetchAppPartials(INITIAL_APP_PARTIALS).catch((error) => {
+      // Allow a normal retry after unlock when a speculative preload failed.
+      initialAppPartialsPromise = null;
+      throw error;
+    });
+  }
+  return initialAppPartialsPromise;
+}
+
 async function loadInitialAppPartials() {
   const root = document.getElementById("appRoot");
-  const html = await fetchAppPartials(INITIAL_APP_PARTIALS);
+  const html = await preloadInitialAppPartials();
   root.innerHTML = html.join("\n");
   setDeferredTabsDisabled(true);
 }

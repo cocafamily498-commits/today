@@ -77,7 +77,12 @@ function setupLazyTabInitialization() {
 }
 
 async function startApplication() {
-  await window.LichVietVault.requireSession();
+  if (window.LichVietVaultSessionPromise) {
+    const vaultResult = await window.LichVietVaultSessionPromise;
+    if (!vaultResult.ok) throw vaultResult.error;
+  } else {
+    await window.LichVietVault.requireSession();
+  }
   await loadInitialAppPartials();
 
   [
