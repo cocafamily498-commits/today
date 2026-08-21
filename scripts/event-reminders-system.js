@@ -1,6 +1,6 @@
 const EVENT_SYSTEM_REMINDER_CHECK_INTERVAL = 60 * 1000;
 const EVENT_PUSH_REMINDER_DAYS_AHEAD = 370;
-const EVENT_PUSH_SYNC_SCHEMA_VERSION = "9";
+const EVENT_PUSH_SYNC_SCHEMA_VERSION = "10";
 const EVENT_PUSH_SYNC_DIRTY_KEY = "homnay.eventPushSyncDirty";
 const EVENT_PUSH_SYNC_SCHEMA_KEY = "homnay.eventPushSyncSchema";
 const EVENT_PUSH_VAPID_CACHE_KEY = "homnay.eventPushVapidPublicKey";
@@ -13,21 +13,6 @@ let eventWebPushMutationPromise = Promise.resolve();
 let eventWebPushMutationVersion = 0;
 let eventWebPushMutationFailed = false;
 let eventWebPushPublicKey = "";
-
-function getEventPushApiOrigin() {
-  const hostname = String(location.hostname || "").toLowerCase();
-  if (!hostname.endsWith(".netlify.app")) return location.origin;
-  const separatorIndex = hostname.lastIndexOf("--");
-  if (separatorIndex < 0) return location.origin;
-  const productionHostname = hostname.slice(separatorIndex + 2);
-  return productionHostname ? `${location.protocol}//${productionHostname}` : location.origin;
-}
-
-function getEventPushApiUrl(path) {
-  const isLocalHost = ["localhost", "127.0.0.1", "::1"].includes(location.hostname);
-  if (location.protocol === "file:" || isLocalHost) return getApiUrl(path);
-  return `${getEventPushApiOrigin()}${path}`;
-}
 
 function setupEventSystemReminderControls() {
   const buttons = Array.from(document.querySelectorAll(".event-system-reminder-trigger"));
@@ -324,7 +309,7 @@ async function syncEventWebPushReminderPayloads(options = {}) {
     if (Array.isArray(options.replaceEventIds)) {
       payload.replaceEventIds = options.replaceEventIds;
     }
-    const response = await fetch(getEventPushApiUrl("/api/push-subscription"), {
+    const response = await fetch(getApiUrl("/api/push-subscription"), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload)
@@ -365,7 +350,7 @@ async function sendEventWebPushTestNotification() {
     }
 
     const subscription = await getOrCreateWebPushSubscription(registration);
-    const response = await fetch(getEventPushApiUrl("/api/send-test-push"), {
+    const response = await fetch(getApiUrl("/api/send-test-push"), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ appId: location.origin, subscription })
@@ -384,7 +369,7 @@ async function getWebPushPublicKey() {
   let cached = null;
   try {
     cached = JSON.parse(localStorage.getItem(EVENT_PUSH_VAPID_CACHE_KEY) || "null");
-    if (cached && cached.publicKey && cached.apiOrigin === getEventPushApiOrigin() && Date.now() - Number(cached.cachedAt) < EVENT_PUSH_VAPID_CACHE_TTL) {
+    if (cached && cached.publicKey && cached.apiOrigin === location.origin && Date.now() - Number(cached.cachedAt) < EVENT_PUSH_VAPID_CACHE_TTL) {
       eventWebPushPublicKey = cached.publicKey;
       return eventWebPushPublicKey;
     }
@@ -393,7 +378,7 @@ async function getWebPushPublicKey() {
   }
 
   try {
-    const response = await fetch(getEventPushApiUrl("/api/push-vapid-public-key"), { cache: "no-store" });
+    const response = await fetch(getApiUrl("/api/push-vapid-public-key"), { cache: "no-store" });
     if (!response.ok) throw new Error("VAPID public key is unavailable.");
     const data = await response.json();
     eventWebPushPublicKey = data && data.publicKey ? data.publicKey : "";
@@ -401,7 +386,7 @@ async function getWebPushPublicKey() {
       try {
         localStorage.setItem(EVENT_PUSH_VAPID_CACHE_KEY, JSON.stringify({
           publicKey: eventWebPushPublicKey,
-          apiOrigin: getEventPushApiOrigin(),
+          apiOrigin: location.origin,
           cachedAt: Date.now()
         }));
       } catch (error) {
@@ -410,7 +395,7 @@ async function getWebPushPublicKey() {
     }
     return eventWebPushPublicKey;
   } catch (error) {
-    return cached && cached.publicKey && cached.apiOrigin === getEventPushApiOrigin() ? cached.publicKey : "";
+    return cached && cached.publicKey && cached.apiOrigin === location.origin ? cached.publicKey : "";
   }
 }
 
