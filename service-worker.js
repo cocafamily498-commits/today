@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v293-preview-push-production";
+const CACHE_NAME = "homnay-pwa-v295-ios-webauthn-probe";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -544,6 +544,7 @@ const APP_SHELL = [
   "/scripts/today-panel.js?v=2",
   "/scripts/today-panel.js?v=3",
   "/scripts/weather-panel.js",
+  "/scripts/weather-panel.js?v=2",
   "/scripts/market-panels.js",
   "/scripts/market-panels.js?v=2",
   "/scripts/pwa-install.js?v=2",
@@ -996,6 +997,7 @@ const APP_SHELL = [
   "/scripts/partials-loader.js?v=32",
   "/scripts/startup.js?v=7",
   "/scripts/startup.js?v=8",
+  "/scripts/startup.js?v=9",
   "/scripts/vault-bootstrap.js?v=1",
   "/scripts/vault-bootstrap.js?v=2",
   "/scripts/vault-gate.js?v=68",
@@ -1030,6 +1032,7 @@ const APP_SHELL = [
   "/partials/journal-dialog.html?v=2026-07-26-journal-title-required",
   "/partials/app-info-dialog.html?v=2026-07-26-journal-title-required",
   "/scripts/data/zk-crypto.js?v=19",
+  "/scripts/data/zk-crypto.js?v=20",
   "/scripts/vault-gate.js?v=67",
   "/scripts/event-reminders-system.js?v=10",
   "/scripts/event-reminders-system.js?v=11",

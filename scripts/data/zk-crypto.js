@@ -167,7 +167,10 @@
     return {
       hostname: root.location?.hostname || "không xác định",
       mode: standalone ? "Ứng dụng Màn hình chính" : "trình duyệt",
-      userAgent: root.navigator?.userAgent || "không xác định"
+      userAgent: root.navigator?.userAgent || "không xác định",
+      standalone,
+      ios: /iPhone|iPad|iPod/i.test(root.navigator?.userAgent || "")
+        || (/Macintosh/i.test(root.navigator?.userAgent || "") && Number(root.navigator?.maxTouchPoints) > 1)
     };
   }
 
@@ -184,6 +187,15 @@
     }
     try {
       if (!await root.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) {
+        if (context.ios && context.standalone) {
+          return {
+            supported: false,
+            canAttempt: true,
+            code: "platform-authenticator-unconfirmed",
+            message: "iOS ở chế độ Màn hình chính chưa xác nhận khóa hệ thống. Ứng dụng sẽ kiểm tra bằng thao tác Face ID/WebAuthn thực tế.",
+            context
+          };
+        }
         return { supported: false, code: "platform-authenticator-unavailable", message: "iOS không báo có khóa màn hình dùng được cho WebAuthn. Hãy kiểm tra mật mã, Face ID, Tự động điền mật khẩu và Chuỗi khóa iCloud.", context };
       }
       if (typeof root.PublicKeyCredential.getClientCapabilities === "function") {

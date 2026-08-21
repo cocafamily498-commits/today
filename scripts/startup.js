@@ -86,11 +86,11 @@ async function startApplication() {
   await loadInitialAppPartials();
 
   [
-    [render, "render"],
-    [setupVietnameseValidationMessages, "setupVietnameseValidationMessages"],
-    [setupCollapsiblePanels, "setupCollapsiblePanels"],
-    [setupMarketDataRefresh, "setupMarketDataRefresh"],
-    [setupWeatherDataRefresh, "setupWeatherDataRefresh"]
+    [window.render, "render"],
+    [window.setupVietnameseValidationMessages, "setupVietnameseValidationMessages"],
+    [window.setupCollapsiblePanels, "setupCollapsiblePanels"],
+    [window.setupMarketDataRefresh, "setupMarketDataRefresh"],
+    [window.setupWeatherDataRefresh, "setupWeatherDataRefresh"]
   ].forEach(([task, label]) => runStartupTask(task, label));
 
   // Give the browser a chance to display Today before fetching and building
@@ -108,27 +108,29 @@ async function startApplication() {
 
   if (deferredUiReady) {
     [
-      [setupAppTabs, "setupAppTabs"],
-      [setupApplicationInfo, "setupApplicationInfo"],
-      [window.LichVietVault.setupSystemControls, "setupSystemVaultControls"],
-      [setupMonthlyCalendar, "setupMonthlyCalendar"],
-      [setupEventSystemReminderControls, "setupEventSystemReminderControls"],
-      [setupTodayEventReminderPrompt, "setupTodayEventReminderPrompt"],
-      [setupLazyTabInitialization, "setupLazyTabInitialization"]
+      [window.setupAppTabs, "setupAppTabs"],
+      [window.setupApplicationInfo, "setupApplicationInfo"],
+      [window.LichVietVault?.setupSystemControls, "setupSystemVaultControls"],
+      [window.setupMonthlyCalendar, "setupMonthlyCalendar"],
+      [window.setupEventSystemReminderControls, "setupEventSystemReminderControls"],
+      [window.setupTodayEventReminderPrompt, "setupTodayEventReminderPrompt"],
+      [window.setupLazyTabInitialization, "setupLazyTabInitialization"]
     ].forEach(([task, label]) => runStartupTask(task, label));
   }
 
   [
-    [setupLocationPicker, "setupLocationPicker"],
-    [setupPwaInstall, "setupPwaInstall"],
-    [registerServiceWorker, "registerServiceWorker"],
-    [loadWeather, "loadWeather"],
-    [loadMarkets, "loadMarkets"],
-    [loadAssets, "loadAssets"],
-    [loadQuotes, "loadQuotes"]
+    [window.setupLocationPicker, "setupLocationPicker"],
+    [window.setupPwaInstall, "setupPwaInstall"],
+    [window.registerServiceWorker, "registerServiceWorker"],
+    [window.loadWeather, "loadWeather"],
+    [window.loadMarkets, "loadMarkets"],
+    [window.loadAssets, "loadAssets"],
+    [window.loadQuotes, "loadQuotes"]
   ].forEach(([task, label]) => scheduleBackgroundTask(task, label));
 
-  if (deferredUiReady) await importSharedBackupFile();
+  if (deferredUiReady && typeof window.importSharedBackupFile === "function") {
+    await window.importSharedBackupFile();
+  }
 
 }
 
