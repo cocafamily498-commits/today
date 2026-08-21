@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v289-preview-push-origin";
+const CACHE_NAME = "homnay-pwa-v290-fast-start";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -992,6 +992,15 @@ const APP_SHELL = [
   "/scripts/partials-loader.js?v=28",
   "/scripts/partials-loader.js?v=29",
   "/scripts/partials-loader.js?v=30",
+  "/scripts/partials-loader.js?v=31",
+  "/scripts/startup.js?v=7",
+  "/partials/tabs.html?v=2026-08-21-fast-start-v1",
+  "/partials/today-tab.html?v=2026-08-21-fast-start-v1",
+  "/partials/converter-tab.html?v=2026-08-21-fast-start-v1",
+  "/partials/app-info-tab.html?v=2026-08-21-fast-start-v1",
+  "/partials/event-dialog.html?v=2026-08-21-fast-start-v1",
+  "/partials/journal-dialog.html?v=2026-08-21-fast-start-v1",
+  "/partials/app-info-dialog.html?v=2026-08-21-fast-start-v1",
   "/partials/tabs.html?v=2026-07-26-app-version-3",
   "/partials/today-tab.html?v=2026-07-26-app-version-3",
   "/partials/converter-tab.html?v=2026-07-26-app-version-3",

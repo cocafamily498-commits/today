@@ -51,6 +51,16 @@ function scheduleBackgroundTask(task, label) {
   }
 }
 
+function waitForInitialPaint() {
+  return new Promise((resolve) => {
+    if (typeof requestAnimationFrame !== "function") {
+      setTimeout(resolve, 0);
+      return;
+    }
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+}
+
 function setupLazyTabInitialization() {
   const initialized = new Set();
   const initializeTab = (tabId) => {
@@ -68,22 +78,40 @@ function setupLazyTabInitialization() {
 
 async function startApplication() {
   await window.LichVietVault.requireSession();
-  await loadAppPartials();
+  await loadInitialAppPartials();
 
   [
     [render, "render"],
-    [setupAppTabs, "setupAppTabs"],
-    [setupApplicationInfo, "setupApplicationInfo"],
-    [window.LichVietVault.setupSystemControls, "setupSystemVaultControls"],
     [setupVietnameseValidationMessages, "setupVietnameseValidationMessages"],
-    [setupMonthlyCalendar, "setupMonthlyCalendar"],
     [setupCollapsiblePanels, "setupCollapsiblePanels"],
     [setupMarketDataRefresh, "setupMarketDataRefresh"],
-    [setupWeatherDataRefresh, "setupWeatherDataRefresh"],
-    [setupEventSystemReminderControls, "setupEventSystemReminderControls"],
-    [setupTodayEventReminderPrompt, "setupTodayEventReminderPrompt"],
-    [setupLazyTabInitialization, "setupLazyTabInitialization"]
+    [setupWeatherDataRefresh, "setupWeatherDataRefresh"]
   ].forEach(([task, label]) => runStartupTask(task, label));
+
+  // Give the browser a chance to display Today before fetching and building
+  // tabs/dialogs that are not needed for the first screen.
+  await waitForInitialPaint();
+
+  let deferredUiReady = false;
+  try {
+    await loadDeferredAppPartials();
+    deferredUiReady = true;
+  } catch (error) {
+    // Today remains usable even if a secondary partial temporarily fails.
+    console.error("deferred application UI failed", error);
+  }
+
+  if (deferredUiReady) {
+    [
+      [setupAppTabs, "setupAppTabs"],
+      [setupApplicationInfo, "setupApplicationInfo"],
+      [window.LichVietVault.setupSystemControls, "setupSystemVaultControls"],
+      [setupMonthlyCalendar, "setupMonthlyCalendar"],
+      [setupEventSystemReminderControls, "setupEventSystemReminderControls"],
+      [setupTodayEventReminderPrompt, "setupTodayEventReminderPrompt"],
+      [setupLazyTabInitialization, "setupLazyTabInitialization"]
+    ].forEach(([task, label]) => runStartupTask(task, label));
+  }
 
   [
     [setupLocationPicker, "setupLocationPicker"],
@@ -95,7 +123,7 @@ async function startApplication() {
     [loadQuotes, "loadQuotes"]
   ].forEach(([task, label]) => scheduleBackgroundTask(task, label));
 
-  await importSharedBackupFile();
+  if (deferredUiReady) await importSharedBackupFile();
 
 }
 
