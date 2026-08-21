@@ -1,10 +1,14 @@
 const EVENT_SYSTEM_REMINDER_CHECK_INTERVAL = 60 * 1000;
 const EVENT_PUSH_REMINDER_DAYS_AHEAD = 370;
-const EVENT_PUSH_SYNC_SCHEMA_VERSION = "4";
+// Version 11 forces existing preview installations to register their current
+// reminders again against the production push backend.
+const EVENT_PUSH_SYNC_SCHEMA_VERSION = "11";
 const EVENT_PUSH_SYNC_DIRTY_KEY = "homnay.eventPushSyncDirty";
 const EVENT_PUSH_SYNC_SCHEMA_KEY = "homnay.eventPushSyncSchema";
 const EVENT_PUSH_VAPID_CACHE_KEY = "homnay.eventPushVapidPublicKey";
+const EVENT_SYSTEM_REMINDER_ENABLED_KEY = "homnay.eventSystemReminderEnabled";
 const EVENT_PUSH_VAPID_CACHE_TTL = 24 * 60 * 60 * 1000;
+const EVENT_PUSH_PRODUCTION_ORIGIN = "https://sotaylichviet.netlify.app";
 let eventSystemReminderListenersReady = false;
 let eventWebPushRecoveryPromise = null;
 let eventWebPushRecoveryTimer = null;
@@ -12,6 +16,16 @@ let eventWebPushMutationPromise = Promise.resolve();
 let eventWebPushMutationVersion = 0;
 let eventWebPushMutationFailed = false;
 let eventWebPushPublicKey = "";
+
+function getEventPushApiUrl(path) {
+  const hostname = window.location.hostname.toLowerCase();
+  const isNetlifyPreview = hostname.endsWith("--sotaylichviet.netlify.app");
+  return isNetlifyPreview ? `${EVENT_PUSH_PRODUCTION_ORIGIN}${path}` : getApiUrl(path);
+}
+
+function getEventPushApiOrigin() {
+  return new URL(getEventPushApiUrl("/"), window.location.origin).origin;
+}
 
 function setupEventSystemReminderControls() {
   const buttons = Array.from(document.querySelectorAll(".event-system-reminder-trigger"));
@@ -21,12 +35,18 @@ function setupEventSystemReminderControls() {
   buttons.filter((button) => button.dataset.eventSystemReminderReady !== "true").forEach((button) => {
     button.dataset.eventSystemReminderReady = "true";
     button.addEventListener("click", async () => {
+      if (eventSystemRemindersAreEnabled()) {
+        await disableEventSystemReminders();
+        refreshEventSystemReminderControls();
+        return;
+      }
       if ("Notification" in window && Notification.permission === "denied") {
         openNotificationBlockedDialog();
         return;
       }
 
       const permission = await requestEventSystemNotificationPermission();
+      if (permission === "granted") setEventSystemRemindersEnabled(true);
       updateEventSystemReminderButtons(buttons);
       if (permission === "granted") {
         const synced = await syncEventWebPushReminders();
@@ -68,24 +88,60 @@ function updateEventSystemReminderButtons(buttons, webPushSynced = true) {
 }
 
 function updateEventSystemReminderButton(button, webPushSynced = true) {
+  const status = document.getElementById("systemReminderStatus");
+  const action = button.querySelector("[data-reminder-action]") || button;
   if (!("Notification" in window)) {
-    button.textContent = "Không hỗ trợ nhắc hệ thống";
+    action.textContent = "Không hỗ trợ";
+    if (status) status.textContent = "Không được hỗ trợ";
     button.disabled = true;
     button.classList.remove("is-enabled", "is-warning");
     return;
   }
 
   const permission = Notification.permission;
+  const enabled = eventSystemRemindersAreEnabled();
   button.disabled = false;
-  button.classList.toggle("is-enabled", permission === "granted");
+  button.classList.toggle("is-enabled", enabled);
   button.classList.toggle("is-warning", permission === "denied");
-  if (permission === "granted") {
-    button.textContent = webPushSynced ? "Đã bật nhắc hệ thống" : "Chưa cấu hình Web Push";
+  if (permission === "granted" && enabled) {
+    action.textContent = "Tắt";
+    if (status) status.textContent = webPushSynced ? "Đang bật" : "Cần đồng bộ lại";
     button.classList.toggle("is-warning", !webPushSynced);
   } else if (permission === "denied") {
-    button.textContent = "Thông báo bị chặn";
+    action.textContent = "Mở";
+    if (status) status.textContent = "Đang bị trình duyệt chặn";
   } else {
-    button.textContent = "Bật nhắc hệ thống";
+    action.textContent = "Bật";
+    if (status) status.textContent = "Đang tắt";
+  }
+}
+
+function eventSystemRemindersAreEnabled() {
+  if (!("Notification" in window) || Notification.permission !== "granted") return false;
+  try {
+    return localStorage.getItem(EVENT_SYSTEM_REMINDER_ENABLED_KEY) !== "false";
+  } catch (error) {
+    return true;
+  }
+}
+
+function setEventSystemRemindersEnabled(enabled) {
+  try {
+    localStorage.setItem(EVENT_SYSTEM_REMINDER_ENABLED_KEY, enabled ? "true" : "false");
+  } catch (error) {
+    // The current browser session can still continue when storage is unavailable.
+  }
+}
+
+async function disableEventSystemReminders() {
+  setEventSystemRemindersEnabled(false);
+  try {
+    const registration = await getReadyServiceWorkerRegistration();
+    if (!registration || !registration.pushManager) return;
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) await subscription.unsubscribe();
+  } catch (error) {
+    console.error("disable web push reminders failed", error);
   }
 }
 
@@ -113,10 +169,10 @@ function openNotificationBlockedDialog() {
   dialog.innerHTML = `
     <div class="app-install-dialog-content">
       <h2>Thông báo đang bị chặn</h2>
-      <p>Android/Chrome đã chặn quyền thông báo cho app này, nên ứng dụng không thể tự bật lại bằng nút trong web.</p>
+      <p>Trình duyệt hoặc hệ điều hành đã chặn quyền thông báo cho ứng dụng, nên ứng dụng không thể tự bật lại quyền này.</p>
       <p>Trạng thái trình duyệt đang trả về: ${escapeHtml(Notification.permission)}. ${escapeHtml(secureText)}</p>
-      <p>Trên Chrome Android: bấm biểu tượng ổ khóa hoặc chữ thông tin cạnh thanh địa chỉ, vào Quyền trang web, chọn Thông báo, rồi chuyển sang Cho phép.</p>
-      <p>Nếu đang mở bằng app đã cài: nhấn giữ biểu tượng app, chọn Thông tin ứng dụng, vào Thông báo, rồi bật Cho phép thông báo.</p>
+      <p>Hãy mở phần thông tin hoặc cài đặt quyền của trang web trong trình duyệt, chọn Thông báo rồi chuyển sang Cho phép.</p>
+      <p>Nếu đang mở bằng ứng dụng đã cài, hãy vào cài đặt thông báo của ứng dụng trên thiết bị và bật quyền thông báo.</p>
       <div class="event-backup-dialog-actions">
         <button class="event-secondary-button" type="button" data-action="close">Đóng</button>
         <button class="event-submit" type="button" data-action="recheck">Kiểm tra lại</button>
@@ -181,6 +237,7 @@ function needsEventWebPushRecovery() {
 }
 
 function recoverEventWebPushReminders() {
+  if (!eventSystemRemindersAreEnabled()) return Promise.resolve(true);
   if (!needsEventWebPushRecovery()) return Promise.resolve(true);
   if (eventWebPushRecoveryPromise) return eventWebPushRecoveryPromise;
   eventWebPushRecoveryPromise = syncEventWebPushReminders()
@@ -265,7 +322,7 @@ async function syncEventWebPushReminderPayloads(options = {}) {
     if (Array.isArray(options.replaceEventIds)) {
       payload.replaceEventIds = options.replaceEventIds;
     }
-    const response = await fetch(getApiUrl("/api/push-subscription"), {
+    const response = await fetch(getEventPushApiUrl("/api/push-subscription"), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload)
@@ -280,6 +337,7 @@ async function syncEventWebPushReminderPayloads(options = {}) {
 function canUseEventWebPushReminderSync() {
   return ("Notification" in window)
     && Notification.permission === "granted"
+    && eventSystemRemindersAreEnabled()
     && Boolean(window.LichVietData)
     && ("serviceWorker" in navigator)
     && ("PushManager" in window);
@@ -305,10 +363,10 @@ async function sendEventWebPushTestNotification() {
     }
 
     const subscription = await getOrCreateWebPushSubscription(registration);
-    const response = await fetch(getApiUrl("/api/send-test-push"), {
+    const response = await fetch(getEventPushApiUrl("/api/send-test-push"), {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ subscription })
+      body: JSON.stringify({ appId: location.origin, subscription })
     });
     const data = await response.json().catch(() => ({}));
     return { ok: response.ok && data.ok === true, httpStatus: response.status, ...data };
@@ -321,10 +379,11 @@ async function sendEventWebPushTestNotification() {
 async function getWebPushPublicKey() {
   if (eventWebPushPublicKey) return eventWebPushPublicKey;
 
+  const apiOrigin = getEventPushApiOrigin();
   let cached = null;
   try {
     cached = JSON.parse(localStorage.getItem(EVENT_PUSH_VAPID_CACHE_KEY) || "null");
-    if (cached && cached.publicKey && Date.now() - Number(cached.cachedAt) < EVENT_PUSH_VAPID_CACHE_TTL) {
+    if (cached && cached.publicKey && cached.apiOrigin === apiOrigin && Date.now() - Number(cached.cachedAt) < EVENT_PUSH_VAPID_CACHE_TTL) {
       eventWebPushPublicKey = cached.publicKey;
       return eventWebPushPublicKey;
     }
@@ -333,7 +392,7 @@ async function getWebPushPublicKey() {
   }
 
   try {
-    const response = await fetch(getApiUrl("/api/push-vapid-public-key"), { cache: "no-store" });
+    const response = await fetch(getEventPushApiUrl("/api/push-vapid-public-key"), { cache: "no-store" });
     if (!response.ok) throw new Error("VAPID public key is unavailable.");
     const data = await response.json();
     eventWebPushPublicKey = data && data.publicKey ? data.publicKey : "";
@@ -341,6 +400,7 @@ async function getWebPushPublicKey() {
       try {
         localStorage.setItem(EVENT_PUSH_VAPID_CACHE_KEY, JSON.stringify({
           publicKey: eventWebPushPublicKey,
+          apiOrigin,
           cachedAt: Date.now()
         }));
       } catch (error) {
@@ -349,7 +409,7 @@ async function getWebPushPublicKey() {
     }
     return eventWebPushPublicKey;
   } catch (error) {
-    return cached && cached.publicKey ? cached.publicKey : "";
+    return cached && cached.publicKey && cached.apiOrigin === apiOrigin ? cached.publicKey : "";
   }
 }
 

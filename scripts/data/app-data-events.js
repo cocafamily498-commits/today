@@ -176,6 +176,6 @@
 
   Object.assign(parts, {
     createEvent, updateEvent, deleteEvent, getEvent, getAllEvents, getEventsByDate, getEventsByMonth,
-    clearEventsReadCache
+    clearEventsReadCache, normalizeEvent
   });
 })();

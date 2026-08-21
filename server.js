@@ -46,7 +46,7 @@ const STATIC_TYPES = {
   ".svg": "image/svg+xml; charset=utf-8",
   ".webmanifest": "application/manifest+json; charset=utf-8"
 };
-const STATIC_DIRECTORIES = ["partials", "scripts", "icons", "styles", "assets", "data"];
+const STATIC_DIRECTORIES = ["partials", "scripts", "icons", "styles", "assets", "data", "node_modules"];
 const API_CORS_HEADERS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, OPTIONS",

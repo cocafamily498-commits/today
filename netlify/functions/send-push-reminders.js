@@ -43,8 +43,7 @@ async function sendPushReminders() {
     return totals;
   }, {});
 
-  return jsonResponse({
-    ok: true,
+  const summary = {
     migrated,
     due: jobs.length,
     processed: selectedJobs.length,
@@ -53,6 +52,14 @@ async function sendPushReminders() {
     expired: counts.expired || 0,
     skipped: counts.skipped || 0,
     durationMs: Date.now() - startedAt
+  };
+  if (migrated || summary.processed > 0) {
+    console.log("push-reminder-summary", JSON.stringify(summary));
+  }
+
+  return jsonResponse({
+    ok: true,
+    ...summary
   });
 }
 

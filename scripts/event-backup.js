@@ -1,61 +1,3 @@
-function openBackupExplanationDialog() {
-  const existingDialog = document.getElementById("eventBackupDialog");
-  if (existingDialog) existingDialog.remove();
-
-  const dialog = document.createElement("dialog");
-  dialog.id = "eventBackupDialog";
-  dialog.className = "event-backup-dialog";
-  dialog.innerHTML = `
-    <div class="event-backup-content">
-      <h2>Sao lưu dữ liệu</h2>
-      <p>Ứng dụng này không thu thập dữ liệu cá nhân của bạn. Mọi dữ liệu bạn tạo, như sự kiện, sinh nhật, ngày giỗ, ghi chú và thiết lập, đều được lưu cục bộ trên thiết bị của bạn, trong vùng lưu trữ của trình duyệt đang sử dụng.</p>
-      <p>Khi sao lưu, ứng dụng sẽ đóng gói dữ liệu thành một file ZIP. Bạn có thể tải file về thiết bị hoặc lưu trực tiếp lên Google Drive.</p>
-      <p>Nếu chọn Google Drive, ứng dụng sẽ yêu cầu bạn đăng nhập và cấp quyền. File được lưu trong thư mục <strong>Sổ tay lịch Việt</strong> trên Google Drive của chính bạn, nơi bạn có thể xem, tải xuống, di chuyển hoặc xóa bất cứ lúc nào.</p>
-      <p>Bạn có thể dùng file này để khôi phục dữ liệu khi đổi máy, đổi trình duyệt hoặc sau khi xóa dữ liệu trình duyệt. Khi khôi phục, hãy chọn file trên thiết bị hoặc bản sao lưu đã lưu trên Google Drive.</p>
-      <p id="eventBackupDriveStatus" role="status" aria-live="polite" hidden></p>
-      <div class="event-backup-dialog-actions">
-        <button id="eventBackupCancelButton" class="event-secondary-button" type="button">Hủy</button>
-        <button id="eventBackupDriveButton" class="event-secondary-button" type="button">Lưu lên Google Drive</button>
-        <button id="eventBackupDownloadButton" class="event-submit" type="button">Copy file về</button>
-      </div>
-    </div>
-  `;
-
-  document.body.append(dialog);
-  document.body.classList.add("event-dialog-open");
-  dialog.addEventListener("close", () => {
-    dialog.remove();
-    if (!document.querySelector("dialog.event-backup-dialog[open]")) {
-      document.body.classList.remove("event-dialog-open");
-    }
-  });
-  dialog.querySelector("#eventBackupCancelButton").addEventListener("click", () => dialog.close());
-  dialog.querySelector("#eventBackupDownloadButton").addEventListener("click", async () => {
-    dialog.close();
-    await backupEventData();
-  });
-  dialog.querySelector("#eventBackupDriveButton").addEventListener("click", async (event) => {
-    const button = event.currentTarget;
-    const status = dialog.querySelector("#eventBackupDriveStatus");
-    button.disabled = true;
-    status.hidden = false;
-    status.textContent = "Đang kết nối với Google Drive...";
-    try {
-      if (!window.LichVietGoogleDrive) throw new Error("Chức năng Google Drive chưa sẵn sàng.");
-      await window.LichVietGoogleDrive.authorize();
-      dialog.close();
-      await backupEventDataToGoogleDrive();
-    } catch (error) {
-      console.error("Google Drive authorization failed", error);
-      status.textContent = error.message || "Không kết nối được với Google Drive.";
-    } finally {
-      button.disabled = false;
-    }
-  });
-  dialog.showModal();
-  dialog.querySelector("#eventBackupDownloadButton").focus();
-}
-
 function openEventBackupProgressDialog(title, message) {
   const existingDialog = document.getElementById("eventBackupProgressDialog");
   if (existingDialog) existingDialog.remove();
@@ -184,18 +126,6 @@ function createEventBackupZip(files) {
   return new Blob([...localParts, ...centralParts, end], { type: "application/zip" });
 }
 
-function eventBackupDataUrlToFile(dataUrl, index) {
-  const match = /^data:([^;,]+);base64,([A-Za-z0-9+/=\s]+)$/.exec(String(dataUrl || ""));
-  if (!match) throw new Error("Ảnh sao lưu không đúng định dạng.");
-  const mimeType = match[1].toLowerCase();
-  const extensions = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
-  const extension = extensions[mimeType] || "bin";
-  const binary = atob(match[2].replace(/\s/g, ""));
-  const bytes = new Uint8Array(binary.length);
-  for (let offset = 0; offset < binary.length; offset += 1) bytes[offset] = binary.charCodeAt(offset);
-  return { name: `images/${String(index + 1).padStart(6, "0")}.${extension}`, mimeType, bytes };
-}
-
 function eventBackupBytesToDataUrl(bytes, mimeType) {
   let binary = "";
   const chunkSize = 0x8000;
@@ -277,6 +207,7 @@ function parseEventBackupJson(files, name) {
 function openEventBackupMessageDialog(title, message, buttonLabel = "Đóng") {
   const dialog = document.createElement("dialog");
   dialog.className = "event-backup-dialog";
+  dialog.setAttribute("closedby", "closerequest");
   dialog.innerHTML = `
     <div class="event-backup-content">
       <h2></h2>
@@ -289,22 +220,59 @@ function openEventBackupMessageDialog(title, message, buttonLabel = "Đóng") {
   dialog.querySelector("p").textContent = message;
   dialog.querySelector("button").textContent = buttonLabel;
   dialog.querySelector("button").addEventListener("click", () => dialog.close());
-  dialog.addEventListener("close", () => dialog.remove(), { once: true });
+  document.body.classList.add("event-dialog-open");
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+    if (!document.querySelector("dialog.event-backup-dialog[open], dialog.vault-settings-dialog[open]")) {
+      document.body.classList.remove("event-dialog-open");
+    }
+  }, { once: true });
   document.body.append(dialog);
   dialog.showModal();
 }
 
+function parseEncryptedEventBackupZip(files) {
+  const vaultBytes = files.get("vault.json");
+  if (!vaultBytes || files.size < 1) throw new Error("ZIP backup két mã hóa thiếu vault.json.");
+  const packed = JSON.parse(eventBackupTextDecoder.decode(vaultBytes));
+  const referenced = new Set(["vault.json"]);
+  (packed.records || []).forEach((record) => {
+    if (record?.kind !== "attachment") return;
+    (record.chunks || []).forEach((chunk) => {
+      const name = chunk?.box?.ciphertextFile;
+      if (typeof name !== "string" || !/^attachments\/[0-9]{6}-[0-9]{4}\.bin$/.test(name) || referenced.has(name)) {
+        throw new Error("Tham chiếu attachment mã hóa không hợp lệ.");
+      }
+      const bytes = files.get(name);
+      if (!bytes) throw new Error(`ZIP thiếu attachment mã hóa ${name}.`);
+      referenced.add(name);
+      chunk.box.ciphertext = window.LichVietZkBackup.toBase64(bytes);
+      delete chunk.box.ciphertextFile;
+    });
+  });
+  if (files.size !== referenced.size || [...files.keys()].some((name) => !referenced.has(name))) {
+    throw new Error("ZIP backup két chứa file không được phép.");
+  }
+  return window.LichVietZkBackup.parseBackup(JSON.stringify(packed));
+}
+
 function openBackupImportSourceDialog(fileInput) {
   const dialog = document.createElement("dialog");
-  dialog.className = "event-backup-dialog";
+  dialog.className = "event-backup-dialog vault-transfer-dialog";
+  dialog.setAttribute("closedby", "closerequest");
   dialog.innerHTML = `
     <div class="event-backup-content">
-      <h2>Khôi phục dữ liệu</h2>
-      <p>Chọn nơi chứa file sao lưu cần khôi phục.</p>
-      <div class="event-backup-dialog-actions">
-        <button class="event-secondary-button" type="button" data-cancel>Hủy</button>
-        <button class="event-secondary-button" type="button" data-drive>Google Drive</button>
-        <button class="event-submit" type="button" data-file>File trên thiết bị</button>
+      <header class="vault-transfer-header">
+        <h2>Khôi phục dữ liệu</h2>
+        <button class="vault-transfer-close" type="button" data-close aria-label="Đóng" title="Đóng">×</button>
+      </header>
+      <div class="vault-transfer-body">
+        <p>Chọn nơi chứa file sao lưu cần khôi phục.</p>
+        <div class="event-backup-dialog-actions">
+          <button class="event-secondary-button" type="button" data-cancel>Hủy</button>
+          <button class="event-secondary-button" type="button" data-drive>Google Drive</button>
+          <button class="event-submit" type="button" data-file>File trên thiết bị</button>
+        </div>
       </div>
     </div>`;
   const finish = (source) => {
@@ -312,10 +280,17 @@ function openBackupImportSourceDialog(fileInput) {
     if (source === "file") fileInput.click();
     if (source === "drive") importEventBackupFromGoogleDrive();
   };
+  dialog.querySelector("[data-close]").addEventListener("click", () => dialog.close());
   dialog.querySelector("[data-cancel]").addEventListener("click", () => dialog.close());
   dialog.querySelector("[data-file]").addEventListener("click", () => finish("file"));
   dialog.querySelector("[data-drive]").addEventListener("click", () => finish("drive"));
-  dialog.addEventListener("close", () => dialog.remove(), { once: true });
+  document.body.classList.add("event-dialog-open");
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+    if (!document.querySelector("dialog.event-backup-dialog[open], dialog.vault-settings-dialog[open]")) {
+      document.body.classList.remove("event-dialog-open");
+    }
+  }, { once: true });
   document.body.append(dialog);
   dialog.showModal();
 }
@@ -327,14 +302,14 @@ function formatGoogleDriveBackupSize(size) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function chooseGoogleDriveBackupFile(files) {
+function chooseGoogleDriveBackupFile(files, options = {}) {
   return new Promise((resolve) => {
     const dialog = document.createElement("dialog");
     dialog.className = "event-backup-dialog";
     dialog.innerHTML = `
       <div class="event-backup-content">
-        <h2>Chọn bản sao lưu trên Google Drive</h2>
-        <p>Các file trong thư mục <strong>Sổ tay lịch Việt</strong>:</p>
+        <h2>${options.title || "Chọn bản sao lưu trên Google Drive"}</h2>
+        <p>${options.description || "Các file trong thư mục <strong>Sổ tay lịch Việt</strong>:"}</p>
         <div data-backup-list></div>
         <div class="event-backup-dialog-actions">
           <button class="event-secondary-button" type="button" data-cancel>Hủy</button>
@@ -375,7 +350,13 @@ async function importEventBackupFromGoogleDrive() {
   try {
     if (!window.LichVietGoogleDrive) throw new Error("Chức năng Google Drive chưa sẵn sàng.");
     await window.LichVietGoogleDrive.authorize();
+    progress = openEventBackupProgressDialog("Đang mở Google Drive", "Đã xác thực. Đang tải danh sách bản sao lưu...");
+    await waitForEventBackupProgressPaint();
+    progress.update(35, "Đang tìm thư mục Sổ tay lịch Việt...");
     const files = await window.LichVietGoogleDrive.listBackups();
+    progress.update(100, "Đã tải danh sách bản sao lưu.");
+    progress.close();
+    progress = null;
     if (!files.length) throw new Error("Chưa có file sao lưu trong thư mục Sổ tay lịch Việt.");
     const selected = await chooseGoogleDriveBackupFile(files);
     if (!selected) return;
@@ -407,106 +388,6 @@ document.addEventListener("click", (event) => {
   openBackupImportSourceDialog(fileInput);
 }, true);
 
-async function createEventBackupArchive(progress) {
-  progress.update(20, "Đang đọc dữ liệu...");
-  const backup = await window.LichVietData.exportBackup();
-  progress.update(50, "Đang tách các file ảnh...");
-  const zipFiles = [];
-  const images = [];
-  (backup.images || []).forEach((image, index) => {
-    if (!image.blob) {
-      images.push({ ...image, blob: null });
-      return;
-    }
-    const imageFile = eventBackupDataUrlToFile(image.blob, index);
-    zipFiles.push({ name: imageFile.name, bytes: imageFile.bytes });
-    images.push({ ...image, blob: null, archiveFile: imageFile.name, mimeType: imageFile.mimeType });
-  });
-  const portableBackup = { ...backup, images };
-  const groupSetting = (backup.settings || []).find((setting) => setting && setting.key === "eventGroups");
-  const groupValue = groupSetting
-    ? groupSetting.value
-    : { version: 2, groups: typeof getEventGroups === "function" ? getEventGroups() : [] };
-  const groupDocument = Array.isArray(groupValue) ? { version: 1, groups: groupValue } : groupValue;
-  if (!groupDocument || !Array.isArray(groupDocument.groups)) throw new Error("Danh mục nhóm sự kiện không hợp lệ.");
-  const zipManifest = {
-    format: "lichviet-zip-backup",
-    version: 1,
-    createdAt: new Date().toISOString(),
-    backupFile: "backup.json",
-    eventGroupsFile: "event-groups.json",
-    imageCount: zipFiles.length
-  };
-  zipFiles.unshift(
-    { name: "zip-manifest.json", bytes: eventBackupTextEncoder.encode(JSON.stringify(zipManifest, null, 2)) },
-    { name: "backup.json", bytes: eventBackupTextEncoder.encode(JSON.stringify(portableBackup, null, 2)) },
-    { name: "event-groups.json", bytes: eventBackupTextEncoder.encode(JSON.stringify(groupDocument, null, 2)) }
-  );
-  progress.update(75, "Đang đóng gói file ZIP...");
-  return {
-    blob: createEventBackupZip(zipFiles),
-    fileName: `Sotaylichviet-${toDateInputValue(getVietnamToday())}.ZIP`
-  };
-}
-
-async function backupEventData() {
-  const progress = openEventBackupProgressDialog(
-    "\u0110ang xu\u1ea5t d\u1eef li\u1ec7u",
-    "\u0110ang chu\u1ea9n b\u1ecb d\u1eef li\u1ec7u sao l\u01b0u..."
-  );
-  let completed = false;
-
-  try {
-    await waitForEventBackupProgressPaint();
-    const { blob, fileName } = await createEventBackupArchive(progress);
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = fileName;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(link.href);
-    progress.update(100, "Ho\u00e0n t\u1ea5t. File sao l\u01b0u \u0111\u00e3 \u0111\u01b0\u1ee3c t\u1ea1o.");
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    setEventFormStatus("Đã tạo file sao lưu dữ liệu.");
-    completed = true;
-  } catch (error) {
-    setEventFormStatus("Chưa sao lưu được dữ liệu.", true);
-  } finally {
-    progress.close();
-  }
-  if (completed) {
-    openEventBackupMessageDialog("Sao lưu hoàn tất", "Đã hoàn tất sao lưu dữ liệu và tạo file ZIP.", "OK");
-  }
-}
-
-async function backupEventDataToGoogleDrive() {
-  const progress = openEventBackupProgressDialog(
-    "Đang sao lưu lên Google Drive",
-    "Đang chuẩn bị dữ liệu sao lưu..."
-  );
-  let completed = false;
-
-  try {
-    await waitForEventBackupProgressPaint();
-    const { blob, fileName } = await createEventBackupArchive(progress);
-    progress.update(85, "Đang tải file sao lưu lên Google Drive...");
-    await window.LichVietGoogleDrive.uploadBackup(blob, fileName);
-    progress.update(100, `Đã lưu ${fileName} vào Google Drive.`);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setEventFormStatus("Đã sao lưu dữ liệu lên Google Drive.");
-    completed = true;
-  } catch (error) {
-    console.error("Google Drive backup failed", error);
-    openEventBackupMessageDialog("Chưa sao lưu được", error.message || "Không tải được file lên Google Drive.");
-  } finally {
-    progress.close();
-  }
-  if (completed) {
-    openEventBackupMessageDialog("Sao lưu hoàn tất", "Đã hoàn tất sao lưu dữ liệu lên Google Drive.", "OK");
-  }
-}
-
 async function importEventBackupFile(file) {
   if (!await showConfirmDialog({
     title: "Khôi phục dữ liệu?",
@@ -529,10 +410,24 @@ async function importEventBackupFile(file) {
     const buffer = await file.arrayBuffer();
     progress.update(22, "\u0110ang ki\u1ec3m tra c\u1ea5u tr\u00fac v\u00e0 CRC file ZIP...");
     const files = readEventBackupZip(buffer);
-    const unexpectedFiles = [...files.keys()].filter((name) => ![
-      "zip-manifest.json", "backup.json", "event-groups.json"
-    ].includes(name) && !name.startsWith("images/"));
-    if (unexpectedFiles.length) throw new Error("ZIP chứa file không được phép.");
+    if (files.has("vault.json")) {
+      progress.update(30, "Đang kiểm tra backup két mã hóa...");
+      const encryptedBackup = parseEncryptedEventBackupZip(files);
+      const currentSession = window.LichVietVault?.getSession();
+      if (!currentSession?.dek || encryptedBackup.vaultId !== currentSession.meta?.vaultId) {
+        throw new Error("Không thể nhập dữ liệu. File không tương thích hoặc không thuộc két dữ liệu hiện tại.");
+      }
+      progress.update(50, "Đang xác thực và giải mã bằng két hiện tại...");
+      try {
+        await window.LichVietData.importEncryptedBackup(encryptedBackup, currentSession.dek);
+      } catch {
+        throw new Error("Không thể nhập dữ liệu. File không tương thích hoặc không thuộc két dữ liệu hiện tại.");
+      }
+    } else {
+      const unexpectedFiles = [...files.keys()].filter((name) => ![
+        "zip-manifest.json", "backup.json", "event-groups.json"
+      ].includes(name) && !name.startsWith("images/"));
+      if (unexpectedFiles.length) throw new Error("ZIP chứa file không được phép.");
     const zipManifest = parseEventBackupJson(files, "zip-manifest.json");
     if (!zipManifest || zipManifest.format !== "lichviet-zip-backup" || Number(zipManifest.version) !== 1
       || zipManifest.backupFile !== "backup.json" || zipManifest.eventGroupsFile !== "event-groups.json") {
@@ -572,9 +467,10 @@ async function importEventBackupFile(file) {
     const restoredGroupSetting = { key: "eventGroups", value: groupDocument, updatedAt: new Date().toISOString() };
     if (groupSettingIndex >= 0) backup.settings[groupSettingIndex] = restoredGroupSetting;
     else backup.settings.push(restoredGroupSetting);
-    progress.update(35, "\u0110\u00e3 ki\u1ec3m tra xong. \u0110ang chu\u1ea9n b\u1ecb kh\u00f4i ph\u1ee5c...");
-    progress.update(40, "\u0110ang kh\u00f4i ph\u1ee5c d\u1eef li\u1ec7u...");
-    await window.LichVietData.importBackup(backup);
+      progress.update(35, "\u0110\u00e3 ki\u1ec3m tra xong. \u0110ang chu\u1ea9n b\u1ecb kh\u00f4i ph\u1ee5c...");
+      progress.update(40, "Đang mã hóa dữ liệu plaintext vào két...");
+      await window.LichVietData.importBackup(backup);
+    }
     if (typeof reloadEventGroups === "function") await reloadEventGroups();
     editingEventId = null;
     clearEventChoiceList();
@@ -591,7 +487,9 @@ async function importEventBackupFile(file) {
     setEventFormStatus("Đã khôi phục dữ liệu sao lưu.");
     completed = true;
   } catch (error) {
+    console.error("Backup import failed", error);
     setEventFormStatus("Chưa khôi phục được dữ liệu. Hãy kiểm tra file sao lưu.", true);
+    openEventBackupMessageDialog("Chưa nhập được dữ liệu", error.message || "File sao lưu không hợp lệ.");
   } finally {
     progress.close();
   }

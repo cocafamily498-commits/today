@@ -38,12 +38,14 @@ async function buildEventPushReminderPayloadsForEvents(events) {
 
 function buildEventPushReminderPayload(event, occurrenceDate, reminderAt, id) {
   const occurrenceAt = getEventOccurrenceDateTimeInVietnamTimeZone(event, occurrenceDate);
+  const appTag = window.location.hostname.toLowerCase().replace(/[^a-z0-9.-]/g, "-");
+  const eventTitle = String(event.title || "").trim() || "Sự kiện sắp diễn ra";
   return {
     id,
     reminderAt: reminderAt.toISOString(),
-    title: event && event.title ? `Sắp đến: ${event.title}` : "Sắp đến sự kiện",
+    title: eventTitle,
     body: getEventPushReminderBody(occurrenceAt, reminderAt),
-    tag: `lichviet-event-${event.id}-${occurrenceDate}`,
+    tag: `lichviet-${appTag}-event-${event.id}-${occurrenceDate}`,
     url: `${window.location.origin}${window.location.pathname}#eventsTab`,
     icon: "/icons/app-icon-lichviet-calendar-192.png",
     badge: "/icons/app-icon-lichviet-calendar-192.png",
@@ -93,6 +95,15 @@ function getNextEventAutoReminderTime(now, occurrenceAt) {
 
 function getUpcomingEventOccurrenceDates(event, daysAhead) {
   if (!event || !event.date) return [];
+  const repeat = event.repeat || { frequency: "none" };
+  if (repeat.frequency === "none") {
+    const base = parseDateValue(event.date);
+    if (!base) return [];
+    const dateValue = formatDateValue(base.year, base.month, base.day);
+    const todayValue = toDateInputValue(getVietnamToday());
+    const daysFromToday = getDaysFromDateValue(parseDateValue(todayValue), dateValue);
+    return daysFromToday >= 0 && daysFromToday <= daysAhead ? [dateValue] : [];
+  }
   const dates = [];
   const today = getVietnamToday();
   const start = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
@@ -115,7 +126,7 @@ function isEventOccurrenceOnDate(event, dateValue) {
   const repeat = event.repeat || { frequency: "none", calendar: event.calendarLabel || "solar", interval: 1 };
   const interval = Math.max(1, Number.parseInt(repeat.interval, 10) || 1);
 
-  if (repeat.frequency === "none") return event.date === dateValue;
+  if (repeat.frequency === "none") return formatDateValue(base.year, base.month, base.day) === dateValue;
   if (repeat.frequency === "daily") return getDaysFromDateValue(base, dateValue) % interval === 0;
   if (repeat.frequency === "weekly") return getDaysFromDateValue(base, dateValue) % (7 * interval) === 0;
   if (repeat.frequency === "monthly") {

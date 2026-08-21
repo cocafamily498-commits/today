@@ -12,30 +12,39 @@
   <link rel="icon" href="favicon-lichviet.ico?v=2" sizes="any">
   <link rel="icon" href="icons/app-icon-lichviet-calendar-192.png" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="icons/app-icon-lichviet-calendar-192.png">
-  <link rel="stylesheet" href="styles.css?v=122">
+  <link rel="stylesheet" href="styles.css?v=151">
 </head>
 <body>
   <main id="appRoot" aria-label="Sổ tay lịch Việt">
     <p class="app-loading" aria-live="polite">Đang tải ứng dụng...</p>
   </main>
 
-  <script src="scripts/data/app-data-core.js?v=3"></script>
-  <script src="scripts/data/app-data-events.js?v=3"></script>
+  <script type="importmap">{"imports":{"@noble/hashes/":"/node_modules/@noble/hashes/","@scure/base":"/node_modules/@scure/base/index.js"}}</script>
+  <script src="node_modules/hash-wasm/dist/argon2.umd.min.js"></script>
+
+  <script src="scripts/data/zk-crypto.js?v=19"></script>
+  <script src="scripts/data/zk-migration.js?v=3"></script>
+  <script src="scripts/data/zk-backup.js?v=4"></script>
+  <script src="scripts/data/app-data-core.js?v=7"></script>
+  <script src="scripts/data/app-data-events.js?v=4"></script>
   <script src="scripts/data/app-data-journals.js?v=3"></script>
-  <script src="scripts/data/app-data-backup.js?v=3"></script>
-  <script src="app-data.js?v=2"></script>
-  <script src="scripts/partials-loader.js?v=29"></script>
+  <script src="scripts/data/app-data-backup.js?v=4"></script>
+  <script src="app-data.js?v=3"></script>
+  <script src="scripts/data/zk-repository.js?v=4"></script>
+  <script src="scripts/vault-gate.js?v=68"></script>
+  <script src="scripts/partials-loader.js?v=32"></script>
+  <script src="scripts/vault-bootstrap.js?v=2"></script>
   <script src="scripts/lunar-core.js?v=2"></script>
-  <script src="scripts/app-shell.js?v=16"></script>
+  <script src="scripts/app-shell.js?v=21"></script>
   <script src="scripts/confirm-dialog.js?v=2"></script>
-  <script src="scripts/event-list-window.js?v=7"></script>
-  <script src="scripts/event-list-window-filters.js?v=5"></script>
+  <script src="scripts/event-list-window.js?v=8"></script>
+  <script src="scripts/event-list-window-filters.js?v=6"></script>
   <script src="scripts/event-list-dialog-render.js?v=20"></script>
-  <script src="scripts/event-reminders-system.js?v=9"></script>
-  <script src="scripts/event-reminders-push.js?v=6"></script>
-  <script src="scripts/event-backup.js?v=10"></script>
-  <script src="scripts/google-drive-backup.js?v=2"></script>
-  <script src="scripts/event-today-reminders.js?v=8"></script>
+  <script src="scripts/event-reminders-system.js?v=20"></script>
+  <script src="scripts/event-reminders-push.js?v=12"></script>
+  <script src="scripts/event-backup.js?v=16"></script>
+  <script src="scripts/google-drive-backup.js?v=3"></script>
+  <script src="scripts/event-today-reminders.js?v=9"></script>
   <script src="scripts/event-list-window-dialog.js?v=9"></script>
   <script src="scripts/event-groups.js?v=15"></script>
     <script src="scripts/event-form.js?v=17"></script>
@@ -43,15 +52,15 @@
   <script src="scripts/event-editor-window-form.js?v=4"></script>
   <script src="scripts/event-editor-window-script.js?v=4"></script>
   <script src="scripts/event-editor-window.js?v=2"></script>
-  <script src="scripts/event-model.js?v=8"></script>
-  <script src="scripts/event-schedule.js?v=2"></script>
+  <script src="scripts/event-model.js?v=9"></script>
+  <script src="scripts/event-schedule.js?v=3"></script>
   <script src="scripts/calendar-controls.js?v=9"></script>
   <script src="scripts/event-calendar.js?v=14"></script>
   <script src="scripts/journal-calendar.js?v=18"></script>
   <script src="scripts/journal-form.js?v=8"></script>
   <script src="scripts/journal-images.js?v=3"></script>
   <script src="scripts/journal-export.js?v=34"></script>
-  <script src="scripts/journal-dialog.js?v=20"></script>
+  <script src="scripts/journal-dialog.js?v=22"></script>
   <script src="scripts/month-calendar.js?v=9"></script>
   <script src="scripts/converter-tool.js?v=2"></script>
   <script src="scripts/lunar-details.js"></script>
@@ -59,7 +68,7 @@
   <script src="scripts/today-panel.js?v=3"></script>
   <script src="scripts/weather-panel.js"></script>
   <script src="scripts/market-panels.js?v=2"></script>
-  <script src="scripts/pwa-install.js?v=4"></script>
-  <script src="scripts/startup.js?v=3"></script>
+  <script src="scripts/pwa-install.js?v=5"></script>
+  <script src="scripts/startup.js?v=8"></script>
 </body>
 </html>

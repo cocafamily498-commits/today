@@ -3,7 +3,8 @@
 
   const parts = window.LichVietDataParts = {};
   const DB_NAME = "so-tay-lich-viet";
-  const DB_VERSION = 3;
+  // v6 stays above the Mahoa prototype (v5). Upgrades only add stores.
+  const DB_VERSION = 6;
   const EVENT_TYPES = new Set(["birthday", "deathAnniversary", "other"]);
   const CALENDARS = new Set(["solar", "lunar"]);
   const REPEAT_FREQUENCIES = new Set(["none", "daily", "weekly", "monthly", "yearly"]);
@@ -70,6 +71,28 @@
   
         if (!db.objectStoreNames.contains("appMeta")) {
           db.createObjectStore("appMeta", { keyPath: "key" });
+        }
+
+        if (!db.objectStoreNames.contains("zk_events_v1")) {
+          const store = db.createObjectStore("zk_events_v1", { keyPath: "id" });
+          store.createIndex("byDate", "schedule.date", { unique: false });
+          store.createIndex("byMonth", "schedule.month", { unique: false });
+          store.createIndex("byUpdatedAt", "updatedAt", { unique: false });
+        }
+        if (!db.objectStoreNames.contains("zk_journals_v1")) {
+          const store = db.createObjectStore("zk_journals_v1", { keyPath: "id" });
+          store.createIndex("byDate", "schedule.date", { unique: false });
+          store.createIndex("byMonth", "schedule.month", { unique: false });
+          store.createIndex("byUpdatedAt", "updatedAt", { unique: false });
+        }
+        if (!db.objectStoreNames.contains("zk_attachments_v1")) {
+          db.createObjectStore("zk_attachments_v1", { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains("zk_vault_v1")) {
+          db.createObjectStore("zk_vault_v1", { keyPath: "key" });
+        }
+        if (!db.objectStoreNames.contains("zk_migrations_v1")) {
+          db.createObjectStore("zk_migrations_v1", { keyPath: "key" });
         }
       };
   
@@ -159,23 +182,10 @@
     });
   }
   
-  async function getAllFromStore(storeName) {
-    return withStore(storeName, "readonly", (store) => requestToPromise(store.getAll()));
-  }
-  
   async function replaceStoreData(storeName, records) {
     await withStore(storeName, "readwrite", (store) => {
       store.clear();
       records.forEach((record) => store.put(record));
-    });
-  }
-  
-  function blobToDataUrl(blob) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(blob);
     });
   }
   
@@ -195,6 +205,6 @@
   Object.assign(parts, {
     DB_NAME, DB_VERSION, EVENT_TYPES, CALENDARS, REPEAT_FREQUENCIES, DEFAULT_REMINDER_TIME,
     openDatabase, withStore, requestToPromise, generateId, nowIso, assertDate, getMonthFromDate,
-    getAllFromIndex, getAllFromStore, replaceStoreData, blobToDataUrl, dataUrlToBlob
+    getAllFromIndex, replaceStoreData, dataUrlToBlob
   });
 })();

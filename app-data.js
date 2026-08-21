@@ -32,7 +32,6 @@
     setSetting: parts.setSetting,
     getAppMeta: parts.getAppMeta,
     setAppMeta: parts.setAppMeta,
-    exportBackup: parts.exportBackup,
     importBackup: parts.importBackup
   };
 })();

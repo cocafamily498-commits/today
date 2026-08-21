@@ -51,6 +51,16 @@ function scheduleBackgroundTask(task, label) {
   }
 }
 
+function waitForInitialPaint() {
+  return new Promise((resolve) => {
+    if (typeof requestAnimationFrame !== "function") {
+      setTimeout(resolve, 0);
+      return;
+    }
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+}
+
 function setupLazyTabInitialization() {
   const initialized = new Set();
   const initializeTab = (tabId) => {
@@ -67,21 +77,46 @@ function setupLazyTabInitialization() {
 }
 
 async function startApplication() {
-  await loadAppPartials();
+  if (window.LichVietVaultSessionPromise) {
+    const vaultResult = await window.LichVietVaultSessionPromise;
+    if (!vaultResult.ok) throw vaultResult.error;
+  } else {
+    await window.LichVietVault.requireSession();
+  }
+  await loadInitialAppPartials();
 
   [
     [render, "render"],
-    [setupAppTabs, "setupAppTabs"],
-    [setupApplicationInfo, "setupApplicationInfo"],
     [setupVietnameseValidationMessages, "setupVietnameseValidationMessages"],
-    [setupMonthlyCalendar, "setupMonthlyCalendar"],
     [setupCollapsiblePanels, "setupCollapsiblePanels"],
     [setupMarketDataRefresh, "setupMarketDataRefresh"],
-    [setupWeatherDataRefresh, "setupWeatherDataRefresh"],
-    [setupEventSystemReminderControls, "setupEventSystemReminderControls"],
-    [setupTodayEventReminderPrompt, "setupTodayEventReminderPrompt"],
-    [setupLazyTabInitialization, "setupLazyTabInitialization"]
+    [setupWeatherDataRefresh, "setupWeatherDataRefresh"]
   ].forEach(([task, label]) => runStartupTask(task, label));
+
+  // Give the browser a chance to display Today before fetching and building
+  // tabs/dialogs that are not needed for the first screen.
+  await waitForInitialPaint();
+
+  let deferredUiReady = false;
+  try {
+    await loadDeferredAppPartials();
+    deferredUiReady = true;
+  } catch (error) {
+    // Today remains usable even if a secondary partial temporarily fails.
+    console.error("deferred application UI failed", error);
+  }
+
+  if (deferredUiReady) {
+    [
+      [setupAppTabs, "setupAppTabs"],
+      [setupApplicationInfo, "setupApplicationInfo"],
+      [window.LichVietVault.setupSystemControls, "setupSystemVaultControls"],
+      [setupMonthlyCalendar, "setupMonthlyCalendar"],
+      [setupEventSystemReminderControls, "setupEventSystemReminderControls"],
+      [setupTodayEventReminderPrompt, "setupTodayEventReminderPrompt"],
+      [setupLazyTabInitialization, "setupLazyTabInitialization"]
+    ].forEach(([task, label]) => runStartupTask(task, label));
+  }
 
   [
     [setupLocationPicker, "setupLocationPicker"],
@@ -93,12 +128,30 @@ async function startApplication() {
     [loadQuotes, "loadQuotes"]
   ].forEach(([task, label]) => scheduleBackgroundTask(task, label));
 
-  await importSharedBackupFile();
+  if (deferredUiReady) await importSharedBackupFile();
 
 }
 
 startApplication().catch((error) => {
   console.error("startup failed", error);
   const root = document.getElementById("appRoot");
-  if (root) root.innerHTML = `<p class="app-loading" role="alert">Khong tai duoc giao dien ung dung.</p>`;
+  if (root) {
+    const message = error && error.name === "VersionError"
+      ? "Dữ liệu local đang dùng phiên bản mới hơn ứng dụng. Hãy tải lại bản mới nhất."
+      : error && error.message ? error.message : "Không tải được giao diện ứng dụng.";
+    root.replaceChildren();
+    const panel = document.createElement("section");
+    panel.className = "vault-gate";
+    const title = document.createElement("h1");
+    title.textContent = "Chưa mở được dữ liệu local";
+    const detail = document.createElement("p");
+    detail.setAttribute("role", "alert");
+    detail.textContent = message;
+    const reload = document.createElement("button");
+    reload.type = "button";
+    reload.textContent = "Tải lại ứng dụng";
+    reload.addEventListener("click", () => location.reload());
+    panel.append(title, detail, reload);
+    root.append(panel);
+  }
 });

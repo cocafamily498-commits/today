@@ -1,5 +1,14 @@
+let eventTodayReminderCheckInProgress = false;
+let eventTodayReminderCheckTimer = null;
+
 function setupTodayEventReminderPrompt() {
   requestAnimationFrame(() => showTodayEventRemindersIfNeeded());
+  if (!eventTodayReminderCheckTimer) {
+    eventTodayReminderCheckTimer = window.setInterval(() => showTodayEventRemindersIfNeeded(), 60 * 1000);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) showTodayEventRemindersIfNeeded();
+    });
+  }
   if (navigator.serviceWorker && !window.eventReminderServiceWorkerListenerReady) {
     window.eventReminderServiceWorkerListenerReady = true;
     navigator.serviceWorker.addEventListener("message", (event) => {
@@ -11,16 +20,19 @@ function setupTodayEventReminderPrompt() {
 }
 
 async function showTodayEventRemindersIfNeeded() {
-  if (eventReminderDialogShownThisSession || !window.LichVietData) return;
-  eventReminderDialogShownThisSession = true;
+  if (eventReminderDialogShownThisSession || eventTodayReminderCheckInProgress || !window.LichVietData) return;
+  eventTodayReminderCheckInProgress = true;
 
   try {
     const reminders = await getTodayEventReminderItems();
     if (reminders.length === 0) return;
+    eventReminderDialogShownThisSession = true;
     const dialogItems = getEventReminderDialogItems(reminders);
     openTodayEventReminderDialog(dialogItems, reminders.length > dialogItems.length);
   } catch (error) {
     console.error("today event reminders failed", error);
+  } finally {
+    eventTodayReminderCheckInProgress = false;
   }
 }
 

@@ -49,7 +49,7 @@ function showAppUpdatedDialog() {
     <div class="app-install-dialog-content">
       <h2>\u0110\u00e3 c\u1eadp nh\u1eadt phi\u00ean b\u1ea3n m\u1edbi</h2>
       <p>\u1ee8ng d\u1ee5ng \u0111\u00e3 t\u1ea3i v\u00e0 \u0111ang ch\u1ea1y phi\u00ean b\u1ea3n m\u1edbi nh\u1ea5t.</p>
-      <p>N\u1ebfu bi\u1ec3u t\u01b0\u1ee3ng ngo\u00e0i m\u00e0n h\u00ecnh ch\u00ednh v\u1eabn l\u00e0 icon c\u0169, Android \u0111ang gi\u1eef cache shortcut. H\u00e3y g\u1ee1 app/shortcut r\u1ed3i c\u00e0i l\u1ea1i \u0111\u1ec3 \u0111\u1ed5i icon ngay.</p>
+      <p>N\u1ebfu bi\u1ec3u t\u01b0\u1ee3ng \u1ee9ng d\u1ee5ng v\u1eabn l\u00e0 icon c\u0169, thi\u1ebft b\u1ecb c\u00f3 th\u1ec3 \u0111ang d\u00f9ng b\u1ea3n \u0111\u00e3 l\u01b0u. H\u00e3y g\u1ee1 \u1ee9ng d\u1ee5ng ho\u1eb7c l\u1ed1i t\u1eaft r\u1ed3i c\u00e0i l\u1ea1i \u0111\u1ec3 c\u1eadp nh\u1eadt icon.</p>
       <button class="event-submit" type="button">\u0110\u00e3 hi\u1ec3u</button>
     </div>
   `;

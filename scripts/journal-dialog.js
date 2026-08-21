@@ -57,7 +57,7 @@ async function toggleJournalReading() {
   }
   const vietnameseVoice = await getVietnameseSpeechVoice();
   if (!vietnameseVoice) {
-    setJournalFormStatus("Windows chưa cung cấp giọng tiếng Việt cho trình duyệt. Hãy thêm giọng nói Tiếng Việt trong Settings > Time & language > Speech, sau đó mở lại trình duyệt.", true);
+    setJournalFormStatus("Thiết bị hoặc trình duyệt chưa cung cấp giọng đọc tiếng Việt. Hãy cài thêm giọng tiếng Việt trong phần ngôn ngữ hoặc giọng nói của thiết bị, sau đó mở lại trình duyệt.", true);
     return;
   }
   const utterance = new SpeechSynthesisUtterance(text);
@@ -282,6 +282,8 @@ function normalizeJournalFilterText(value) {
   return String(value || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
     .toLowerCase()
     .trim();
 }

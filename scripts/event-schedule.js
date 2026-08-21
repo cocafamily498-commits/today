@@ -144,12 +144,14 @@ function getDaysFromDateValue(from, dateValue) {
 }
 
 function parseDateValue(dateValue) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateValue || "");
-  if (!match) return null;
+  const raw = String(dateValue || "").trim();
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  const displayMatch = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(raw);
+  if (!match && !displayMatch) return null;
   return {
-    year: Number(match[1]),
-    month: Number(match[2]),
-    day: Number(match[3])
+    year: Number(match ? match[1] : displayMatch[3]),
+    month: Number(match ? match[2] : displayMatch[2]),
+    day: Number(match ? match[3] : displayMatch[1])
   };
 }
 

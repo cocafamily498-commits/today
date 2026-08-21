@@ -109,7 +109,7 @@ function buildEventFromForm(form) {
 
 function buildEventFromValues(values) {
   const eventType = values.eventType;
-  const date = values.date;
+  const date = parseEventDateInputValue(values.date);
   const title = String(values.title || "").trim();
   const calendarLabel = eventType === "birthday"
     ? "solar"

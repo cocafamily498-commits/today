@@ -2,30 +2,36 @@
       <div class="app-info-dialog-content">
         <header class="app-info-dialog-header">
           <h2 id="appInfoHeading">Thông tin ứng dụng</h2>
-          <p>Phiên bản 3.0 · Phát triển bởi Ông Thừa Phú</p>
+          <p>Phiên bản 4.0 · Phát triển bởi Ông Thừa Phú</p>
         </header>
         <div class="app-info-dialog-body">
           <div class="app-info-list">
             <section class="app-info-item">
               <h3>Nguồn dữ liệu</h3>
-              <p>Tổng hợp từ các nguồn công khai và dịch vụ bên thứ ba; dữ liệu có thể chậm hoặc thay đổi.</p>
+              <p>Thông tin lịch và các tiện ích được tổng hợp từ các nguồn công khai và dịch vụ bên thứ ba; dữ liệu có thể có độ trễ hoặc thay đổi.</p>
             </section>
             <section class="app-info-item">
               <h3>Miễn trừ trách nhiệm</h3>
-              <p>Thông tin chỉ mang tính tham khảo, không phải tư vấn tài chính, đầu tư hay quyết định chuyên môn.</p>
+              <p>Thông tin trong ứng dụng chỉ mang tính tham khảo, không thay thế tư vấn tài chính, đầu tư, y tế, pháp lý hoặc các quyết định chuyên môn.</p>
             </section>
             <section class="app-info-item app-info-item-wide">
-              <h3>Dữ liệu của bạn</h3>
-              <p>Sự kiện và nhật ký được lưu trên thiết bị này trong trình duyệt hiện tại, không tự động gửi lên cloud. Hãy chọn mục Export data trong Cài đặt/Hệ thống để xuất file Sotaylichviet....ZIP để sao lưu trước khi xóa dữ liệu trình duyệt, đổi máy hoặc đổi trình duyệt. Người dùng có thể sử dụng chức năng Import data của ứng dụng để khôi phục dữ liệu từ file .ZIP đó.</p>
+              <h3>Bảo mật dữ liệu của bạn</h3>
+              <p>Sự kiện, nhật ký và dữ liệu cá nhân được <strong>mã hóa ngay trên thiết bị</strong> theo mô hình Zero-Knowledge. Dữ liệu chỉ được giải mã trên thiết bị sau khi bạn mở Két bằng mật khẩu hợp lệ.</p>
+              <p>Ứng dụng và nhà phát triển <strong>không lưu mật khẩu, 24 từ Recovery hoặc khóa giải mã dữ liệu</strong> và không thể đọc nội dung dữ liệu đã mã hóa của bạn.</p>
+              <p>Dữ liệu không tự động được gửi lên máy chủ hoặc cloud. <strong>Khi cần sao lưu hoặc chuyển dữ liệu sang thiết bị khác, hãy sử dụng chức năng Backup dữ liệu trong Cài đặt/Hệ thống.</strong></p>
+              <p><strong>Quan trọng:</strong> Hãy lưu 24 từ Recovery ở nơi an toàn. Nếu quên mật khẩu và đồng thời làm mất 24 từ Recovery, dữ liệu đã mã hóa sẽ không thể khôi phục.</p>
+              <button id="appInfoVaultGuide" class="app-info-learn-more" type="button">Tìm hiểu thêm</button>
             </section>
             <section class="app-info-item app-info-item-wide">
               <h3>Lời cảm ơn</h3>
               <p>Chúng tôi xin trân trọng cảm ơn tác giả Hồ Ngọc Đức vì những đóng góp và việc công khai thuật toán chuyển đổi lịch âm – dương. Đây là nguồn tham khảo quan trọng trong quá trình xây dựng chức năng lịch âm của ứng dụng Sổ tay Lịch Việt.</p>
             </section>
           </div>
+        </div>
+        <footer class="app-info-dialog-footer">
           <form method="dialog">
             <button class="app-info-close" type="submit">Đóng</button>
           </form>
-        </div>
+        </footer>
       </div>
     </dialog>

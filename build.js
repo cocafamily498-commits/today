@@ -31,3 +31,14 @@ copyDirectory(path.join(__dirname, "assets"), path.join(outputDirectory, "assets
 copyDirectory(path.join(__dirname, "data"), path.join(outputDirectory, "data"));
 copyDirectory(path.join(__dirname, "partials"), path.join(outputDirectory, "partials"));
 copyDirectory(path.join(__dirname, "scripts"), path.join(outputDirectory, "scripts"));
+[
+  ["@scure/bip39", "@scure/bip39"],
+  ["@scure/base", "@scure/base"],
+  ["@noble/hashes", "@noble/hashes"],
+  ["@zxcvbn-ts/core", "@zxcvbn-ts/core"],
+  ["@zxcvbn-ts/language-common", "@zxcvbn-ts/language-common"],
+  ["hash-wasm/dist", "hash-wasm/dist"]
+].forEach(([source, destination]) => copyDirectory(
+  path.join(__dirname, "node_modules", source),
+  path.join(outputDirectory, "node_modules", destination)
+));

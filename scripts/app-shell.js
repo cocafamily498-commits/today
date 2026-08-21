@@ -96,18 +96,27 @@ function setupApplicationInfo() {
   const button = document.getElementById("appInfoButton");
   const dialog = document.getElementById("appInfoDialog");
   if (!button || !dialog) return;
-  button.addEventListener("click", () => dialog.showModal());
-  dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close();
+  button.addEventListener("click", () => {
+    document.body.classList.add("app-info-modal-open");
+    dialog.showModal();
   });
+  dialog.addEventListener("close", () => document.body.classList.remove("app-info-modal-open"));
 
   const installButton = document.getElementById("systemInstallButton");
-  const exportButton = document.getElementById("systemExportButton");
+  const lockButton = document.getElementById("systemLockApp");
+  const vaultGuideButton = document.getElementById("appInfoVaultGuide");
   const importButton = document.getElementById("systemImportButton");
   const importInput = document.getElementById("systemImportInput");
 
   if (installButton) installButton.addEventListener("click", handleInstallClick);
-  if (exportButton) exportButton.addEventListener("click", openBackupExplanationDialog);
+  if (lockButton) lockButton.addEventListener("click", () => window.LichVietVault?.lock());
+  if (vaultGuideButton) vaultGuideButton.addEventListener("click", () => window.LichVietVault?.openGuide());
+  document.addEventListener("keydown", (event) => {
+    if (event.repeat || !window.matchMedia("(min-width: 768px)").matches) return;
+    if (!event.ctrlKey || !event.shiftKey || event.altKey || event.metaKey || event.key.toLowerCase() !== "l") return;
+    event.preventDefault();
+    window.LichVietVault?.lock();
+  }, true);
   if (importButton && importInput) {
     importButton.addEventListener("click", () => importInput.click());
     importInput.addEventListener("change", async () => {

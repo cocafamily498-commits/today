@@ -337,7 +337,13 @@ const emptyState = document.getElementById("eventFilterEmptyState");
 const title = document.getElementById("eventListTitle");
 
 function normalizeFilterText(value) {
-  return String(value || "").trim().toLowerCase();
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
 }
 
 function applyEventFilters() {

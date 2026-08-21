@@ -62,6 +62,7 @@
 .event-backup-content {
   max-height: inherit;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 22px;
   background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
 }
@@ -87,6 +88,42 @@
   gap: 10px;
   justify-content: flex-end;
   margin-top: 18px;
+}
+.vault-transfer-dialog { border-radius: 14px; }
+.vault-transfer-dialog .event-backup-content { padding: 0; }
+.vault-transfer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  color: #fff;
+  border-top: 6px solid var(--gold);
+  border-bottom: 4px solid var(--gold);
+  background: var(--red-dark);
+}
+.vault-transfer-dialog .vault-transfer-header h2 { margin: 0; color: inherit; font-size: 1.3rem; }
+.vault-transfer-close {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  color: #fff;
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  border: 1px solid rgba(255, 255, 255, .5);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .1);
+  cursor: pointer;
+}
+.vault-transfer-close:hover, .vault-transfer-close:focus-visible { background: rgba(255, 255, 255, .22); outline: 2px solid #fff; outline-offset: 2px; }
+.vault-transfer-body { padding: 22px; }
+@media (max-width: 520px) {
+  .vault-transfer-header { padding: 15px 17px; }
+  .vault-transfer-body { padding: 18px 16px; }
+  .vault-transfer-dialog .event-backup-dialog-actions { display: grid; grid-template-columns: 1fr; }
 }
 
 .event-reminder-dialog {
