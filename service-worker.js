@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v287-mobile-settings-scroll";
+const CACHE_NAME = "homnay-pwa-v288-settings-scroll-chain";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -48,6 +48,7 @@ const APP_SHELL = [
   "/styles.css?v=148",
   "/styles.css?v=149",
   "/styles.css?v=150",
+  "/styles.css?v=151",
   "/styles.css?v=31",
   "/styles.css?v=32",
   "/styles.css?v=33",
@@ -644,6 +645,7 @@ const APP_SHELL = [
   "/scripts/styles/part-02.css?v=23",
   "/scripts/styles/part-02.css?v=24",
   "/scripts/styles/part-02.css?v=25",
+  "/scripts/styles/part-02.css?v=26",
   "/scripts/partials-loader.js?v=16",
   "/partials/tabs.html?v=2026-07-21-settings-icons",
   "/partials/today-tab.html?v=2026-07-21-settings-icons",
