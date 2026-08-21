@@ -1,11 +1,14 @@
 const EVENT_SYSTEM_REMINDER_CHECK_INTERVAL = 60 * 1000;
 const EVENT_PUSH_REMINDER_DAYS_AHEAD = 370;
-const EVENT_PUSH_SYNC_SCHEMA_VERSION = "10";
+// Version 11 forces existing preview installations to register their current
+// reminders again against the production push backend.
+const EVENT_PUSH_SYNC_SCHEMA_VERSION = "11";
 const EVENT_PUSH_SYNC_DIRTY_KEY = "homnay.eventPushSyncDirty";
 const EVENT_PUSH_SYNC_SCHEMA_KEY = "homnay.eventPushSyncSchema";
 const EVENT_PUSH_VAPID_CACHE_KEY = "homnay.eventPushVapidPublicKey";
 const EVENT_SYSTEM_REMINDER_ENABLED_KEY = "homnay.eventSystemReminderEnabled";
 const EVENT_PUSH_VAPID_CACHE_TTL = 24 * 60 * 60 * 1000;
+const EVENT_PUSH_PRODUCTION_ORIGIN = "https://sotaylichviet.netlify.app";
 let eventSystemReminderListenersReady = false;
 let eventWebPushRecoveryPromise = null;
 let eventWebPushRecoveryTimer = null;
@@ -13,6 +16,16 @@ let eventWebPushMutationPromise = Promise.resolve();
 let eventWebPushMutationVersion = 0;
 let eventWebPushMutationFailed = false;
 let eventWebPushPublicKey = "";
+
+function getEventPushApiUrl(path) {
+  const hostname = window.location.hostname.toLowerCase();
+  const isNetlifyPreview = hostname.endsWith("--sotaylichviet.netlify.app");
+  return isNetlifyPreview ? `${EVENT_PUSH_PRODUCTION_ORIGIN}${path}` : getApiUrl(path);
+}
+
+function getEventPushApiOrigin() {
+  return new URL(getEventPushApiUrl("/"), window.location.origin).origin;
+}
 
 function setupEventSystemReminderControls() {
   const buttons = Array.from(document.querySelectorAll(".event-system-reminder-trigger"));
@@ -309,7 +322,7 @@ async function syncEventWebPushReminderPayloads(options = {}) {
     if (Array.isArray(options.replaceEventIds)) {
       payload.replaceEventIds = options.replaceEventIds;
     }
-    const response = await fetch(getApiUrl("/api/push-subscription"), {
+    const response = await fetch(getEventPushApiUrl("/api/push-subscription"), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload)
@@ -350,7 +363,7 @@ async function sendEventWebPushTestNotification() {
     }
 
     const subscription = await getOrCreateWebPushSubscription(registration);
-    const response = await fetch(getApiUrl("/api/send-test-push"), {
+    const response = await fetch(getEventPushApiUrl("/api/send-test-push"), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ appId: location.origin, subscription })
@@ -366,10 +379,11 @@ async function sendEventWebPushTestNotification() {
 async function getWebPushPublicKey() {
   if (eventWebPushPublicKey) return eventWebPushPublicKey;
 
+  const apiOrigin = getEventPushApiOrigin();
   let cached = null;
   try {
     cached = JSON.parse(localStorage.getItem(EVENT_PUSH_VAPID_CACHE_KEY) || "null");
-    if (cached && cached.publicKey && cached.apiOrigin === location.origin && Date.now() - Number(cached.cachedAt) < EVENT_PUSH_VAPID_CACHE_TTL) {
+    if (cached && cached.publicKey && cached.apiOrigin === apiOrigin && Date.now() - Number(cached.cachedAt) < EVENT_PUSH_VAPID_CACHE_TTL) {
       eventWebPushPublicKey = cached.publicKey;
       return eventWebPushPublicKey;
     }
@@ -378,7 +392,7 @@ async function getWebPushPublicKey() {
   }
 
   try {
-    const response = await fetch(getApiUrl("/api/push-vapid-public-key"), { cache: "no-store" });
+    const response = await fetch(getEventPushApiUrl("/api/push-vapid-public-key"), { cache: "no-store" });
     if (!response.ok) throw new Error("VAPID public key is unavailable.");
     const data = await response.json();
     eventWebPushPublicKey = data && data.publicKey ? data.publicKey : "";
@@ -386,7 +400,7 @@ async function getWebPushPublicKey() {
       try {
         localStorage.setItem(EVENT_PUSH_VAPID_CACHE_KEY, JSON.stringify({
           publicKey: eventWebPushPublicKey,
-          apiOrigin: location.origin,
+          apiOrigin,
           cachedAt: Date.now()
         }));
       } catch (error) {
@@ -395,7 +409,7 @@ async function getWebPushPublicKey() {
     }
     return eventWebPushPublicKey;
   } catch (error) {
-    return cached && cached.publicKey && cached.apiOrigin === location.origin ? cached.publicKey : "";
+    return cached && cached.publicKey && cached.apiOrigin === apiOrigin ? cached.publicKey : "";
   }
 }
 
