@@ -1,7 +1,7 @@
 const APP_PARTIAL_VERSION = "2026-08-21-fast-start-v1";
 const APP_PARTIAL_VERSIONS = {
-  "events-tab": "2026-08-02-event-calendar-preview",
-  "journals-tab": "2026-08-02-journal-filter-count"
+  "events-tab": "2026-08-22-remove-calendar-heading",
+  "journals-tab": "2026-08-22-remove-calendar-heading"
 };
 const INITIAL_APP_PARTIALS = ["tabs", "today-tab"];
 const DEFERRED_APP_PARTIALS = [

@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v295-ios-webauthn-probe";
+const CACHE_NAME = "homnay-pwa-v297-main-preview-merge";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -1026,7 +1026,9 @@ const APP_SHELL = [
   "/partials/events-tab.html?v=2026-07-26-journal-title-required",
   "/partials/journals-tab.html?v=2026-07-26-journal-title-required",
   "/partials/journals-tab.html?v=2026-08-02-journal-filter-count",
+  "/partials/journals-tab.html?v=2026-08-22-remove-calendar-heading",
   "/partials/events-tab.html?v=2026-08-02-event-calendar-preview",
+  "/partials/events-tab.html?v=2026-08-22-remove-calendar-heading",
   "/partials/app-info-tab.html?v=2026-07-26-journal-title-required",
   "/partials/event-dialog.html?v=2026-07-26-journal-title-required",
   "/partials/journal-dialog.html?v=2026-07-26-journal-title-required",
