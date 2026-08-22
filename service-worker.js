@@ -1,4 +1,4 @@
-const CACHE_NAME = "homnay-pwa-v293-preview-push-production";
+const CACHE_NAME = "homnay-pwa-v295-preview-event-calendar-layout";
 const SHARE_TARGET_CACHE = "homnay-share-target-files";
 const APP_SHELL = [
   "/",
@@ -996,6 +996,7 @@ const APP_SHELL = [
   "/scripts/partials-loader.js?v=32",
   "/scripts/startup.js?v=7",
   "/scripts/startup.js?v=8",
+  "/scripts/startup.js?v=9",
   "/scripts/vault-bootstrap.js?v=1",
   "/scripts/vault-bootstrap.js?v=2",
   "/scripts/vault-gate.js?v=68",
@@ -1025,6 +1026,7 @@ const APP_SHELL = [
   "/partials/journals-tab.html?v=2026-07-26-journal-title-required",
   "/partials/journals-tab.html?v=2026-08-02-journal-filter-count",
   "/partials/events-tab.html?v=2026-08-02-event-calendar-preview",
+  "/partials/events-tab.html?v=2026-08-22-remove-calendar-heading",
   "/partials/app-info-tab.html?v=2026-07-26-journal-title-required",
   "/partials/event-dialog.html?v=2026-07-26-journal-title-required",
   "/partials/journal-dialog.html?v=2026-07-26-journal-title-required",

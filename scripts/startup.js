@@ -1,5 +1,9 @@
 function setupCollapsiblePanels() {
   document.querySelectorAll("[data-collapse-key]").forEach((panel) => {
+    // Deferred tabs are inserted after the first startup pass. This marker lets
+    // us safely scan again without attaching duplicate click handlers.
+    if (panel.dataset.collapseReady === "true") return;
+
     const storageKey = `homnay.${panel.dataset.collapseKey}PanelCollapsed`;
     const collapseButton = panel.querySelector(".market-collapse-button");
     const restoreButton = panel.querySelector(".market-restore-button");
@@ -28,6 +32,7 @@ function setupCollapsiblePanels() {
     setCollapsed(initiallyCollapsed);
     collapseButton.addEventListener("click", () => setCollapsed(true));
     restoreButton.addEventListener("click", () => setCollapsed(false));
+    panel.dataset.collapseReady = "true";
   });
 }
 
@@ -108,6 +113,7 @@ async function startApplication() {
 
   if (deferredUiReady) {
     [
+      [setupCollapsiblePanels, "setupDeferredCollapsiblePanels"],
       [setupAppTabs, "setupAppTabs"],
       [setupApplicationInfo, "setupApplicationInfo"],
       [window.LichVietVault.setupSystemControls, "setupSystemVaultControls"],
